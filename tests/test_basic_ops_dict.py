@@ -29,6 +29,7 @@ from omegaconf.errors import (
     ConfigTypeError,
     InterpolationKeyError,
     InterpolationToMissingValueError,
+    InterpolationValidationError,
     KeyValidationError,
 )
 from tests import (
@@ -1117,9 +1118,10 @@ def test_get_ref_type_with_conflict() -> None:
     assert OmegaConf.get_type(cfg.user) == User
     assert _utils.get_type_hint(cfg.user) == Any
 
-    # Interpolation inherits both type and ref type from the target
-    assert OmegaConf.get_type(cfg.inter) == User
-    assert _utils.get_type_hint(cfg.inter) == Any
+    # A typed interpolation rejects an incompatible target.
+    with raises(InterpolationValidationError):
+        OmegaConf.get_type(cfg.inter)
+    assert _utils.get_type_hint(cfg._get_node("inter")) == Optional[Plugin]
 
 
 def test_is_missing() -> None:

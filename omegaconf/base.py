@@ -38,6 +38,7 @@ from .errors import (
     InterpolationResolutionError,
     InterpolationToMissingValueError,
     InterpolationValidationError,
+    KeyValidationError,
     MissingMandatoryValue,
     OmegaConfBaseException,
     UnsupportedInterpolationType,
@@ -678,14 +679,78 @@ class Container(Box):
             if type(conv_value) is not type(res_value):
                 must_wrap = True
                 resolved = conv_value
+        elif isinstance(value, Container) and value._has_ref_type():
+            from ._utils import _convert_opaque_missing, is_primitive_container
+            from .omegaconf import _node_wrap
+
+            if not (
+                isinstance(resolved, type(value))
+                and resolved._metadata.type_hint == value._metadata.type_hint
+            ):
+                if isinstance(resolved, Container) and not (
+                    is_structured_config(value._metadata.ref_type)
+                    and is_structured_config(resolved._metadata.object_type)
+                ):
+                    from .basecontainer import BaseContainer
+
+                    res_value = BaseContainer._to_content(
+                        resolved,
+                        resolve=False,
+                        throw_on_missing=False,
+                        encode_missing_literals=True,
+                    )
+                else:
+                    res_value = _get_value(resolved)
+                if not isinstance(resolved, Node) and is_primitive_container(res_value):
+                    from ._impl import _is_recursive_container
+
+                    if _is_recursive_container(res_value):
+                        if throw_on_resolution_failure:
+                            self._format_and_raise(
+                                key=key,
+                                value=res_value,
+                                cause=InterpolationResolutionError(
+                                    "Cannot materialize a recursive resolver result"
+                                ),
+                                type_override=InterpolationResolutionError,
+                            )
+                        return None
+                    res_value = _convert_opaque_missing(res_value, encode=True)
+                try:
+                    with _conversion_warnings(False):
+                        resolved = _node_wrap(
+                            parent=value,
+                            is_optional=value._is_optional(),
+                            value=res_value,
+                            key=None,
+                            ref_type=value._metadata.ref_type,
+                        )
+                except (ValidationError, KeyValidationError) as e:
+                    if throw_on_resolution_failure:
+                        self._format_and_raise(
+                            key=key,
+                            value=res_value,
+                            cause=e,
+                            msg=f"While dereferencing interpolation '{value}': {e}",
+                            type_override=InterpolationValidationError,
+                        )
+                    return None
+                resolved._set_parent(parent)
+                resolved._set_key(key)
+                must_wrap = False
         elif isinstance(value, UnionNode):
             res_value = _get_value(resolved)
             try:
-                UnionNode(
-                    content=res_value,
-                    ref_type=value._metadata.ref_type,
-                    is_optional=value._is_optional(),
-                )
+                with _conversion_warnings(False):
+                    candidate = UnionNode(
+                        content="???",
+                        ref_type=value._metadata.ref_type,
+                        is_optional=value._is_optional(),
+                        parent=parent,
+                        key=key,
+                    )
+                    candidate._set_flag("convert", value._get_flag("convert"))
+                    candidate._set_value(res_value)
             except ValidationError as e:
                 if throw_on_resolution_failure:
                     self._format_and_raise(
@@ -696,6 +761,25 @@ class Container(Box):
                         type_override=InterpolationValidationError,
                     )
                 return None
+
+            selected = candidate._value()
+            if not isinstance(selected, Node):
+                if must_wrap:
+                    return InterpolationResultNode(
+                        value=selected, key=key, parent=parent
+                    )
+                return resolved
+            if isinstance(resolved, Node) and (
+                isinstance(resolved, type(selected))
+                and resolved._metadata.type_hint == selected._metadata.type_hint
+            ):
+                return resolved
+            if isinstance(selected, Container):
+                selected._set_parent(parent)
+                selected._set_key(key)
+                return selected
+            resolved = _get_value(selected)
+            must_wrap = True
 
         if must_wrap:
             return InterpolationResultNode(value=resolved, key=key, parent=parent)

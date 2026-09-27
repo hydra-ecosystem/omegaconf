@@ -91,7 +91,7 @@ def test_whole_list_resolver_for_tuple_is_lazy_then_materialized(
 
     assert isinstance(node, TupleConfig)
     assert node._is_interpolation()
-    assert cfg["values"] == [1, "x"]
+    assert cfg["values"] == (1, "x")
 
     OmegaConf.resolve(cfg)
     node = cfg._get_node("values")
