@@ -23,6 +23,13 @@ from typing import (
 import yaml
 
 from . import _key_path
+from ._missing import (
+    _decode_missing_escape as _decode_missing_escape,
+)
+from ._missing import (
+    _EscapedMissing,
+    _has_missing_spelling,
+)
 from .errors import (
     ConfigIndexError,
     ConfigTypeError,
@@ -753,6 +760,93 @@ class ValueKind(Enum):
     INTERPOLATION = 2
 
 
+class _TuplePlaceholder:
+    def __init__(self) -> None:
+        self.items: list[Any] = []
+        self.value: tuple[Any, ...] | None = None
+
+
+def _convert_opaque_missing(
+    value: Any, encode: bool, memo: dict[int, Any] | None = None
+) -> Any:
+    """Export native resolver leaves as plain or YAML-encoded strings."""
+    if memo is None:
+        memo = {}
+    tuple_placeholders: list[_TuplePlaceholder] = []
+
+    def convert(item: Any) -> Any:
+        if isinstance(item, str):
+            if encode and _has_missing_spelling(item):
+                return "\\" + str(item)
+            return str(item) if isinstance(item, _EscapedMissing) else item
+
+        item_id = id(item)
+        if item_id in memo:
+            return memo[item_id]
+        if isinstance(item, list):
+            converted_list: list[Any] = []
+            memo[item_id] = converted_list
+            converted_list.extend(convert(child) for child in item)
+            return converted_list
+        if isinstance(item, tuple):
+            placeholder = _TuplePlaceholder()
+            memo[item_id] = placeholder
+            tuple_placeholders.append(placeholder)
+            placeholder.items.extend(convert(child) for child in item)
+            return placeholder
+        if isinstance(item, dict):
+            converted_dict = {}
+            memo[item_id] = converted_dict
+            converted_dict.update(
+                (
+                    str(key) if isinstance(key, _EscapedMissing) else key,
+                    convert(child),
+                )
+                for key, child in item.items()
+            )
+            return converted_dict
+        return item
+
+    processed_mutables: set[int] = set()
+
+    def resolve_tuple(placeholder: _TuplePlaceholder) -> tuple[Any, ...]:
+        if placeholder.value is None:
+            items = [
+                resolve_tuple(item) if isinstance(item, _TuplePlaceholder) else item
+                for item in placeholder.items
+            ]
+            placeholder.value = tuple(items)
+        return placeholder.value
+
+    def resolve_mutable(item: Any) -> Any:
+        if isinstance(item, _TuplePlaceholder):
+            return resolve_tuple(item)
+        item_id = id(item)
+        if item_id in processed_mutables:
+            return item
+        if isinstance(item, list):
+            processed_mutables.add(item_id)
+            for index, child in enumerate(item):
+                item[index] = resolve_mutable(child)
+        elif isinstance(item, dict):
+            processed_mutables.add(item_id)
+            entries = list(item.items())
+            item.clear()
+            for key, child in entries:
+                item[resolve_mutable(key)] = resolve_mutable(child)
+        return item
+
+    converted = convert(value)
+    if isinstance(converted, _TuplePlaceholder):
+        result = resolve_tuple(converted)
+    else:
+        result = resolve_mutable(converted)
+    for placeholder in tuple_placeholders:
+        for item in placeholder.items:
+            resolve_mutable(item)
+    return result
+
+
 def _is_missing_value(value: Any) -> bool:
     from omegaconf import Node
 
@@ -763,7 +857,11 @@ def _is_missing_value(value: Any) -> bool:
 
 def _is_missing_literal(value: Any) -> bool:
     # Uses literal '???' instead of the MISSING const for performance reasons.
-    return isinstance(value, str) and value == "???"
+    return (
+        isinstance(value, str)
+        and not isinstance(value, _EscapedMissing)
+        and value == "???"
+    )
 
 
 def _is_none(
@@ -1063,6 +1161,8 @@ def _valid_dict_key_annotation_type(type_: Any) -> bool:
 
 
 def is_primitive_type_annotation(type_: Any) -> bool:
+    if isinstance(type_, _EscapedMissing):
+        return True
     type_ = get_type_of(type_)
     return issubclass(type_, (Enum, pathlib.Path)) or type_ in BUILTIN_VALUE_TYPES
 
