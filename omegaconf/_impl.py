@@ -4,18 +4,37 @@ from omegaconf import Container, DictConfig, ListConfig, Node, TupleConfig, Valu
 from omegaconf.errors import (
     ConfigKeyError,
     ConfigTypeError,
+    InterpolationResolutionError,
     InterpolationToMissingValueError,
 )
 from omegaconf.nodes import InterpolationResultNode
 
 from ._utils import (
     _DEFAULT_MARKER_,
+    _convert_opaque_missing,
     _ensure_container,
     _get_value,
     _is_missing_literal,
     is_primitive_container,
     is_structured_config,
 )
+
+
+def _is_recursive_container(value: Any, ancestors: set[int] | None = None) -> bool:
+    if not is_primitive_container(value):
+        return False
+    if ancestors is None:
+        ancestors = set()
+    value_id = id(value)
+    if value_id in ancestors:
+        return True
+    ancestors.add(value_id)
+    try:
+        if isinstance(value, (list, tuple)):
+            return any(_is_recursive_container(item, ancestors) for item in value)
+        return any(_is_recursive_container(item, ancestors) for item in value.values())
+    finally:
+        ancestors.remove(value_id)
 
 
 def _resolve_container_value(cfg: Container, key: Any) -> None:
@@ -33,9 +52,19 @@ def _resolve_container_value(cfg: Container, key: Any) -> None:
             _resolve(resolved)
         if isinstance(resolved, InterpolationResultNode):
             resolved_value = _get_value(resolved)
-            if is_primitive_container(resolved_value) or is_structured_config(
-                resolved_value
-            ):
+            if is_primitive_container(resolved_value):
+                if _is_recursive_container(resolved_value):
+                    cfg._format_and_raise(
+                        key=key,
+                        value=resolved_value,
+                        cause=InterpolationResolutionError(
+                            "Cannot materialize a recursive resolver result"
+                        ),
+                    )
+                resolved = _ensure_container(
+                    _convert_opaque_missing(resolved_value, encode=True)
+                )
+            elif is_structured_config(resolved_value):
                 resolved = _ensure_container(resolved_value)
         if isinstance(cfg, TupleConfig) and _is_missing_literal(_get_value(resolved)):
             cfg._format_and_raise(
@@ -60,7 +89,16 @@ def _resolve(cfg: Node) -> Node:
     assert isinstance(cfg, Node)
     if cfg._is_interpolation():
         resolved = cfg._dereference_node()
-        cfg._set_value(resolved._value())
+        resolved_value = resolved._value()
+        if isinstance(resolved, InterpolationResultNode) and is_primitive_container(
+            resolved_value
+        ):
+            if _is_recursive_container(resolved_value):
+                raise InterpolationResolutionError(
+                    "Cannot materialize a recursive resolver result"
+                )
+            resolved_value = _convert_opaque_missing(resolved_value, encode=True)
+        cfg._set_value(resolved_value)
 
     if isinstance(cfg, DictConfig):
         for k in list(cfg.keys()):

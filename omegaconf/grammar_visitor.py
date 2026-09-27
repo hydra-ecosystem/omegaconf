@@ -6,6 +6,7 @@ from itertools import zip_longest
 from typing import TYPE_CHECKING, Any, NoReturn, cast
 
 from ._key_path import NodeInterpolationKey, split_key
+from ._missing import _decode_missing_escape, _EscapedMissing, _has_missing_spelling
 from .errors import InterpolationResolutionError
 from .vendor.antlr4 import TerminalNode  # type: ignore[attr-defined]
 
@@ -123,7 +124,13 @@ class GrammarVisitor(OmegaConfGrammarParserVisitor):
     def visitElement(self, ctx: OmegaConfGrammarParser.ElementContext) -> Any:
         # primitive | quotedValue | listContainer | dictContainer
         assert ctx.getChildCount() == 1
-        return self.visit(ctx.getChild(0))
+        value = self.visit(ctx.getChild(0))
+        spelling = ctx.getText()
+        if len(spelling) >= 2 and spelling[0] in "\"'" and spelling[-1] == spelling[0]:
+            spelling = spelling[1:-1]
+        if isinstance(value, str) and _has_missing_spelling(spelling):
+            return _decode_missing_escape(spelling)
+        return value
 
     def visitInterpolation(
         self, ctx: OmegaConfGrammarParser.InterpolationContext
@@ -391,7 +398,10 @@ class GrammarVisitor(OmegaConfGrammarParserVisitor):
         (it is assumed that whatever escaping is required was already handled during the
         resolving of the interpolation).
         """
+        from ._utils import _get_value
+
         chrs = []
+        has_escaped_missing = False
         for node, next_node in zip_longest(seq, seq[1:]):
             if isinstance(node, TerminalNode):
                 s = node.symbol  # type: ignore
@@ -428,7 +438,12 @@ class GrammarVisitor(OmegaConfGrammarParserVisitor):
                     text = s.text  # keep the original text
             else:
                 assert isinstance(node, OmegaConfGrammarParser.InterpolationContext)
-                text = str(self.visitInterpolation(node))
+                value = _get_value(self.visitInterpolation(node))
+                has_escaped_missing |= isinstance(value, _EscapedMissing)
+                text = str(value)
             chrs.append(text)
 
-        return "".join(chrs)
+        result = "".join(chrs)
+        if has_escaped_missing and _has_missing_spelling(result):
+            return _EscapedMissing(result)
+        return result
