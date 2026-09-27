@@ -112,6 +112,13 @@ Custom resolvers support variadic argument lists in the form of a comma-separate
 In a variadic argument list, whitespace is stripped from the ends of each value ("foo,bar" gives the same result as "foo, bar ").
 You can use literal commas and spaces anywhere by escaping (``\,`` and :code:`\ `), or
 simply use quotes to bypass character limitations in strings.
+An argument written as ``???`` is missing even when quoted. Write ``\???``
+to pass the literal text ``???``. A resolver returning plain ``"???"`` makes
+the interpolation missing on access; return ``r"\???"`` or forward an
+unchanged escaped value to produce literal text.
+For compatibility, a direct ``???`` argument still reaches the resolver as
+``"???"``. An argument that interpolates a missing field raises before the
+resolver is called.
 
 .. doctest::
 
@@ -345,6 +352,8 @@ Note that:
 
 - In most cases input strings provided to ``oc.decode`` should be quoted, since only a subset of the characters is allowed in unquoted strings.
 - ``None`` (written as ``null`` in the grammar) is the only valid non-string input to ``oc.decode`` (returning ``None`` in that case).
+- An escaped literal ``???`` forwarded from another config value retains its
+  literal meaning.
 
 This resolver can be useful for instance to parse environment variables:
 
