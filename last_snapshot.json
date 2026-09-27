@@ -6,7 +6,7 @@
     "1357": "2026-09-25",
     "459": "2026-09-25"
   },
-  "generated_at": "2026-09-26T12:09:11Z",
+  "generated_at": "2026-09-27T06:10:13Z",
   "issues": {
     "1024": {
       "category": "Enhancement",
@@ -190,11 +190,13 @@
       "labels": [
         "enhancement"
       ],
-      "pr_numbers": [],
+      "pr_numbers": [
+        "1377"
+      ],
       "state": "OPEN",
-      "status": "not started",
-      "title": "Feature: distinguish literal \"???\" from the missing sentinel in interpolation grammar",
-      "updated_at": "2026-07-19T16:45:42Z"
+      "status": "in progress",
+      "title": "Support literal `???` values with an escaped spelling",
+      "updated_at": "2026-09-26T21:39:53Z"
     },
     "131": {
       "category": "Enhancement",
