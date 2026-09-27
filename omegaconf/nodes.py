@@ -10,6 +10,7 @@ from omegaconf._conversion_warnings import (
     _conversion_warning_mode,
     _warn_implicit_conversion,
 )
+from omegaconf._missing import _decode_missing_escape, _EscapedMissing
 from omegaconf._utils import (
     NoneType,
     ValueKind,
@@ -41,6 +42,7 @@ class ValueNode(Node):
         if self._get_flag("readonly"):
             raise ReadonlyConfigError("Cannot set value of read-only config node")
 
+        value = _decode_missing_escape(value)
         if isinstance(value, str) and get_value_kind(
             value, strict_interpolation_validation=True
         ) in (
@@ -60,7 +62,11 @@ class ValueNode(Node):
 
     def _strict_validate_type(self, value: Any) -> None:
         ref_type = self._metadata.ref_type
-        if isinstance(ref_type, type) and type(value) is not ref_type:
+        if (
+            isinstance(ref_type, type)
+            and type(value) is not ref_type
+            and not (ref_type is str and isinstance(value, _EscapedMissing))
+        ):
             type_hint = type_str(self._metadata.type_hint)
             raise ValidationError(
                 f"Value '$VALUE' of type '$VALUE_TYPE' is incompatible with type hint '{type_hint}'"
@@ -235,7 +241,7 @@ class StringNode(ValueNode):
             or isinstance(value, bytes)
         ):
             raise ValidationError("Cannot convert '$VALUE_TYPE' to string: '$VALUE'")
-        return str(value)
+        return value if isinstance(value, _EscapedMissing) else str(value)
 
     def __deepcopy__(self, memo: dict[int, Any]) -> "StringNode":
         res = StringNode()
@@ -597,7 +603,10 @@ class LiteralNode(ValueNode):  # lgtm [py/missing-equals] : Intentional.
         # Use type identity (not isinstance) to keep bool and int distinct.
         fields = list(ref_type.__args__)
         for field in fields:
-            if type(value) is type(field) and value == field:  # noqa: E721
+            if (
+                type(value) is type(field)
+                or (isinstance(value, _EscapedMissing) and type(field) is str)
+            ) and value == field:  # noqa: E721
                 return value
         valid = ", ".join([repr(x) for x in fields])
         raise ValidationError(f"Invalid value '$VALUE', expected one of [{valid}]")
