@@ -7,7 +7,7 @@
     "1357": "2026-09-25",
     "459": "2026-09-25"
   },
-  "generated_at": "2026-09-27T16:21:55Z",
+  "generated_at": "2026-09-27T22:43:01Z",
   "issues": {
     "1024": {
       "category": "Enhancement",
@@ -232,11 +232,13 @@
         "RFC",
         "interpolation"
       ],
-      "pr_numbers": [],
+      "pr_numbers": [
+        "1378"
+      ],
       "state": "OPEN",
-      "status": "not started",
+      "status": "in progress",
       "title": "Define type compatibility rules for typed interpolations",
-      "updated_at": "2026-07-18T02:55:26Z"
+      "updated_at": "2026-09-27T20:07:12Z"
     },
     "1334": {
       "category": "Enhancement",
