@@ -287,7 +287,27 @@ You can provide default values directly in the accessing code:
 
 Mandatory values
 ^^^^^^^^^^^^^^^^
-Use the value ``"???"`` to indicate parameters that need to be set prior to access
+Use the value ``"???"`` to indicate parameters that need to be set prior to access.
+Quoting ``???`` in YAML does not change its meaning. To store the literal text
+``???``, prefix it with a backslash (``\???``). To store one actual backslash
+followed by ``???``, write ``\\???``. The same rule applies to Python input,
+assignment, and resolver return values. OmegaConf preserves the distinction
+through interpolation and YAML serialization.
+
+.. doctest::
+
+    >>> cfg = OmegaConf.create({"required": "???", "literal": r"\???"})
+    >>> OmegaConf.is_missing(cfg, "required")
+    True
+    >>> cfg.literal == "???"
+    True
+    >>> OmegaConf.is_missing(cfg, "literal")
+    False
+
+The returned literal is a ``str`` subclass. It compares equal to ``"???"``,
+so use ``OmegaConf.is_missing(value)`` when checking a detached value. Passing
+it unchanged through an assignment or resolver retains its literal meaning;
+constructing a new plain ``"???"`` string means missing.
 
 .. doctest:: loaded
 
@@ -734,6 +754,9 @@ OmegaConf containers look similar to Python dictionaries, lists, and tuples, but
 are not native containers. Use ``OmegaConf.to_container(cfg: Container,
 resolve: bool)`` to convert them to plain dictionaries, lists, and tuples.
 If ``resolve`` is set to ``True``, interpolations will be resolved during conversion.
+This plain-value export loses the distinction between missing ``???`` and an
+escaped literal ``\???``: both appear as ``"???"``. Use
+``OmegaConf.to_yaml()`` for a round trip that preserves the distinction.
 
 .. doctest::
 
@@ -804,9 +827,9 @@ the ``resolve`` keyword arg.
 OmegaConf.structural_equality
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 ``OmegaConf.structural_equality(cfg1, cfg2)`` compares two configs by their
-unresolved container structure. This is equivalent to converting both configs
-with ``OmegaConf.to_container(resolve=False, throw_on_missing=False)`` and
-comparing the resulting containers.
+unresolved container structure. Unlike comparison of plain values returned by
+``OmegaConf.to_container()``, it distinguishes missing ``???`` from escaped
+literal ``\???``.
 
 Interpolations and custom resolver expressions are compared as raw strings.
 They are not resolved during structural equality checks, and missing values do
@@ -821,6 +844,8 @@ not raise.
     >>> missing1 = OmegaConf.create({"a": "???"})
     >>> missing2 = OmegaConf.create({"a": "???"})
     >>> assert OmegaConf.structural_equality(missing1, missing2)
+    >>> literal = OmegaConf.create({"a": r"\???"})
+    >>> assert not OmegaConf.structural_equality(missing1, literal)
 
 OmegaConf.to_object
 ^^^^^^^^^^^^^^^^^^^^^^
@@ -1088,7 +1113,7 @@ Creates a copy of a ``DictConfig`` that contains only specific keys.
 OmegaConf.is_missing
 ^^^^^^^^^^^^^^^^^^^^
 
-Tests if a value is missing (``"???"``).
+Tests whether a config field or a detached value is missing (``"???"``).
 
 .. doctest::
 
@@ -1098,6 +1123,8 @@ Tests if a value is missing (``"???"``).
     ...     })
     >>> assert not OmegaConf.is_missing(cfg, "foo")
     >>> assert OmegaConf.is_missing(cfg, "bar")
+    >>> assert OmegaConf.is_missing("???")
+    >>> assert not OmegaConf.is_missing(OmegaConf.create({"x": r"\???"}).x)
 
 OmegaConf.is_interpolation
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
