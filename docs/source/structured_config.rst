@@ -736,17 +736,29 @@ Interpolated values are validated, and converted when possible, to the annotated
     >>> cfg.str_key = "1234"  # string value
     >>> assert cfg.int_key == 1234  # automatically convert str to int
 
-Note however that this validation step is currently skipped for container node interpolations:
+Container interpolations follow the same rule. A typed destination validates
+the source's contents and converts them when possible, whether the source is
+another config node or a resolver result. This happens on lazy access as well
+as with ``OmegaConf.resolve()``; the source remains unchanged when conversion
+is needed.
 
 .. doctest::
 
     >>> @dataclass
-    ... class NotValidated:
-    ...     some_int: int = 0
-    ...     some_dict: Dict[str, str] = II("some_int")
+    ... class TypedInterpolation:
+    ...     source: List[str] = field(default_factory=lambda: ["1", "2"])
+    ...     numbers: List[int] = SI("${source}")
 
-    >>> cfg = OmegaConf.structured(NotValidated)
-    >>> assert cfg.some_dict == 0  # type mismatch, but no error
+    >>> cfg = OmegaConf.structured(TypedInterpolation)
+    >>> assert cfg.numbers == [1, 2]
+    >>> assert cfg.source == ["1", "2"]
+    >>> OmegaConf.resolve(cfg)
+    >>> assert cfg.numbers == [1, 2]
+
+An incompatible source raises ``InterpolationValidationError`` when the
+interpolation is accessed. A source container whose full type already matches
+the destination may be returned directly, without making a copy. For
+explicit conversion before destination validation, use :ref:`oc.coerce`.
 
 
 Frozen classes

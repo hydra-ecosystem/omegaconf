@@ -1,0 +1,1 @@
+Typed container and union interpolations now validate and convert against their destination type on lazy access, matching eager resolution.
