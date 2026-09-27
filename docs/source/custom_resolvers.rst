@@ -338,6 +338,38 @@ It takes two parameters:
     >>> with pytest.warns(UserWarning, match="Use shiny_key"):
     ...   assert conf.custom_msg == 10
 
+.. _oc.coerce:
+
+oc.coerce
+^^^^^^^^^
+
+``oc.coerce`` explicitly converts a value using an OmegaConf primitive node
+type before the destination field applies its own rules. It takes a type name
+and a value. For example, ``oc.env`` returns a string, while the nested
+``oc.coerce`` below returns an integer in an untyped config:
+
+.. doctest::
+
+    >>> os.environ["OC_PORT"] = "3308"
+    >>> cfg = OmegaConf.create({"port": "${oc.coerce:int,${oc.env:OC_PORT}}"})
+    >>> assert cfg.port == 3308
+    >>> assert type(cfg.port) is int
+
+The bare names ``int``, ``float``, ``bool``, ``str``, and ``bytes`` are
+supported. Fully qualified import paths can name these types, ``pathlib.Path``,
+``types.NoneType``, or an importable enum subclass such as
+``myapp.types.Color``. Conversion uses the same rules as the corresponding
+OmegaConf node; for instance, ``bool`` recognizes ``"yes"`` rather than
+applying Python's ``bool("yes")``. Unsupported or non-importable type paths
+fail when the interpolation is accessed or resolved.
+Fully qualified paths are imported dynamically while resolving the
+interpolation, so importing a module may execute its top-level code. Configs
+that use such paths should therefore be treated as trusted input.
+
+The explicit conversion happens first. If the interpolation is assigned to a
+typed destination, that destination then applies its own validation and
+conversion, which may convert the result again.
+
 .. _oc.decode:
 
 oc.decode

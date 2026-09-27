@@ -516,34 +516,20 @@ def test_interpolation_type_validated_error(
         param(
             MissingList(list=SI("${oc.create:[0, 1, 2]}")),
             "list",
-            [0, 1, 2],
+            ["0", "1", "2"],
             ListConfig,
             id="list_int_to_str",
         ),
         param(
             MissingDict(dict=SI("${oc.create:{a: 0, b: 1}}")),
             "dict",
-            {"a": 0, "b": 1},
+            {"a": "0", "b": "1"},
             DictConfig,
             id="dict_int_to_str",
         ),
-        param(
-            SubscriptedList(list=SI("${oc.create:[a, b]}")),
-            "list",
-            ["a", "b"],
-            ListConfig,
-            id="list_type_mismatch",
-        ),
-        param(
-            MissingDict(dict=SI("${oc.create:{0: b, 1: d}}")),
-            "dict",
-            {0: "b", 1: "d"},
-            DictConfig,
-            id="dict_key_type_mismatch",
-        ),
     ],
 )
-def test_interpolation_type_not_validated(
+def test_interpolation_container_type_validated(
     cfg: Any,
     key: str,
     expected_value: Any,
@@ -557,6 +543,27 @@ def test_interpolation_type_not_validated(
     node = cfg._get_node(key)
     assert isinstance(node, Node)
     assert isinstance(node._dereference_node(), expected_node_type)
+
+
+@mark.parametrize(
+    ("cfg", "key"),
+    [
+        param(
+            SubscriptedList(list=SI("${oc.create:[a, b]}")),
+            "list",
+            id="list_type_mismatch",
+        ),
+        param(
+            MissingDict(dict=SI("${oc.create:{0: b, 1: d}}")),
+            "dict",
+            id="dict_key_type_mismatch",
+        ),
+    ],
+)
+def test_interpolation_container_type_mismatch(cfg: Any, key: str) -> None:
+    cfg = OmegaConf.structured(cfg)
+    with raises(InterpolationValidationError):
+        _ = cfg[key]
 
 
 def test_type_validation_error_no_throw() -> None:
