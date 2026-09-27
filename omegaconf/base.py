@@ -639,7 +639,17 @@ class Container(Box):
         resolved: Any,
         throw_on_resolution_failure: bool,
     ) -> "Node | None":
+        from ._utils import _decode_missing_escape, _is_missing_literal
         from .nodes import AnyNode, InterpolationResultNode, ValueNode
+
+        if not isinstance(resolved, Node):
+            resolved = _decode_missing_escape(resolved)
+            if _is_missing_literal(resolved):
+                if throw_on_resolution_failure:
+                    raise InterpolationToMissingValueError(
+                        "Interpolation resolved to a missing value"
+                    )
+                return None
 
         # If the output is not a Node already (e.g., because it is the output of a
         # custom resolver), then we will need to wrap it within a Node.
@@ -760,17 +770,30 @@ class Container(Box):
         inter_args_str: tuple[str, ...],
     ) -> Any:
         from omegaconf import OmegaConf
+        from omegaconf._utils import (
+            _decode_missing_escape,
+            _is_missing_literal,
+            is_primitive_container,
+        )
 
         resolver = OmegaConf._get_resolver(inter_type)
         if resolver is not None:
             root_node = self._get_root()
-            return resolver(
+            result = resolver(
                 root_node,
                 self,
                 node,
                 inter_args,
                 inter_args_str,
             )
+            if not isinstance(result, Node):
+                if not is_primitive_container(result):
+                    result = _decode_missing_escape(result)
+                if _is_missing_literal(result):
+                    raise InterpolationToMissingValueError(
+                        "Interpolation resolved to a missing value"
+                    )
+            return result
         else:
             raise UnsupportedInterpolationType(
                 f"Unsupported interpolation type {inter_type}"
