@@ -259,14 +259,21 @@ class BaseContainer(Container, ABC):
         enum_to_str: bool = False,
         structured_config_mode: SCMode = SCMode.DICT,
         resolved_node_cache: dict[int, Node] | None = None,
+        encode_missing_literals: bool = False,
     ) -> Any | str | dict[DictKeyType, Any] | list[Any] | tuple[Any, ...] | None:
         from omegaconf import MISSING, DictConfig, ListConfig, TupleConfig
+        from omegaconf._utils import _convert_opaque_missing, _EscapedMissing
+        from omegaconf.nodes import InterpolationResultNode
 
         if resolve and resolved_node_cache is None:
             resolved_node_cache = {}
 
         def convert(val: Node) -> Any:
             value = val._value()
+            if isinstance(val, InterpolationResultNode):
+                value = _convert_opaque_missing(value, encode_missing_literals)
+            elif isinstance(value, _EscapedMissing):
+                value = ("\\" if encode_missing_literals else "") + str(value)
             if enum_to_str and isinstance(value, Enum):
                 value = f"{value.name}"
 
@@ -307,6 +314,7 @@ class BaseContainer(Container, ABC):
                     enum_to_str=enum_to_str,
                     structured_config_mode=structured_config_mode,
                     resolved_node_cache=resolved_node_cache,
+                    encode_missing_literals=encode_missing_literals,
                 )
             else:
                 value = convert(node)
@@ -347,6 +355,8 @@ class BaseContainer(Container, ABC):
             retdict: dict[DictKeyType, Any] = {}
             for key in conf.keys():
                 value = get_node_value(key)
+                if isinstance(key, _EscapedMissing):
+                    key = str(key)
                 if enum_to_str and isinstance(key, Enum):
                     key = f"{key.name}"
                 retdict[key] = value
