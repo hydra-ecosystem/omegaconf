@@ -4,7 +4,7 @@ import warnings
 from typing import Any
 
 from omegaconf import Container, Node
-from omegaconf._utils import _DEFAULT_MARKER_, _get_value
+from omegaconf._utils import _DEFAULT_MARKER_, _EscapedMissing, _get_value
 from omegaconf.basecontainer import BaseContainer
 from omegaconf.errors import ConfigKeyError
 from omegaconf.grammar_parser import parse
@@ -33,7 +33,9 @@ def env(key: str, default: Any = _DEFAULT_MARKER_) -> str | None:
         return os.environ[key]
     except KeyError:
         if default is not _DEFAULT_MARKER_:
-            return str(default) if default is not None else None
+            if default is None:
+                return None
+            return default if isinstance(default, _EscapedMissing) else str(default)
         else:
             raise KeyError(f"Environment variable '{key}' not found")
 
@@ -52,6 +54,9 @@ def decode(expr: str | None, _parent_: Container, _node_: Node) -> Any:
             f"`oc.decode` can only take strings or None as input, "
             f"but `{expr}` is of type {type(expr).__name__}"
         )
+
+    if isinstance(expr, _EscapedMissing):
+        return expr
 
     parse_tree = parse(expr, parser_rule="singleElement", lexer_mode="VALUE_MODE")
     val = _parent_.resolve_parse_tree(parse_tree, node=_node_)
