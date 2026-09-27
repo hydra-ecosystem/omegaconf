@@ -36,7 +36,9 @@ from ._utils import (
     _DEFAULT_MARKER_,
     NoneType,
     _ensure_container,
+    _EscapedMissing,
     _get_value,
+    _is_missing_literal,
     format_and_raise,
     get_dict_key_value_types,
     get_list_element_type,
@@ -158,7 +160,11 @@ def _value_matches_resolver_annotation(value: Any, annotation: Any) -> bool:
     origin = get_origin(annotation)
     if origin is Literal:
         return any(
-            type(value) is type(expected) and value == expected
+            (
+                type(value) is type(expected)
+                or (isinstance(value, _EscapedMissing) and type(expected) is str)
+            )
+            and value == expected
             for expected in get_args(annotation)
         )
     if origin is Annotated:
@@ -166,7 +172,9 @@ def _value_matches_resolver_annotation(value: Any, annotation: Any) -> bool:
 
     runtime_type = origin if origin is not None else annotation
     if runtime_type in _STRICT_PRIMITIVE_TYPES:
-        return type(value) is runtime_type
+        return type(value) is runtime_type or (
+            runtime_type is str and isinstance(value, _EscapedMissing)
+        )
     return isinstance(value, runtime_type)
 
 
@@ -1117,19 +1125,19 @@ class OmegaConf:
         """
         Compare two configs by their unresolved container structure.
 
-        This is equivalent to converting both configs with
-        ``OmegaConf.to_container(resolve=False, throw_on_missing=False)`` and
-        comparing the resulting containers. Interpolations and custom resolver
-        expressions are compared as their raw strings and are not resolved.
-        Missing values do not raise.
+        Interpolations and custom resolver expressions are compared as their raw
+        strings and are not resolved. Missing values do not raise. An escaped
+        literal ``???`` is distinct from a missing value.
 
         :param cfg1: First OmegaConf config to compare.
         :param cfg2: Second OmegaConf config to compare.
         :return: ``True`` if both configs have the same unresolved structure.
         """
-        return OmegaConf.to_container(
-            cfg1, resolve=False, throw_on_missing=False
-        ) == OmegaConf.to_container(cfg2, resolve=False, throw_on_missing=False)
+        return BaseContainer._to_content(
+            cfg1, resolve=False, throw_on_missing=False, encode_missing_literals=True
+        ) == BaseContainer._to_content(
+            cfg2, resolve=False, throw_on_missing=False, encode_missing_literals=True
+        )
 
     @staticmethod
     def to_object(
@@ -1155,14 +1163,16 @@ class OmegaConf:
         )
 
     @staticmethod
-    def is_missing(cfg: Any, key: DictKeyType) -> bool:
+    def is_missing(cfg: Any, key: DictKeyType | object = _DEFAULT_MARKER_) -> bool:
         """
-        Return ``True`` if ``cfg[key]`` is set to the mandatory-missing sentinel ``???``.
+        Return ``True`` if ``cfg[key]`` or a detached value is missing.
 
         :param cfg: An OmegaConf container.
-        :param key: Key (str for DictConfig, int for a sequence) to check.
+        :param key: Optional key (str for DictConfig, int for a sequence) to check.
         :return: ``True`` if the value is missing, ``False`` otherwise.
         """
+        if key is _DEFAULT_MARKER_:
+            return _is_missing_literal(_get_value(cfg))
         assert isinstance(cfg, Container)
         try:
             node = cfg._get_child(key)
@@ -1463,7 +1473,13 @@ class OmegaConf:
         :return: A string containing the yaml representation.
         """
         cfg = _ensure_container(cfg)
-        container = OmegaConf.to_container(cfg, resolve=resolve, enum_to_str=True)
+        container = BaseContainer._to_content(
+            cfg,
+            resolve=resolve,
+            throw_on_missing=False,
+            enum_to_str=True,
+            encode_missing_literals=True,
+        )
         return yaml.dump(  # type: ignore
             container,
             default_flow_style=default_flow_style,
