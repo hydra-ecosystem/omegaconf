@@ -1,9 +1,9 @@
 {
   "generated_on": "2026-09-27",
-  "generated_at": "2026-09-27T16:19:14Z",
+  "generated_at": "2026-09-27T16:21:55Z",
   "repo": "hydra-ecosystem/omegaconf",
   "summary": {
-    "open_total": 28,
+    "open_total": 27,
     "by_category": [
       {
         "category": "Bug",
@@ -14,14 +14,14 @@
       {
         "category": "Enhancement",
         "emoji": "✨",
-        "count": 24,
-        "percentage": 85.7
+        "count": 23,
+        "percentage": 85.2
       },
       {
         "category": "Documentation",
         "emoji": "📄",
         "count": 1,
-        "percentage": 3.6
+        "percentage": 3.7
       },
       {
         "category": "Question",
@@ -33,20 +33,20 @@
         "category": "Refactor",
         "emoji": "🔧",
         "count": 2,
-        "percentage": 7.1
+        "percentage": 7.4
       },
       {
         "category": "Build",
         "emoji": "🏗️",
         "count": 1,
-        "percentage": 3.6
+        "percentage": 3.7
       }
     ],
     "by_status": [
       {
         "status": "in progress",
         "emoji": "🔄",
-        "count": 1
+        "count": 0
       },
       {
         "status": "community PR",
@@ -66,31 +66,11 @@
       {
         "status": "done",
         "emoji": "✅",
-        "count": 5
+        "count": 6
       }
     ]
   },
   "issues": [
-    {
-      "number": 1302,
-      "title": "Support literal `???` values with an escaped spelling",
-      "category": "Enhancement",
-      "category_emoji": "✨",
-      "status": "in progress",
-      "status_emoji": "🔄",
-      "prs": [
-        {
-          "number": 1377,
-          "url": "https://github.com/hydra-ecosystem/omegaconf/pull/1377"
-        }
-      ],
-      "created": "2026-05-13",
-      "updated": "2026-09-26",
-      "labels": [
-        "enhancement"
-      ],
-      "url": "https://github.com/hydra-ecosystem/omegaconf/issues/1302"
-    },
     {
       "number": 91,
       "title": "Consider supporting basic operators in interpolations of numbers",
@@ -600,9 +580,36 @@
       "updated": "2026-09-10",
       "labels": [],
       "url": "https://github.com/hydra-ecosystem/omegaconf/issues/1357"
+    },
+    {
+      "number": 1302,
+      "title": "Support literal `???` values with an escaped spelling",
+      "category": "Enhancement",
+      "category_emoji": "✨",
+      "status": "done",
+      "status_emoji": "✅",
+      "prs": [
+        {
+          "number": 1377,
+          "url": "https://github.com/hydra-ecosystem/omegaconf/pull/1377"
+        }
+      ],
+      "created": "2026-05-13",
+      "updated": "2026-09-26",
+      "labels": [
+        "enhancement"
+      ],
+      "url": "https://github.com/hydra-ecosystem/omegaconf/issues/1302"
     }
   ],
   "updates": [
+    {
+      "ts": "2026-09-27T16:21:55Z",
+      "kind": "closed",
+      "issue": 1302,
+      "issue_url": "https://github.com/hydra-ecosystem/omegaconf/issues/1302",
+      "title": "Support literal `???` values with an escaped spelling"
+    },
     {
       "ts": "2026-09-27T06:10:13Z",
       "kind": "pr",

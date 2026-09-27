@@ -1,12 +1,13 @@
 {
   "closed_at": {
     "1274": "2026-09-25",
+    "1302": "2026-09-27",
     "1335": "2026-09-25",
     "1338": "2026-09-25",
     "1357": "2026-09-25",
     "459": "2026-09-25"
   },
-  "generated_at": "2026-09-27T16:19:14Z",
+  "generated_at": "2026-09-27T16:21:55Z",
   "issues": {
     "1024": {
       "category": "Enhancement",
@@ -183,20 +184,6 @@
       "status": "not started",
       "title": "Feature: allow resolvers to opt in to missing-value arguments",
       "updated_at": "2026-05-13T14:50:16Z"
-    },
-    "1302": {
-      "category": "Enhancement",
-      "created_at": "2026-05-13T14:44:23Z",
-      "labels": [
-        "enhancement"
-      ],
-      "pr_numbers": [
-        "1377"
-      ],
-      "state": "OPEN",
-      "status": "in progress",
-      "title": "Support literal `???` values with an escaped spelling",
-      "updated_at": "2026-09-26T21:39:53Z"
     },
     "131": {
       "category": "Enhancement",
@@ -376,6 +363,20 @@
       "status": "done",
       "title": "Python 3.10 minimum: remove version guards and modernize type annotations",
       "updated_at": "2026-07-20T14:29:27Z"
+    },
+    "1302": {
+      "category": "Enhancement",
+      "created_at": "2026-05-13T14:44:23Z",
+      "labels": [
+        "enhancement"
+      ],
+      "pr_numbers": [
+        "1377"
+      ],
+      "state": "CLOSED",
+      "status": "done",
+      "title": "Support literal `???` values with an escaped spelling",
+      "updated_at": "2026-09-26T21:39:53Z"
     },
     "1335": {
       "category": "Enhancement",
