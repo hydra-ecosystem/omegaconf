@@ -893,6 +893,12 @@ Example:
     >>> show(cfg)
     type: DictConfig, value: {'a': 10, 'b': 10}
 
+When a resolver returns a plain dict, list, or tuple, ``OmegaConf.resolve()``
+stores it as an OmegaConf container and resolves its children in the same call.
+Another field can refer to those children even if it appears before the resolver
+field. Ordinary lazy access to the resolver still returns its native Python
+container.
+
 .. warning::
 
     ``OmegaConf.resolve()`` works correctly for configs that use only node

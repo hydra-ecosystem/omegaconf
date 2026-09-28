@@ -516,11 +516,58 @@ class Container(Box):
                 throw_on_type_error=throw_on_resolution_failure,
             )
             if isinstance(ret, Node):
-                ret = ret._maybe_dereference_node(
+                source = ret
+                ret = source._maybe_dereference_node(
                     throw_on_resolution_failure=throw_on_resolution_failure,
                     memo=memo,
                     resolved_node_cache=resolved_node_cache,
                 )
+                if isinstance(ret, Node) and source._is_interpolation():
+                    from ._impl import (
+                        _eager_resolution,
+                        _materialize_resolver_container,
+                    )
+                    from ._utils import is_primitive_container
+                    from .nodes import InterpolationResultNode
+
+                    if _eager_resolution.get():
+                        if isinstance(ret, InterpolationResultNode):
+                            result = _get_value(ret)
+                            if is_primitive_container(result) or is_structured_config(
+                                result
+                            ):
+                                producer = ret._get_parent_container()
+                                assert producer is not None
+                                ret = _materialize_resolver_container(
+                                    producer, ret._key(), result
+                                )
+                        elif isinstance(ret, Container):
+                            producer = ret._get_parent_container()
+                            if (
+                                producer is not None
+                                and producer._get_child(ret._key()) is not ret
+                            ):
+                                ret = _materialize_resolver_container(
+                                    producer, ret._key(), ret
+                                )
+                            else:
+                                from .grammar_visitor import OmegaConfGrammarParser
+
+                                tree = parse(_get_value(source))
+                                assert isinstance(
+                                    tree, OmegaConfGrammarParser.ConfigValueContext
+                                )
+                                parsed_text = tree.text()
+                                assert parsed_text is not None
+                                if any(
+                                    interpolation.interpolationResolver() is not None
+                                    for interpolation in parsed_text.interpolation()
+                                ):
+                                    producer = source._get_parent_container()
+                                    assert producer is not None
+                                    ret = _materialize_resolver_container(
+                                        producer, source._key(), ret
+                                    )
 
             if ret is not None and not isinstance(ret, Container):
                 parent_key = ".".join(split[0 : i + 1])
@@ -567,6 +614,32 @@ class Container(Box):
             if memo is not None:
                 # pop from memo "stack"
                 memo.remove(value_id)
+
+        if isinstance(value, Node):
+            from ._impl import _eager_resolution, _materialize_resolver_container
+
+            if _eager_resolution.get():
+                from ._utils import is_primitive_container
+                from .nodes import InterpolationResultNode
+
+                if isinstance(value, InterpolationResultNode):
+                    result = _get_value(value)
+                    if is_primitive_container(result) or is_structured_config(result):
+                        producer = value._get_parent_container()
+                        assert producer is not None
+                        value = _materialize_resolver_container(
+                            producer, value._key(), result
+                        )
+                elif isinstance(value, Container):
+                    producer = value._get_parent_container()
+                    if (
+                        producer is root
+                        and value._key() == last_key
+                        and producer._get_child(last_key) is not value
+                    ):
+                        value = _materialize_resolver_container(
+                            producer, last_key, value
+                        )
 
         if resolved_node_cache is not None and value is not None:
             resolved_node_cache[value_id] = value
