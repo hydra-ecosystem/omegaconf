@@ -1,0 +1,130 @@
+from typing import Any
+
+from pytest import mark, param, raises
+
+from omegaconf import DictConfig, ListConfig, OmegaConf, TupleConfig
+from omegaconf.errors import InterpolationResolutionError
+
+
+@mark.parametrize(
+    "value, path, container_type",
+    [
+        param({"n": 3}, "made.n", DictConfig, id="dict"),
+        param([3], "made.0", ListConfig, id="list"),
+        param((3,), "made.0", TupleConfig, id="tuple"),
+    ],
+)
+@mark.parametrize("consumer_first", [True, False])
+def test_resolve_materializes_producer_before_traversal(
+    restore_resolvers: Any,
+    value: Any,
+    path: str,
+    container_type: type,
+    consumer_first: bool,
+) -> None:
+    calls = 0
+
+    def make() -> Any:
+        nonlocal calls
+        calls += 1
+        return value
+
+    OmegaConf.register_resolver("make", make)
+    fields = [("consumer", f"${{{path}}}"), ("made", "${make:}")]
+    cfg = OmegaConf.create(dict(fields if consumer_first else reversed(fields)))
+
+    OmegaConf.resolve(cfg)
+
+    assert cfg.consumer == 3
+    assert isinstance(cfg.made, container_type)
+    assert not OmegaConf.is_interpolation(cfg, "made")
+    assert calls == 1
+
+
+def test_resolve_new_container_children_in_one_pass(restore_resolvers: Any) -> None:
+    original = {"child": "${..value}"}
+    OmegaConf.register_resolver("make", lambda: original)
+    cfg = OmegaConf.create(
+        {"consumer": "${made.child}", "made": "${make:}", "value": 10}
+    )
+
+    OmegaConf.resolve(cfg)
+
+    assert cfg.consumer == 10
+    assert cfg.made.child == 10
+    assert not OmegaConf.is_interpolation(cfg.made, "child")
+    assert original == {"child": "${..value}"}
+
+
+def test_resolve_materializes_through_node_alias(restore_resolvers: Any) -> None:
+    calls = 0
+
+    def make() -> dict[str, int]:
+        nonlocal calls
+        calls += 1
+        return {"n": calls}
+
+    OmegaConf.register_resolver("make", make)
+    cfg = OmegaConf.create(
+        {"consumer": "${alias.n}", "alias": "${made}", "made": "${make:}"}
+    )
+
+    OmegaConf.resolve(cfg)
+
+    assert calls == 1
+    assert cfg.consumer == cfg.alias.n == cfg.made.n == 1
+    assert isinstance(cfg.made, DictConfig)
+
+
+def test_resolve_keeps_cached_raw_result(restore_resolvers: Any) -> None:
+    original = {"n": 3}
+    OmegaConf.register_resolver("make", lambda: original, use_cache=True)
+    cfg = OmegaConf.create({"consumer": "${made.n}", "made": "${make:}"})
+
+    OmegaConf.resolve(cfg)
+
+    assert cfg.consumer == 3
+    assert original == {"n": 3}
+    assert next(iter(OmegaConf.get_cache(cfg)["make"].values())) is original
+    other = OmegaConf.create({"made": "${make:}"})
+    OmegaConf.copy_cache(cfg, other)
+    assert other.made == original
+
+
+def test_lazy_resolver_container_stays_native(restore_resolvers: Any) -> None:
+    original = [3]
+    OmegaConf.register_resolver("make", lambda: original)
+    cfg = OmegaConf.create({"consumer": "${made.0}", "made": "${make:}"})
+
+    assert cfg.made is original
+    with raises(InterpolationResolutionError):
+        _ = cfg.consumer
+    assert OmegaConf.is_interpolation(cfg, "made")
+
+
+def test_resolver_callback_keeps_lazy_access(restore_resolvers: Any) -> None:
+    original = [3]
+    observed: list[Any] = []
+    OmegaConf.register_resolver("make", lambda: original)
+
+    def inspect(_root_: DictConfig) -> int:
+        observed.append(_root_.made)
+        return 10
+
+    OmegaConf.register_resolver("inspect", inspect)
+    cfg = OmegaConf.create({"consumer": "${inspect:}", "made": "${make:}"})
+
+    OmegaConf.resolve(cfg)
+
+    assert observed == [original]
+    assert observed[0] is original
+
+
+def test_resolve_recursive_materialized_container_fails(
+    restore_resolvers: Any,
+) -> None:
+    OmegaConf.register_resolver("make", lambda: {"child": "${made.child}"})
+    cfg = OmegaConf.create({"consumer": "${made.child}", "made": "${make:}"})
+
+    with raises(InterpolationResolutionError):
+        OmegaConf.resolve(cfg)
