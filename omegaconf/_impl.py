@@ -1,3 +1,4 @@
+from contextvars import ContextVar
 from typing import Any
 
 from omegaconf import Container, DictConfig, ListConfig, Node, TupleConfig, ValueNode
@@ -18,6 +19,8 @@ from ._utils import (
     is_primitive_container,
     is_structured_config,
 )
+
+_eager_resolution: ContextVar[bool] = ContextVar("eager_resolution", default=False)
 
 
 def _is_recursive_container(
@@ -70,17 +73,8 @@ def _resolve_container_value(cfg: Container, key: Any) -> None:
         if isinstance(resolved, InterpolationResultNode):
             resolved_value = _get_value(resolved)
             if is_primitive_container(resolved_value):
-                if _is_recursive_container(resolved_value):
-                    cfg._format_and_raise(
-                        key=key,
-                        value=resolved_value,
-                        cause=InterpolationResolutionError(
-                            "Cannot materialize a recursive resolver result"
-                        ),
-                    )
-                resolved = _ensure_container(
-                    _convert_opaque_missing(resolved_value, encode=True)
-                )
+                _materialize_resolver_container(cfg, key, resolved_value)
+                return
             elif is_structured_config(resolved_value):
                 resolved = _ensure_container(resolved_value)
         if isinstance(cfg, TupleConfig) and _is_missing_literal(_get_value(resolved)):
@@ -100,6 +94,26 @@ def _resolve_container_value(cfg: Container, key: Any) -> None:
             node._set_value(_get_value(resolved))
     else:
         _resolve(node)
+
+
+def _materialize_resolver_container(cfg: Container, key: Any, value: Any) -> Container:
+    if _is_recursive_container(value):
+        cfg._format_and_raise(
+            key=key,
+            value=value,
+            cause=InterpolationResolutionError(
+                "Cannot materialize a recursive resolver result"
+            ),
+        )
+    resolved = _ensure_container(_convert_opaque_missing(value, encode=True))
+    if isinstance(cfg, TupleConfig):
+        cfg._set_item_for_resolution(key, resolved)
+    else:
+        cfg[key] = resolved
+    stored = cfg._get_child(key)
+    assert isinstance(stored, Container)
+    _resolve(stored)
+    return stored
 
 
 def _resolve(cfg: Node) -> Node:
