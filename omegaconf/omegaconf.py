@@ -1515,7 +1515,11 @@ class OmegaConf:
             raise ValueError(
                 f"Invalid config type ({type(cfg).__name__}), expected an OmegaConf Container"
             )
-        omegaconf._impl._resolve(cfg)
+        token = omegaconf._impl._eager_resolution.set(True)
+        try:
+            omegaconf._impl._resolve(cfg)
+        finally:
+            omegaconf._impl._eager_resolution.reset(token)
 
     @staticmethod
     def missing_keys(cfg: Any, *, resolve_custom_resolvers: bool = False) -> set[str]:
