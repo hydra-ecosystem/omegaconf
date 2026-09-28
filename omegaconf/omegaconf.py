@@ -202,6 +202,7 @@ def SI(interpolation: str) -> Any:
 def register_default_resolvers() -> None:
     from omegaconf.resolvers import oc
 
+    OmegaConf.register_resolver("oc.coerce", oc.coerce, annotation_validation="off")
     OmegaConf.register_resolver("oc.create", oc.create, annotation_validation="off")
     OmegaConf.register_resolver("oc.decode", oc.decode, annotation_validation="off")
     OmegaConf.register_resolver(
