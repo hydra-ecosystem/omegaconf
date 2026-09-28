@@ -516,11 +516,56 @@ class Container(Box):
                 throw_on_type_error=throw_on_resolution_failure,
             )
             if isinstance(ret, Node):
-                ret = ret._maybe_dereference_node(
+                source = ret
+                ret = source._maybe_dereference_node(
                     throw_on_resolution_failure=throw_on_resolution_failure,
                     memo=memo,
                     resolved_node_cache=resolved_node_cache,
                 )
+                if isinstance(ret, Node) and source._is_interpolation():
+                    from ._impl import (
+                        _eager_resolution,
+                        _materialize_resolver_container,
+                    )
+                    from ._utils import is_primitive_container
+                    from .nodes import InterpolationResultNode
+
+                    if _eager_resolution.get():
+                        if isinstance(ret, InterpolationResultNode):
+                            result = _get_value(ret)
+                            if is_primitive_container(result):
+                                producer = ret._get_parent_container()
+                                assert producer is not None
+                                ret = _materialize_resolver_container(
+                                    producer, ret._key(), result
+                                )
+                        elif isinstance(ret, Container):
+                            producer = ret._get_parent_container()
+                            if (
+                                producer is not None
+                                and producer._get_child(ret._key()) is not ret
+                            ):
+                                ret = _materialize_resolver_container(
+                                    producer, ret._key(), ret
+                                )
+                            else:
+                                from .grammar_visitor import OmegaConfGrammarParser
+
+                                tree = parse(_get_value(source))
+                                assert isinstance(
+                                    tree, OmegaConfGrammarParser.ConfigValueContext
+                                )
+                                parsed_text = tree.text()
+                                assert parsed_text is not None
+                                if any(
+                                    interpolation.interpolationResolver() is not None
+                                    for interpolation in parsed_text.interpolation()
+                                ):
+                                    producer = source._get_parent_container()
+                                    assert producer is not None
+                                    ret = _materialize_resolver_container(
+                                        producer, source._key(), ret
+                                    )
 
             if ret is not None and not isinstance(ret, Container):
                 parent_key = ".".join(split[0 : i + 1])
@@ -862,14 +907,20 @@ class Container(Box):
 
         resolver = OmegaConf._get_resolver(inter_type)
         if resolver is not None:
+            from ._impl import _eager_resolution
+
             root_node = self._get_root()
-            result = resolver(
-                root_node,
-                self,
-                node,
-                inter_args,
-                inter_args_str,
-            )
+            token = _eager_resolution.set(False)
+            try:
+                result = resolver(
+                    root_node,
+                    self,
+                    node,
+                    inter_args,
+                    inter_args_str,
+                )
+            finally:
+                _eager_resolution.reset(token)
             if not isinstance(result, Node):
                 if not is_primitive_container(result):
                     result = _decode_missing_escape(result)
