@@ -1,3 +1,103 @@
+## 2.4.0rc1 (2026-09-28)
+
+### Introduction
+
+OmegaConf 2.4.0rc1 previews the first feature release since 2.3.0 in 2022. It
+fixes all open bug reports, delivers a broad set of new features, and refreshes
+the roadmap for work beyond this release. Highlights include richer structured
+config typing with ``Literal``, container unions, and experimental tuples,
+alongside improvements to interpolation, resolvers, merging, and validation.
+
+This release includes compatibility changes. Python 3.10 or newer is required;
+native tuples now become immutable ``TupleConfig`` values; and some implicit
+conversions during assignment now warn. Review the API changes below and report
+regressions before the final release.
+
+### Features
+
+- Add support for the `|` and `|=` operators on `DictConfig`. `cfg1 | cfg2` returns a new merged config (equivalent to `OmegaConf.merge(cfg1, cfg2)`), and `cfg1 |= cfg2` merges in place (equivalent to `cfg1.merge_with(cfg2)`). These operators are not supported on `ListConfig` and will raise a `TypeError`. ([#1006](https://github.com/hydra-ecosystem/omegaconf/issues/1006))
+- OmegaConf.to_yaml() now accepts default_flow_style to control YAML collection flow style. ([#1075](https://github.com/hydra-ecosystem/omegaconf/issues/1075))
+- Added ``OmegaConf.can_select()`` for checking if a select-style key path can produce a value without returning a default or raising. ([#1129](https://github.com/hydra-ecosystem/omegaconf/issues/1129))
+- The YAML parser will now use `yaml.CSafeLoader` instead of `yaml.SafeLoader` whenever possible to speed up parsing ([#1150](https://github.com/hydra-ecosystem/omegaconf/issues/1150))
+- The YAML dumper will now use `yaml.CDumper` instead of `yaml.Dumper` whenever possible to speed up dumping ([#1152](https://github.com/hydra-ecosystem/omegaconf/issues/1152))
+- Added support for assigning string-valued enums in structured configs from either the enum member name or the enum value. ([#1182](https://github.com/hydra-ecosystem/omegaconf/issues/1182))
+- When accessing a missing key, OmegaConf now suggests similar key names if any exist (e.g. "Did you mean: 'missing'?"). ([#1221](https://github.com/hydra-ecosystem/omegaconf/issues/1221))
+- Support ``typing.Literal`` annotations in structured configs, including as members of unions. ([#1228](https://github.com/hydra-ecosystem/omegaconf/issues/1228), [#1271](https://github.com/hydra-ecosystem/omegaconf/issues/1271))
+- Key paths in ``OmegaConf.update()``, ``OmegaConf.select()``, ``OmegaConf.from_dotlist()``, and ``OmegaConf.from_cli()`` now support backslash escaping so that keys whose names contain literal dots, brackets, or equals signs can be addressed (e.g. ``r"a\.b"`` selects the key ``"a.b"``). ([#1230](https://github.com/hydra-ecosystem/omegaconf/issues/1230))
+- Structured configs now support unions of typed containers (e.g. ``Union[List[int], Dict[str, int]]``). ``OmegaConf.typed_list([], element_type=str)`` creates an empty list typed as ``List[str]``, selecting that branch of ``Union[List[int], List[str]]``; ``OmegaConf.typed_dict()`` similarly specifies dictionary key and value types. ([#1261](https://github.com/hydra-ecosystem/omegaconf/issues/1261))
+- Support structured config types as members of unions, with type-driven branch selection and explicit handling for ambiguous mappings. ([#1275](https://github.com/hydra-ecosystem/omegaconf/issues/1275))
+- Added OmegaConf.structural_equality() for comparing configs by unresolved container structure. ([#1326](https://github.com/hydra-ecosystem/omegaconf/issues/1326))
+- Add the ``oc.coerce`` resolver to explicitly convert values using OmegaConf primitive node types before destination validation. ([#1332](https://github.com/hydra-ecosystem/omegaconf/issues/1332))
+- Node interpolations can address keys containing literal dots, brackets, colons, or backslashes. ([#1335](https://github.com/hydra-ecosystem/omegaconf/issues/1335))
+- Support ``Any`` in Union annotations and transparent PEP 695 type aliases. ([#144](https://github.com/hydra-ecosystem/omegaconf/issues/144))
+- Custom resolvers can now validate runtime arguments and return values against their annotations using explicit ``"off"``, ``"warn"``, and ``"error"`` policies. OmegaConf 2.4 defaults to advisory warnings. ([#612](https://github.com/hydra-ecosystem/omegaconf/issues/612))
+
+### Bug Fixes
+
+- Fix merging an interpolation into a structured config field failing with InterpolationKeyError or ValidationError; the interpolation is now kept unresolved and resolved lazily against the merged result. ([#1020](https://github.com/hydra-ecosystem/omegaconf/issues/1020))
+- Preserve structured list element types when merging a plain list into a missing structured config list field. ([#1058](https://github.com/hydra-ecosystem/omegaconf/issues/1058))
+- Fixed a crash in `OmegaConf.unsafe_merge` when merging structured configs containing union types. ([#1087](https://github.com/hydra-ecosystem/omegaconf/issues/1087))
+- Fix merging enum names into nested lists in structured configs. ([#1095](https://github.com/hydra-ecosystem/omegaconf/issues/1095))
+- Fixed `OmegaConf.merge()` and `OmegaConf.unsafe_merge()` with nested readonly structured configs. ([#1102](https://github.com/hydra-ecosystem/omegaconf/issues/1102))
+- Fix `OmegaConf.missing_keys()` raising when an interpolation dereferences a missing value, and add a `resolve_custom_resolvers` flag to opt into custom resolver evaluation. ([#1118](https://github.com/hydra-ecosystem/omegaconf/issues/1118))
+- Improved missing-key errors for relative interpolations by showing both the original interpolation key and the resolved lookup path. ([#1126](https://github.com/hydra-ecosystem/omegaconf/issues/1126))
+- Fixed `OmegaConf.select` and `oc.select` to return the provided default when a relative key climbs above the config root. ([#1127](https://github.com/hydra-ecosystem/omegaconf/issues/1127))
+- ``OmegaConf.create()`` now supports ``collections.OrderedDict`` as both a top-level input and a nested value. ([#1156](https://github.com/hydra-ecosystem/omegaconf/issues/1156))
+- Fixed ``OmegaConf.resolve()`` raising ``UnsupportedValueType`` when a custom resolver returns a ``dict`` or ``list``. ([#1165](https://github.com/hydra-ecosystem/omegaconf/issues/1165))
+- Fixed validation for union-typed values nested in structured config containers during merges and interpolation resolution. ([#1166](https://github.com/hydra-ecosystem/omegaconf/issues/1166))
+- Fixed structured config support for forward references inside container
+  annotations on Python 3.10 and older. ([#1174](https://github.com/hydra-ecosystem/omegaconf/issues/1174))
+- Preserve container identity when assigning a config node to itself. ([#1177](https://github.com/hydra-ecosystem/omegaconf/issues/1177))
+- Fix duplicate key handling during YAML anchor merge operations ([#1194](https://github.com/hydra-ecosystem/omegaconf/issues/1194))
+- Changed `OmegaConf.create(None)` to return literal `None` instead of a `DictConfig(None)` wrapper. This is a breaking change for code that relied on getting a config object back from `create(None)`. ([#1196](https://github.com/hydra-ecosystem/omegaconf/issues/1196))
+- Fixed a bug where merging a missing structured config into an unresolved interpolation could replace the interpolation with the structured type's default value instead of preserving the interpolation. ([#1205](https://github.com/hydra-ecosystem/omegaconf/issues/1205))
+- Fix `OmegaConf.resolve()` raising `RuntimeError` on Python 3.12+ when a custom resolver returns a `DictConfig`. ([#1239](https://github.com/hydra-ecosystem/omegaconf/issues/1239))
+- ``OmegaConf.update()`` now raises a ``ConfigTypeError`` with a clear message when navigating through a structured ``Optional`` node that is ``None``, instead of an ``AssertionError``. ([#1280](https://github.com/hydra-ecosystem/omegaconf/issues/1280))
+- Fix OmegaConf exceptions retaining caller frame locals through traceback reference cycles. ([#1295](https://github.com/hydra-ecosystem/omegaconf/issues/1295), [#1314](https://github.com/hydra-ecosystem/omegaconf/issues/1314))
+- Fix `ListConfig` iteration leaking `UnionNode` wrappers for `List[Union[...]]`; iteration now yields the selected concrete values, matching indexing. ([#1310](https://github.com/hydra-ecosystem/omegaconf/issues/1310))
+- ``OmegaConf.update()`` now follows intermediate node interpolations whose
+  reference chains end at existing config containers, applying nested updates to
+  the referenced container while preserving the interpolation. ([#1329](https://github.com/hydra-ecosystem/omegaconf/issues/1329))
+- Keep the failing key and object type on interpolation errors raised through `OmegaConf.resolve()`, so they match the errors raised by direct node access. ([#1330](https://github.com/hydra-ecosystem/omegaconf/issues/1330))
+- ``OmegaConf.resolve()`` now resolves nested interpolations in resolver-returned containers in one call, including when another field refers to the container before its field is visited. ([#1334](https://github.com/hydra-ecosystem/omegaconf/issues/1334))
+- Inherited flags are now updated correctly for containers selected by a union type. ([#1340](https://github.com/hydra-ecosystem/omegaconf/issues/1340))
+- Select matching Literal members before broader scalar members in unions, regardless of annotation order. ([#1357](https://github.com/hydra-ecosystem/omegaconf/issues/1357))
+- ``OmegaConf.merge()`` and ``OmegaConf.unsafe_merge()`` no longer fail with an ``AttributeError`` when merging into a null dictionary root, including optional Structured Config fields. ([#1360](https://github.com/hydra-ecosystem/omegaconf/issues/1360))
+- Removed the internal `flags` argument from `_ensure_container` and made merge conversion preserve `allow_objects` explicitly. ([#580](https://github.com/hydra-ecosystem/omegaconf/issues/580))
+- Integer interpolation segments and integer-looking string paths used by ``OmegaConf.select()`` and ``OmegaConf.update()`` can now resolve integer dictionary keys. Configurations reject ambiguous pairs such as ``1`` and ``"1"``. ([#651](https://github.com/hydra-ecosystem/omegaconf/issues/651))
+- Report the complete key path when creating a nested Structured Config fails. ([#702](https://github.com/hydra-ecosystem/omegaconf/issues/702))
+- Fix structured config creation for dataclasses inheriting from `typing.Generic`. ([#731](https://github.com/hydra-ecosystem/omegaconf/issues/731))
+- `ListConfig.insert()` now follows Python list semantics for negative and out-of-range indices and leaves the list unchanged when validation fails. ([#750](https://github.com/hydra-ecosystem/omegaconf/issues/750))
+- Align `ListConfig` negative index behavior more closely with Python lists by supporting negative list-index interpolations and by fixing negative slicing edge cases such as `cfg.xs[:-1]` on empty lists. ([#755](https://github.com/hydra-ecosystem/omegaconf/issues/755))
+- Limited YAML alias expansion by default to avoid excessive config growth from crafted YAML input, with an environment override for trusted configurations. ([#794](https://github.com/hydra-ecosystem/omegaconf/issues/794))
+- Fixed `OmegaConf.masked_copy` losing typed leaf node classes at the top level of the copy. ([#813](https://github.com/hydra-ecosystem/omegaconf/issues/813))
+- Fixed OmegaConf.structured() mutating existing OmegaConf nodes passed as structured config field values. ([#908](https://github.com/hydra-ecosystem/omegaconf/issues/908))
+- Fix handling of `attrs` classes that use a default factory (`attrs.Factory`). ([#945](https://github.com/hydra-ecosystem/omegaconf/issues/945))
+- Preserve structured child type metadata when merging a missing dict-annotated field over an existing structured config. ([#998](https://github.com/hydra-ecosystem/omegaconf/issues/998))
+
+### API changes and deprecations
+
+- Support for Python 3.6, 3.7, 3.8 and 3.9 has been dropped. OmegaConf now requires Python 3.10+ ([#1109](https://github.com/hydra-ecosystem/omegaconf/issues/1109))
+- ``OmegaConf.resolve()`` now raises ``InterpolationToMissingValueError`` when an interpolation dereferences to a missing (``???``) value, instead of silently overwriting the node with ``???``. This restores the invariant that working with a resolved config gives the same results as working with the unresolved config. ([#1131](https://github.com/hydra-ecosystem/omegaconf/issues/1131))
+- A backslash immediately before a key path delimiter (``\.`` ``\[`` ``\]`` ``\=``) now escapes that character rather than being treated as a literal backslash followed by an active delimiter. This affects only the rare case of keys whose names end with a backslash: ``OmegaConf.select(cfg, r"a\.b")`` previously navigated to key ``"a\"`` then ``"b"``; it now resolves to the single key ``"a.b"``. Keys ending in a backslash are not idiomatic in YAML and this change is unlikely to be encountered in practice. ([#1230](https://github.com/hydra-ecosystem/omegaconf/issues/1230))
+- ``OmegaConf.to_container(..., resolve=True)`` now resolves each custom resolver at most once within a single conversion pass, even when multiple interpolations reference the same resolved node. This brings its behavior in line with ``OmegaConf.resolve()`` for such cases. ([#1243](https://github.com/hydra-ecosystem/omegaconf/issues/1243))
+- Support escaped literal `???` values with `\???` across interpolation, resolvers, and YAML. Plain `???` returned by a resolver is now missing on access. ([#1302](https://github.com/hydra-ecosystem/omegaconf/issues/1302))
+- Typed container and union interpolations now validate and convert against their destination type on lazy access, matching eager resolution. ([#1332](https://github.com/hydra-ecosystem/omegaconf/issues/1332))
+- Make ``DictConfig`` and ``ListConfig`` unhashable, preventing their use as dictionary keys or set elements. ([#1333](https://github.com/hydra-ecosystem/omegaconf/issues/1333))
+- Breaking change: Native tuples now create a public, structurally immutable ``TupleConfig`` instead of being converted to a mutable ``ListConfig``. Code that expects tuple input to support list mutation, checks only ``OmegaConf.is_list()``, or expects ``OmegaConf.to_container()`` to return a list for tuple input must be updated. Use ``OmegaConf.is_tuple()`` for tuple-specific behavior, ``OmegaConf.is_sequence()`` when either sequence type is accepted, or pass a list explicitly when mutation is required. Tuple annotations support fixed positional and homogeneous variadic types, complete replacement merges, typed container unions, native tuple conversion, and tuple-style sequence operations. Tuple semantics are experimental in OmegaConf 2.4 and feedback is welcome. ([#392](https://github.com/hydra-ecosystem/omegaconf/issues/392))
+- Direct assignment and typed-container mutation now warn when they implicitly convert a value to another type. Use ``OmegaConf.update()`` for explicit conversion. Assigning structured-config objects or classes to structured-config fields retains its existing behavior. ([#459](https://github.com/hydra-ecosystem/omegaconf/issues/459))
+- Change ``OmegaConf.get_type()`` to return ``NoneType`` for OmegaConf nodes containing ``None``, and validate ``None``/``NoneType`` annotations. ([#928](https://github.com/hydra-ecosystem/omegaconf/issues/928))
+- Undeprecated ``OmegaConf.register_resolver()`` as the canonical custom resolver API, and deprecated ``OmegaConf.register_new_resolver()`` and ``OmegaConf.legacy_register_resolver()``. ([#969](https://github.com/hydra-ecosystem/omegaconf/issues/969))
+
+### Improved Documentation
+
+- Update documentation about merging lists examples. ([#1176](https://github.com/hydra-ecosystem/omegaconf/issues/1176))
+- Add docstrings to public OmegaConf methods: ``create``, ``structured``, ``load``, ``from_cli``, ``has_resolver``, ``get_cache``, ``set_cache``, ``clear_cache``, ``copy_cache``, ``set_readonly``, ``is_readonly``, ``set_struct``, ``is_struct``, ``is_missing``, ``is_interpolation``, ``is_list``, ``is_dict``, ``is_config``, ``get_type``, ``flag_override``, ``read_write``, and ``open_dict``. ([#1222](https://github.com/hydra-ecosystem/omegaconf/issues/1222))
+- Documented `OmegaConf.merge` behavior with `MISSING` values: a missing value on the source side does not overwrite a non-missing value on the target. ([#771](https://github.com/hydra-ecosystem/omegaconf/issues/771))
+
+### Miscellaneous changes
+
+- `antlr4` runtime is now vendored to prevent conflicts with other dependencies. ([#1091](https://github.com/hydra-ecosystem/omegaconf/issues/1091))
 ## 2.3.0 (2022-12-06)
 ### Features
 

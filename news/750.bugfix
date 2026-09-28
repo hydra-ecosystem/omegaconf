@@ -1,1 +1,0 @@
-`ListConfig.insert()` now follows Python list semantics for negative and out-of-range indices and leaves the list unchanged when validation fails.
