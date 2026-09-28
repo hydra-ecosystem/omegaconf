@@ -8,7 +8,7 @@
     "1357": "2026-09-25",
     "459": "2026-09-25"
   },
-  "generated_at": "2026-09-28T06:25:59Z",
+  "generated_at": "2026-09-28T07:52:30Z",
   "issues": {
     "1024": {
       "category": "Enhancement",
@@ -233,11 +233,13 @@
         "RFC",
         "interpolation"
       ],
-      "pr_numbers": [],
+      "pr_numbers": [
+        "1379"
+      ],
       "state": "OPEN",
-      "status": "not started",
-      "title": "Materialize container results returned by custom resolvers",
-      "updated_at": "2026-07-19T15:46:20Z"
+      "status": "in progress",
+      "title": "Make OmegaConf.resolve materialize resolver containers on demand",
+      "updated_at": "2026-09-28T07:05:58Z"
     },
     "1349": {
       "category": "Refactor",
