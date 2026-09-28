@@ -129,7 +129,8 @@ OmegaConf uses GitHub Actions with PyPI Trusted Publishers for automated release
 
 5. Create the `pypi-publish-dev` environment in GitHub repository settings:
    - Allow publishing from the development branch you use for dev releases
-     (for example `main`)
+     (for example `main`) and from any RC tags you will publish from
+     (for example `v2.4.0rc1`)
    - Add protection rules (e.g., require manual approval)
 
 6. Create the `testpypi-publish` environment in GitHub repository settings:
@@ -162,13 +163,21 @@ The separate, manually triggered `publish_dev.yml` workflow can publish
 pre-release or development package versions to PyPI. It does not run when a
 GitHub pre-release is published.
 
-1. Ensure the dev version to publish is committed and pushed to the branch you
-   use for dev releases.
+For a release candidate such as `2.4.0rc1`, a GitHub pre-release tagged
+`v2.4.0rc1` publishes to TestPyPI. To publish that candidate to PyPI, run
+`gh workflow run publish_dev.yml --ref v2.4.0rc1` separately. The stable
+`publish.yml` workflow skips GitHub pre-releases.
+
+Generate the RC release text with `towncrier build --draft --version X.Y.ZrcN`.
+Keep `NEWS.md` and the fragments unchanged until the final release.
+
+1. Ensure the version to publish is committed and pushed to the selected branch
+   or tag.
 2. Run the `Publish dev release to PyPI` workflow manually from GitHub Actions,
-   or run `gh workflow run publish_dev.yml --ref <branch>`.
+   or run `gh workflow run publish_dev.yml --ref <branch-or-tag>`.
 3. Approve the `pypi-publish-dev` environment if required.
-4. After the release publishes successfully, advance to the next dev version
-   with `bump-my-version bump pre_n`.
+4. If preparing another development release or RC, advance the prerelease
+   number with `bump-my-version bump pre_n`.
 5. Commit and push the version bump.
 
 **Manual release (fallback):**
