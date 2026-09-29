@@ -1,0 +1,30 @@
+{
+  "docsSidebar": [
+    "intro",
+    {
+      "type": "category",
+      "label": "Start",
+      "items": ["get-started/install", "get-started/first-config"]
+    },
+    {
+      "type": "category",
+      "label": "Work with configs",
+      "items": ["concepts/configs-and-values", "concepts/missing-values", "guides/merge", "guides/load-and-save", "guides/command-line", "guides/flags", "guides/debugging"]
+    },
+    {
+      "type": "category",
+      "label": "Derive values",
+      "items": ["concepts/interpolation", "concepts/resolvers", "guides/custom-resolvers"]
+    },
+    {
+      "type": "category",
+      "label": "Define a schema",
+      "items": ["concepts/structured-configs", "concepts/field-types", "concepts/optional-fields", "guides/schema-validation"]
+    },
+    {
+      "type": "category",
+      "label": "Reference",
+      "items": ["reference/python-api", "reference/python-api/omegaconf", "reference/operations", "reference/types", "reference/conversion", "reference/built-in-resolvers", "reference/grammar"]
+    }
+  ]
+}
