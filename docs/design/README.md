@@ -15,6 +15,7 @@ documents from [`TEMPLATE.md`](TEMPLATE.md).
 
 ## Draft and planned design work
 
+- [Documentation site migration](docs-site-migration.md)
 - [Protected nodes](protect-node.md)
 - [Provenance tracking](provenance-tracking.md)
 - [Type adapter system](type-adapters/index.md)
