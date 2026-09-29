@@ -1,6 +1,6 @@
 {
-  "generated_on": "2026-09-28",
-  "generated_at": "2026-09-28T16:16:14Z",
+  "generated_on": "2026-09-29",
+  "generated_at": "2026-09-29T13:55:31Z",
   "repo": "hydra-ecosystem/omegaconf",
   "summary": {
     "open_total": 25,
@@ -537,6 +537,27 @@
       "url": "https://github.com/hydra-ecosystem/omegaconf/issues/1332"
     },
     {
+      "number": 1334,
+      "title": "Make OmegaConf.resolve materialize resolver containers on demand",
+      "category": "Enhancement",
+      "category_emoji": "✨",
+      "status": "done",
+      "status_emoji": "✅",
+      "prs": [
+        {
+          "number": 1379,
+          "url": "https://github.com/hydra-ecosystem/omegaconf/pull/1379"
+        }
+      ],
+      "created": "2026-07-18",
+      "updated": "2026-09-28",
+      "labels": [
+        "RFC",
+        "interpolation"
+      ],
+      "url": "https://github.com/hydra-ecosystem/omegaconf/issues/1334"
+    },
+    {
       "number": 1335,
       "title": "Support escaped keys in node interpolation paths",
       "category": "Enhancement",
@@ -589,27 +610,6 @@
       "updated": "2026-09-10",
       "labels": [],
       "url": "https://github.com/hydra-ecosystem/omegaconf/issues/1357"
-    },
-    {
-      "number": 1334,
-      "title": "Make OmegaConf.resolve materialize resolver containers on demand",
-      "category": "Enhancement",
-      "category_emoji": "✨",
-      "status": "done",
-      "status_emoji": "✅",
-      "prs": [
-        {
-          "number": 1379,
-          "url": "https://github.com/hydra-ecosystem/omegaconf/pull/1379"
-        }
-      ],
-      "created": "2026-07-18",
-      "updated": "2026-09-28",
-      "labels": [
-        "RFC",
-        "interpolation"
-      ],
-      "url": "https://github.com/hydra-ecosystem/omegaconf/issues/1334"
     }
   ],
   "updates": [
