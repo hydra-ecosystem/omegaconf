@@ -117,22 +117,13 @@ OmegaConf uses GitHub Actions with PyPI Trusted Publishers for automated release
    - Repeat for the `omegaconf-pydevd` PyPI project; the workflow publishes
      both packages.
 
-3. Configure Trusted Publishers on TestPyPI for both `omegaconf` and
-   `omegaconf-pydevd`:
-   - Owner: `hydra-ecosystem`
-   - Repository name: `omegaconf`
-   - Workflow name: `publish_test.yml`
-   - Environment name: `testpypi-publish`
-
-4. Create the `pypi-publish` environment in GitHub repository settings (optional but recommended):
+3. Create the `pypi-publish` environment in GitHub repository settings (optional but recommended):
    - Add protection rules (e.g., require manual approval)
 
-5. Create the `pypi-publish-dev` environment in GitHub repository settings:
+4. Create the `pypi-publish-dev` environment in GitHub repository settings:
    - Allow publishing from the development branch you use for dev releases
-     (for example `main`)
-   - Add protection rules (e.g., require manual approval)
-
-6. Create the `testpypi-publish` environment in GitHub repository settings:
+     (for example `main`) and from any RC tags you will publish from
+     (for example `v2.4.0rc1`)
    - Add protection rules (e.g., require manual approval)
 
 **Official release process:**
@@ -140,7 +131,8 @@ OmegaConf uses GitHub Actions with PyPI Trusted Publishers for automated release
    - `bump-my-version bump patch`
    - `bump-my-version bump minor`
    - `bump-my-version bump --new-version X.Y.Z`
-2. Update `NEWS.md` with release notes (use `towncrier build --version X.Y.Z`)
+2. Update `NEWS.md` with release notes (use `towncrier build --version X.Y.Z`
+   to assemble the notes and consume the news fragments)
 3. Commit changes and push to main branch
 4. Create a new release on GitHub:
    - Go to https://github.com/hydra-ecosystem/omegaconf/releases/new
@@ -148,28 +140,34 @@ OmegaConf uses GitHub Actions with PyPI Trusted Publishers for automated release
    - Add release notes
    - Publish release
 5. GitHub Actions will automatically build and publish stable GitHub releases
-   to PyPI and GitHub pre-releases to TestPyPI.
+   to PyPI. For a pre-release, follow the development release process below.
 
 The release workflows handle:
 - Installing Java (required for ANTLR parser generation)
 - Building source distribution and wheel for both `omegaconf` and
   `omegaconf-pydevd`
 - Verifying artifacts for both packages with `twine check`
-- Publishing to PyPI or TestPyPI via Trusted Publishers (no API tokens needed)
+- Publishing to PyPI via Trusted Publishers (no API tokens needed)
 
 **Development release process:**
 The separate, manually triggered `publish_dev.yml` workflow can publish
 pre-release or development package versions to PyPI. It does not run when a
 GitHub pre-release is published.
 
-1. Ensure the dev version to publish is committed and pushed to the branch you
-   use for dev releases.
-2. Run the `Publish dev release to PyPI` workflow manually from GitHub Actions,
-   or run `gh workflow run publish_dev.yml --ref <branch>`.
-3. Approve the `pypi-publish-dev` environment if required.
-4. After the release publishes successfully, advance to the next dev version
-   with `bump-my-version bump pre_n`.
-5. Commit and push the version bump.
+For a release candidate such as `2.4.0rc1`, assemble `NEWS.md` with
+`towncrier build --version X.Y.ZrcN`, which consumes the news fragments. Use
+that release entry for the GitHub pre-release notes. The stable `publish.yml`
+workflow skips GitHub pre-releases.
+
+1. Commit and push the version and release notes.
+2. Create a GitHub pre-release tagged from that commit (for example,
+   `v2.4.0rc1`).
+3. Run the `Publish dev release to PyPI` workflow from that tag in GitHub
+   Actions, or run `gh workflow run publish_dev.yml --ref v2.4.0rc1`.
+4. Approve the `pypi-publish-dev` environment if required.
+5. If preparing another development release or RC, advance the prerelease
+   number with `bump-my-version bump pre_n`.
+6. Commit and push the version bump.
 
 **Manual release (fallback):**
 If you need to publish manually:

@@ -1,0 +1,2 @@
+griffe==2.3.0
+griffe2md==1.5.0

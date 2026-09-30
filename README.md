@@ -25,8 +25,8 @@ providing a consistent API regardless of how the configuration was created.
 
 ## Releases
 
-### Upcoming (2.4.0.dev)
-OmegaConf 2.4.0.dev is the upcoming development version.
+### Upcoming (2.4.0)
+OmegaConf 2.4.0 is in release candidate testing.
 * [Documentation](https://omegaconf.readthedocs.io/en/latest/)
 * [Source code](https://github.com/hydra-ecosystem/omegaconf/tree/main)
 

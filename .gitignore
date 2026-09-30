@@ -23,6 +23,9 @@ TODO
 /.pyre
 .python-version
 .vscode
+/website/node_modules
+/website/build
+/website/.docusaurus
 
 # untracked tests
 temp
