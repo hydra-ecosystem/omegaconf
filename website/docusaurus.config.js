@@ -1,9 +1,8 @@
-// The canonical URL is a prototype placeholder; choose it before deployment.
 module.exports = {
   title: 'OmegaConf',
   tagline: 'Flexible configuration for Python',
-  url: 'https://example.org',
-  baseUrl: '/',
+  url: 'https://hydra-ecosystem.github.io',
+  baseUrl: '/omegaconf/',
   favicon: 'img/omegaconf-mark.svg',
   onBrokenLinks: 'throw',
   onBrokenAnchors: 'throw',

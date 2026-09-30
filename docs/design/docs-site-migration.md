@@ -318,10 +318,12 @@ redirect to an external domain; configure those redirects when a version moves,
 while leaving older, unmigrated versions available there. Docusaurus redirects
 only cover paths on the new site's own domain.
 
-The hosting provider and canonical domain remain decisions for implementation
-planning. Search also needs an explicit Docusaurus integration; choose an
-existing solution during the prototype and verify that results distinguish
-documentation versions and find both guides and API symbols.
+Host the site as the repository's GitHub Pages project site at
+`https://hydra-ecosystem.github.io/omegaconf/`. Treat it as a preview until the
+redirect inventory and reader review are complete; Read the Docs remains the
+canonical documentation during that period. Search needs an explicit
+Docusaurus integration that distinguishes documentation versions and finds
+both guides and API symbols.
 
 ## Process and rollout
 
@@ -377,21 +379,21 @@ converting the full documentation set.
 
 ## Decisions to close before full migration
 
-1. Canonical domain and hosting provider; this determines redirect and
-   deployment mechanics.
-2. Which older documentation versions to port in the second phase, after
+1. Which older documentation versions to port in the second phase, after
    stable 2.3 and incoming 2.4.
-3. Visual design and review of representative pages, API search, and the
+2. Visual design and review of representative pages, API search, and the
    version switcher in a preview deployment.
-4. CI wiring for the site build, API drift check, and selected page examples.
+3. CI wiring for the API drift check and selected page examples. The site build
+   itself runs for pull requests and deploys from `main` through GitHub Actions.
 
 Close these after the remaining content and link inventory, not from
 appearance alone.
 
 ## Local prototype results
 
-The bounded prototype lives in `website/`. It builds 2.3.1 at `/docs/` and
-2.4.0rc1 at `/docs/next/` from separate versioned documentation trees. The
+The Docusaurus site lives in `website/` and is published as a GitHub Pages
+project site. It builds 2.3.1 at `/docs/` and 2.4.0rc1 at `/docs/next/` from
+separate versioned documentation trees. The
 2.3 API page was generated from the 2.3.1 PyPI source distribution, not the
 current checkout. The 2.4 page was generated from the current source. Both
 pages include the `OmegaConf` members, module helpers, and `MISSING`; the 2.4
@@ -428,9 +430,9 @@ with Python's doctest module. The production build passed with broken internal
 links and anchors configured to fail. In the user's first browser review, the
 site worked but its appearance was rejected. A subsequent marketing-style
 landing page was also rejected. The quieter technical-docs direction and new
-logo are now built locally and await user review.
-Hosting/domain, redirects, reader review, preview validation, and
-CI wiring remain later work.
+logo are now implemented. The site build is validated on pull requests and
+published from `main` to `https://hydra-ecosystem.github.io/omegaconf/`.
+Redirects, reader review, and canonical-link cutover remain later work.
 
 ### Implementation inventory
 
@@ -447,9 +449,9 @@ inferring them from current source. Reader review and redirect verification
 are still needed before replacing RTD.
 
 The legacy link map above still needs generated heading and API-symbol anchors
-before redirects can be configured. CI wiring,
-hosting/domain, preview validation, and cutover remain open. Sphinx and RTD
-stay intact during this work.
+before redirects can be configured. API drift and selected-example CI wiring,
+preview review, and cutover remain open. Sphinx and RTD stay intact during this
+work.
 
 ## Tool references
 
