@@ -1,5 +1,5 @@
 {
-  "name": "omegaconf-docs-prototype",
+  "name": "omegaconf-docs",
   "private": true,
   "scripts": {
     "start": "docusaurus start",

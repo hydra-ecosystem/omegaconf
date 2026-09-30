@@ -1,11 +1,11 @@
-# Documentation site prototype
+# Documentation site
 
-This is a local Docusaurus prototype, not the published OmegaConf site. Its
-navigation starts with ordinary configs, then covers interpolation and
-resolvers before structured schemas. It includes task pages, an API overview,
-and generated symbol details for two versions: 2.3.1 at `/docs/` and the
-current 2.4 prerelease at `/docs/next/`. The URL in
-`docusaurus.config.js` is a placeholder until hosting is chosen.
+The Docusaurus site is published at
+<https://hydra-ecosystem.github.io/omegaconf/>. Its navigation starts with
+ordinary configs, then covers interpolation and resolvers before structured
+schemas. It includes task pages, an API overview, and generated symbol details
+for two versions: 2.3.1 at `/omegaconf/docs/` and the current 2.4 prerelease at
+`/omegaconf/docs/next/`.
 
 From the repository root, install the pinned Python generator and site packages:
 
@@ -55,5 +55,7 @@ find /absolute/path/to/website/versioned_docs/version-2.3 -name '*.md' \
 ```
 
 The local search plugin builds separate indexes for the stable and prerelease
-routes. Redirects, hosting, CI integration, and final visual and content review
-are still pending.
+routes. GitHub Actions builds pull requests and publishes changes from `main`
+to GitHub Pages. Redirects, canonical-link cutover, and final reader review are
+still pending; Read the Docs remains the canonical documentation until those
+steps are complete.
