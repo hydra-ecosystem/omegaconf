@@ -1,0 +1,1 @@
+Remove the unsafe ``eval`` resolver recipe from the documentation and direct users to custom resolvers.
