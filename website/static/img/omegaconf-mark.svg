@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256" role="img" aria-labelledby="title desc">
+  <title id="title">OmegaConf logo</title>
+  <desc id="desc">An orange Omega surrounding a small branching config tree.</desc>
+  <path d="M34 205h64v-31c-29-13-47-39-47-71 0-46 33-79 77-79s77 33 77 79c0 32-18 58-47 71v31h64"
+        fill="none" stroke="#db6a23" stroke-linecap="round" stroke-linejoin="round" stroke-width="34"/>
+  <path d="M128 82v34m-27 0h54m-54 0v27m54-27v27"
+        fill="none" stroke="#173743" stroke-linecap="round" stroke-linejoin="round" stroke-width="16"/>
+  <circle cx="128" cy="76" r="14" fill="#173743"/>
+  <circle cx="101" cy="147" r="14" fill="#173743"/>
+  <circle cx="155" cy="147" r="14" fill="#173743"/>
+</svg>
