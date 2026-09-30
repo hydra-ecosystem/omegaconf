@@ -9,7 +9,7 @@
     "1357": "2026-09-25",
     "459": "2026-09-25"
   },
-  "generated_at": "2026-09-30T22:18:46Z",
+  "generated_at": "2026-09-30T23:04:03Z",
   "issues": {
     "1024": {
       "category": "Enhancement",
@@ -109,7 +109,7 @@
       "state": "OPEN",
       "status": "not started",
       "title": "Migrate Documentation from Read the docs to a GitHub hosted Docusaurus)",
-      "updated_at": "2026-07-21T06:42:51Z"
+      "updated_at": "2026-09-30T22:34:28Z"
     },
     "1288": {
       "category": "Enhancement",

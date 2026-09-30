@@ -1,6 +1,6 @@
 {
   "generated_on": "2026-09-30",
-  "generated_at": "2026-09-30T22:18:46Z",
+  "generated_at": "2026-09-30T23:04:03Z",
   "repo": "hydra-ecosystem/omegaconf",
   "summary": {
     "open_total": 25,
@@ -285,7 +285,7 @@
       "status_emoji": "⬜",
       "prs": [],
       "created": "2026-04-26",
-      "updated": "2026-07-21",
+      "updated": "2026-09-30",
       "labels": [
         "documentation"
       ],
