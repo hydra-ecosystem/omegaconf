@@ -93,5 +93,10 @@ Avoid cycles: an interpolation cannot eventually refer back to itself.
 resolved values. It mutates the config, so copy it first if you need to keep
 the original lazy expressions.
 
+For resolved YAML output while preserving the config's interpolations, use
+`OmegaConf.to_yaml(cfg, resolve=True)`. See
+[Convert config to YAML](../guides/load-and-save#convert-config-to-yaml)
+for a comparison with the default unresolved output.
+
 Next, learn how [resolver interpolation](./resolvers) computes values instead of
 referencing another node.
