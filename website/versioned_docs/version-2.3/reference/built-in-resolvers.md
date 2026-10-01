@@ -3,8 +3,8 @@ title: Built-in resolvers
 description: Look up the built-in resolvers available in OmegaConf 2.3.
 ---
 
-[Resolver calls](../concepts/resolvers) use `${name:arguments}` and evaluate
-when their node is read. They can be nested. These resolvers are available
+[Resolver interpolations](../concepts/resolvers) use `${name:arguments}` and
+resolve when their node is accessed. They can be nested. These resolvers are available
 without registration:
 
 | Resolver | Use |

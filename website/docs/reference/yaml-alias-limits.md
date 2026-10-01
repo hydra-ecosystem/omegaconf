@@ -1,9 +1,9 @@
 ---
 title: YAML alias limits
-description: Understand and configure limits on YAML anchor expansion.
+description: Understand and configure limits on YAML alias expansion.
 ---
 
-OmegaConf limits how far YAML anchors and aliases can expand a document. This
+OmegaConf limits the number of nodes produced by YAML alias expansion. This
 protects applications from unexpectedly large input, including YAML bombs.
 If a file from an untrusted source hits the limit, simplify its anchors,
 aliases, or merge keys rather than disabling the protection.

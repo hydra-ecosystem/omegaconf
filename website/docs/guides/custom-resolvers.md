@@ -1,10 +1,10 @@
 ---
 title: Write a custom resolver
-description: Add a computed interpolation and control its caching and validation.
+description: Register custom resolvers and configure caching and annotation validation.
 ---
 
 A resolver is a Python callable used in a
-[resolver call](../concepts/resolvers). Register it once
+[resolver interpolation](../concepts/resolvers). Register it once
 with a name, then use that name in `${name:arguments}`:
 
 ```python

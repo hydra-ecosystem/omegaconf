@@ -31,7 +31,7 @@ module.exports = {
     ],
   ],
   themeConfig: {
-    colorMode: {defaultMode: 'light', respectPrefersColorScheme: true},
+    colorMode: {defaultMode: 'dark', respectPrefersColorScheme: false},
     navbar: {
       title: 'OmegaConf',
       logo: {alt: 'OmegaConf mark', src: 'img/omegaconf-mark.svg', srcDark: 'img/omegaconf-mark-dark.svg'},

@@ -1,5 +1,5 @@
 ---
-title: Control config changes
+title: Configuration flags
 description: Use read-only and struct flags, and temporarily override them.
 ---
 

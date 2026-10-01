@@ -2,45 +2,63 @@ import React from 'react';
 import Layout from '@theme/Layout';
 import Link from '@docusaurus/Link';
 import CodeBlock from '@theme/CodeBlock';
+import ThemedImage from '@theme/ThemedImage';
+import useBaseUrl from '@docusaurus/useBaseUrl';
 
 const example = `from omegaconf import OmegaConf
 
-base = OmegaConf.create({"port": 80})
-config = OmegaConf.merge(
-    base, {"port": 8080}
-)
-print(config.port)  # 8080`;
+base = OmegaConf.create({
+    "host": "localhost",
+    "port": 80,
+    "url": "http://\${host}:\${port}",
+})
+override = OmegaConf.create({
+    "port": 8080,
+})
+config = OmegaConf.merge(base, override)
+print(config.url)`;
 
 const paths = [
   {
     title: 'Work with configs',
-    description: 'Create, change, combine, and exchange configuration data.',
+    description: 'Create, access, update, merge, and serialize configs.',
     to: '/docs/concepts/configs-and-values',
   },
   {
-    title: 'Derive values',
-    description: 'Reference other values and call resolvers when a config is read.',
+    title: 'Interpolation and resolvers',
+    description: 'Reference config values with interpolation and compute values with resolvers.',
     to: '/docs/concepts/interpolation',
   },
   {
-    title: 'Define a schema',
-    description: 'Use dataclasses to validate typed configuration data.',
+    title: 'Structured configs',
+    description: 'Declare typed configs with dataclasses or attrs classes.',
     to: '/docs/concepts/structured-configs',
   },
 ];
 
 export default function Home() {
+  const mascotLight = useBaseUrl('/img/omegaconf-mark.svg');
+  const mascotDark = useBaseUrl('/img/omegaconf-mark-dark.svg');
+
   return (
     <Layout title="Python configuration" description="OmegaConf documentation">
       <main>
         <section className="home-hero">
           <div className="home-shell home-hero__grid">
             <div className="home-hero__copy">
+              <div className="home-hero__mascot">
+                <ThemedImage
+                  alt="OmegaConf sprout penguin mascot"
+                  sources={{light: mascotLight, dark: mascotDark}}
+                  width={220}
+                  height={220}
+                />
+              </div>
               <h1>OmegaConf</h1>
               <p className="home-hero__lead">
                 Flexible configuration for Python. Create configs from Python
-                or YAML, merge sources, and validate values with structured
-                schemas.
+                or YAML, merge configuration sources, use interpolation and
+                resolvers, and validate values with structured configs.
               </p>
               <div className="home-actions">
                 <Link className="home-button home-button--primary" to="/docs/get-started/first-config">
@@ -62,7 +80,7 @@ export default function Home() {
               <CodeBlock language="python">{example}</CodeBlock>
               <div className="home-example__output">
                 <span>Output</span>
-                <strong>8080</strong>
+                <strong>http://localhost:8080</strong>
               </div>
             </div>
           </div>

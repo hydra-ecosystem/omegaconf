@@ -14,12 +14,12 @@ and return value.
 | Read a nested value by path | [`OmegaConf.select()`](./python-api/omegaconf#select) |
 | Write a nested value by path | [`OmegaConf.update()`](./python-api/omegaconf#update) |
 | Convert a config to a Python container | [`OmegaConf.to_container()`](./python-api/omegaconf#to_container) |
-| Save a config as YAML | [`OmegaConf.to_yaml()`](./python-api/omegaconf#to_yaml) |
+| Serialize a config to a YAML string | [`OmegaConf.to_yaml()`](./python-api/omegaconf#to_yaml) |
 | Resolve interpolations in place | [`OmegaConf.resolve()`](./python-api/omegaconf#resolve) |
 
 ### Types and helpers
 
-Use [`MISSING`](./python-api/omegaconf#missing) for a mandatory value,
+Use [`MISSING`](./python-api/omegaconf#missing) to mark a mandatory missing value,
 [`II`](./python-api/omegaconf#ii) and [`SI`](./python-api/omegaconf#si) for
 interpolations, and [`open_dict`](./python-api/omegaconf#open_dict),
 [`read_write`](./python-api/omegaconf#read_write), or
