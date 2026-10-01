@@ -2,14 +2,21 @@ import React from 'react';
 import Layout from '@theme/Layout';
 import Link from '@docusaurus/Link';
 import CodeBlock from '@theme/CodeBlock';
+import ThemedImage from '@theme/ThemedImage';
+import useBaseUrl from '@docusaurus/useBaseUrl';
 
 const example = `from omegaconf import OmegaConf
 
-base = OmegaConf.create({"port": 80})
-config = OmegaConf.merge(
-    base, {"port": 8080}
-)
-print(config.port)  # 8080`;
+base = OmegaConf.create({
+    "host": "localhost",
+    "port": 80,
+    "url": "http://\${host}:\${port}",
+})
+override = OmegaConf.create({
+    "port": 8080,
+})
+config = OmegaConf.merge(base, override)
+print(config.url)`;
 
 const paths = [
   {
@@ -30,17 +37,28 @@ const paths = [
 ];
 
 export default function Home() {
+  const mascotLight = useBaseUrl('/img/omegaconf-mark.svg');
+  const mascotDark = useBaseUrl('/img/omegaconf-mark-dark.svg');
+
   return (
     <Layout title="Python configuration" description="OmegaConf documentation">
       <main>
         <section className="home-hero">
           <div className="home-shell home-hero__grid">
             <div className="home-hero__copy">
+              <div className="home-hero__mascot">
+                <ThemedImage
+                  alt="OmegaConf sprout penguin mascot"
+                  sources={{light: mascotLight, dark: mascotDark}}
+                  width={220}
+                  height={220}
+                />
+              </div>
               <h1>OmegaConf</h1>
               <p className="home-hero__lead">
                 Flexible configuration for Python. Create configs from Python
-                or YAML, merge sources, and validate values with structured
-                schemas.
+                or YAML, merge sources, derive values through interpolation,
+                and validate them with structured schemas.
               </p>
               <div className="home-actions">
                 <Link className="home-button home-button--primary" to="/docs/get-started/first-config">
@@ -62,7 +80,7 @@ export default function Home() {
               <CodeBlock language="python">{example}</CodeBlock>
               <div className="home-example__output">
                 <span>Output</span>
-                <strong>8080</strong>
+                <strong>http://localhost:8080</strong>
               </div>
             </div>
           </div>

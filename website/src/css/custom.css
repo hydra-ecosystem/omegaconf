@@ -9,6 +9,7 @@
   --ifm-background-color: #fff;
   --ifm-font-color-base: #26333b;
   --ifm-heading-color: #172833;
+  --ifm-font-size-base: 93.75%;
   --ifm-font-family-base: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   --ifm-font-family-monospace: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
   --ifm-heading-font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
@@ -83,20 +84,20 @@ body {
 }
 
 .markdown h1 {
-  font-size: clamp(2.1rem, 4vw, 2.7rem);
+  font-size: clamp(1.9rem, 3.2vw, 2.35rem);
   line-height: 1.12;
   margin-bottom: 1.15rem;
 }
 
 .markdown h2 {
   border-bottom: 1px solid var(--oc-border);
-  font-size: 1.65rem;
+  font-size: 1.5rem;
   margin-top: 2.7rem;
   padding-bottom: 0.45rem;
 }
 
 .markdown h3 {
-  font-size: 1.2rem;
+  font-size: 1.125rem;
   margin-top: 2rem;
 }
 
@@ -178,12 +179,21 @@ html[data-theme="dark"] .home-hero {
   gap: clamp(2rem, 5vw, 4rem);
   grid-template-columns: minmax(0, 1fr) minmax(0, 0.95fr);
   padding-bottom: 4rem;
-  padding-top: 4rem;
+  padding-top: 0.75rem;
+}
+
+.home-hero__mascot {
+  margin-bottom: 1.5rem;
+}
+
+.home-hero__mascot img {
+  height: auto;
+  width: clamp(160px, 18vw, 220px);
 }
 
 .home-hero h1 {
   color: var(--ifm-heading-color);
-  font-size: clamp(2.6rem, 4vw, 3.5rem);
+  font-size: clamp(2.3rem, 3.5vw, 3rem);
   letter-spacing: -0.04em;
   line-height: 1.1;
   margin-bottom: 1.2rem;
@@ -191,7 +201,7 @@ html[data-theme="dark"] .home-hero {
 
 .home-hero__lead {
   color: var(--ifm-font-color-base);
-  font-size: 1.15rem;
+  font-size: 1.05rem;
   line-height: 1.6;
   max-width: 560px;
 }
@@ -319,7 +329,7 @@ html[data-theme="dark"] .home-hero {
 }
 
 .home-section-heading h2 {
-  font-size: 1.65rem;
+  font-size: 1.5rem;
   letter-spacing: -0.025em;
 }
 
@@ -346,7 +356,7 @@ html[data-theme="dark"] .home-hero {
 
 .home-path h3 {
   color: var(--ifm-heading-color);
-  font-size: 1.28rem;
+  font-size: 1.2rem;
   letter-spacing: -0.02em;
   margin-bottom: 0.55rem;
 }
@@ -368,7 +378,7 @@ html[data-theme="dark"] .home-hero {
     gap: 2rem;
     grid-template-columns: 1fr;
     padding-bottom: 3rem;
-    padding-top: 3rem;
+    padding-top: 0.75rem;
   }
 
   .home-example {
@@ -383,11 +393,11 @@ html[data-theme="dark"] .home-hero {
   }
 
   .home-hero__grid {
-    padding-top: 3rem;
+    padding-top: 0.75rem;
   }
 
   .home-hero h1 {
-    font-size: 2.65rem;
+    font-size: 2.3rem;
   }
 
   .home-paths {
