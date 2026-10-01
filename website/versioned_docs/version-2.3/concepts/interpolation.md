@@ -1,10 +1,11 @@
 ---
-title: Node interpolation
-description: Reference another config value, lazily or all at once.
+title: Node and string interpolation
+description: Reference config values with node and string interpolation.
 ---
 
-An interpolation stores an expression and evaluates it when you read the
-value. `${server.port}` reads another node in the same config:
+Node interpolation references another value in the config. OmegaConf resolves
+interpolations lazily, when you access the value. `${server.port}` references
+the `server.port` node:
 
 ```python
 >>> from omegaconf import OmegaConf
@@ -26,9 +27,13 @@ value. `${server.port}` reads another node in the same config:
 
 ```
 
-An interpolation occupying the whole value retains the referenced value's
-type, so `cfg.client.port` is an integer. Embedding node references in text
-produces a string:
+A node interpolation occupying the whole value retains the referenced value's
+type, so `cfg.client.port` is an integer.
+
+## String interpolation
+
+String interpolation combines interpolation expressions with literal text
+to produce a string:
 
 ```python
 >>> cfg.client.url
@@ -88,5 +93,5 @@ Avoid cycles: an interpolation cannot eventually refer back to itself.
 resolved values. It mutates the config, so copy it first if you need to keep
 the original lazy expressions.
 
-Next, learn how [resolver calls](./resolvers) compute values instead of
+Next, learn how [resolver interpolation](./resolvers) computes values instead of
 referencing another node.

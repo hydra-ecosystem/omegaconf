@@ -1,9 +1,10 @@
 ---
 title: Your first config
-description: Create a config, derive a value, and merge an override in a few lines.
+description: Create a config, use string interpolation, and merge an override.
 ---
 
-Build a config from a Python dictionary, derive a URL, and apply an override.
+Create a config from a Python dictionary, use string interpolation, and apply
+an override.
 You can run each example in a Python interpreter with OmegaConf 2.3 installed.
 
 > **By the end:** you'll have a merged config that preserves a default, changes
@@ -22,10 +23,11 @@ You can run each example in a Python interpreter with OmegaConf 2.3 installed.
 
 ```
 
-## 2. Derive a URL
+## 2. String interpolation
 
-Use `${...}` to reference other values in the config. OmegaConf resolves these
-references when you access the value, so the URL follows its current host and port.
+String interpolation embeds config values in a string using `${...}` references.
+OmegaConf resolves these references when you access the value. In this example,
+`url` combines the values of `host` and `port`.
 
 ```python
 >>> config.url = "http://${host}:${port}"
@@ -38,7 +40,7 @@ references when you access the value, so the URL follows its current host and po
 
 `OmegaConf.merge()` takes one or more configs or dictionaries. Later values
 win when the same key appears more than once.
-Use `resolve=True` to expand the references in the YAML output.
+Use `resolve=True` to resolve interpolations in the YAML output.
 
 ```python
 >>> override = OmegaConf.create({
@@ -59,7 +61,7 @@ url: http://localhost:80
 ```
 
 The merged config keeps `host` from the original, replaces `port`, and adds
-`debug`. Its URL automatically uses the new port, while the original config
-remains unchanged. Continue with
+`debug`. The interpolated `url` automatically uses the new port, while the
+original config remains unchanged. Continue with
 [config containers](../concepts/configs-and-values) to learn how to change
 nested values and work with sequences.

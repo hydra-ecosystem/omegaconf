@@ -1,11 +1,11 @@
 ---
-title: Missing values
+title: Mandatory missing values
 description: Mark a value that must be supplied before it can be read.
 ---
 
-Use `???` for a value that must be supplied later. Reading it raises
-`MissingMandatoryValue`; `OmegaConf.is_missing()` lets you check it without
-reading it:
+Use `???` to mark a mandatory missing value that must be supplied later.
+Reading it raises `MissingMandatoryValue`; `OmegaConf.is_missing()` lets you
+check it without reading it:
 
 ```python
 >>> from omegaconf import OmegaConf
@@ -24,8 +24,8 @@ omegaconf.errors.MissingMandatoryValue: Missing mandatory value: host
 
 ```
 
-`MISSING` is the Python spelling of the same marker. `None` is an ordinary
-value, not a missing marker.
+The `MISSING` constant is the Python spelling of the same marker. `None` is
+an ordinary value, not a missing marker.
 
 In OmegaConf 2.3, the string `???` is always interpreted as missing when
 stored in a config, even if it was quoted in YAML. The
