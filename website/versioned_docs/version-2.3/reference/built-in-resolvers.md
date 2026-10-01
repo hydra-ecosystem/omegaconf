@@ -3,8 +3,8 @@ title: Built-in resolvers
 description: Look up the built-in resolvers available in OmegaConf 2.3.
 ---
 
-[Resolver calls](../concepts/resolvers) use `${name:arguments}` and evaluate
-when their node is read. They can be nested. These resolvers are available
+[Resolver interpolations](../concepts/resolvers) use `${name:arguments}` and
+resolve when their node is accessed. They can be nested. These resolvers are available
 without registration:
 
 | Resolver | Use |
@@ -110,7 +110,7 @@ default instead of raising. Quote paths containing resolver punctuation.
 ```
 
 In 2.3, `oc.select` also reaches keys that ordinary node-interpolation
-syntax cannot express. A colon would otherwise be parsed as a resolver call:
+syntax cannot express. A colon would otherwise be parsed as resolver interpolation:
 
 ```python
 >>> cfg = OmegaConf.create({

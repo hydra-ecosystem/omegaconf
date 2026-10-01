@@ -3,7 +3,7 @@
 The Docusaurus site is published at
 <https://hydra-ecosystem.github.io/omegaconf/>. Its navigation starts with
 ordinary configs, then covers interpolation and resolvers before structured
-schemas. It includes task pages, an API overview, and generated symbol details
+configs. It includes task pages, an API overview, and generated symbol details
 for two versions: 2.3.1 at `/omegaconf/docs/` and the current 2.4 prerelease at
 `/omegaconf/docs/next/`.
 

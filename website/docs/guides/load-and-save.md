@@ -25,7 +25,7 @@ but not the Python schema of a
 [structured config](../concepts/structured-configs). Use `OmegaConf.to_yaml(cfg)`
 when you need a YAML string or
 `OmegaConf.to_container(cfg)` when another Python API needs ordinary
-dictionaries and lists.
+dictionaries, lists, and tuples.
 
 ```python
 >>> yaml_text = OmegaConf.to_yaml(cfg)

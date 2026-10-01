@@ -5,8 +5,8 @@ description: Read and change mapping and sequence configs.
 
 `OmegaConf.create()` with no argument makes an empty `DictConfig`. A
 dictionary also becomes a `DictConfig`, while a list becomes a `ListConfig`.
-These containers can be nested. Each key or list position is a node, but
-reading it gives you its value. For example:
+These containers can be nested. Values are stored as nodes; attribute or
+item access returns their values. For example:
 
 ```python
 >>> from omegaconf import OmegaConf

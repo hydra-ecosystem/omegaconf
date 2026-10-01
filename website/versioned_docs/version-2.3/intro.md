@@ -16,16 +16,17 @@ configuration API. This is a small prototype of a rebuilt documentation site.
 - [Install OmegaConf](./get-started/install) gets the stable release into
   your Python environment.
 - [Your first config](./get-started/first-config) walks through creation,
-  access, and merging.
+  string interpolation, and merging.
 
 ## Explore the main capabilities
 
 1. [Work with configs](./concepts/configs-and-values): learn containers,
-   [missing values](./concepts/missing-values), merging, and data exchange.
-2. [Derive values](./concepts/interpolation): start with node references,
-   then [resolver calls](./concepts/resolvers).
-3. [Define a schema](./concepts/structured-configs): add typed fields, learn
-   [containers, Enums, and unions](./concepts/field-types), then
+   [mandatory missing values](./concepts/missing-values), merging, and
+   serialization.
+2. [Interpolation and resolvers](./concepts/interpolation): start with node
+   and string interpolation, then [resolver interpolation](./concepts/resolvers).
+3. [Structured configs](./concepts/structured-configs): declare typed fields, learn
+   [field types](./concepts/field-types), then
    [optional fields](./concepts/optional-fields) and validation.
 
 Each section also contains task pages you can use as needed. For exact

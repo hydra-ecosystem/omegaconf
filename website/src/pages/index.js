@@ -21,17 +21,17 @@ print(config.url)`;
 const paths = [
   {
     title: 'Work with configs',
-    description: 'Create, change, combine, and exchange configuration data.',
+    description: 'Create, access, update, merge, and serialize configs.',
     to: '/docs/concepts/configs-and-values',
   },
   {
-    title: 'Derive values',
-    description: 'Reference other values and call resolvers when a config is read.',
+    title: 'Interpolation and resolvers',
+    description: 'Reference config values with interpolation and compute values with resolvers.',
     to: '/docs/concepts/interpolation',
   },
   {
-    title: 'Define a schema',
-    description: 'Use dataclasses to validate typed configuration data.',
+    title: 'Structured configs',
+    description: 'Declare typed configs with dataclasses or attrs classes.',
     to: '/docs/concepts/structured-configs',
   },
 ];
@@ -57,8 +57,8 @@ export default function Home() {
               <h1>OmegaConf</h1>
               <p className="home-hero__lead">
                 Flexible configuration for Python. Create configs from Python
-                or YAML, merge sources, derive values through interpolation,
-                and validate them with structured schemas.
+                or YAML, merge configuration sources, use interpolation and
+                resolvers, and validate values with structured configs.
               </p>
               <div className="home-actions">
                 <Link className="home-button home-button--primary" to="/docs/get-started/first-config">
