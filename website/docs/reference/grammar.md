@@ -1,6 +1,6 @@
 ---
 title: Interpolation grammar
-description: Syntax for node references, resolver calls, arguments, and escaping.
+description: Syntax for node and resolver interpolation, arguments, and escaping.
 ---
 
 OmegaConf parses interpolation strings with an ANTLR grammar. The
@@ -11,10 +11,11 @@ write in configs.
 
 ## Interpolation strings
 
-`${server.port}` is a node interpolation. `${oc.env:HOME}` calls a resolver.
-Either may occupy the whole value or appear inside text, as in
-`https://${host}:${port}`. A whole-node interpolation retains the referenced
-value's type; text with interpolations produces a string.
+`${server.port}` is a node interpolation. `${oc.env:HOME}` is a resolver
+interpolation that calls the `oc.env` resolver. Either may occupy the whole
+value or appear inside a string interpolation, as in `https://${host}:${port}`.
+A node interpolation occupying the whole value retains the referenced value's
+type; string interpolation produces a string.
 
 ## Node references
 
@@ -161,4 +162,4 @@ those do not need another level of escaping.
 ```
 
 For the behavior of resolved values, see [node interpolation](../concepts/interpolation)
-and [resolver calls](../concepts/resolvers).
+and [resolver interpolation](../concepts/resolvers).

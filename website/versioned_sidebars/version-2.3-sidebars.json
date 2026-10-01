@@ -13,12 +13,12 @@
     },
     {
       "type": "category",
-      "label": "Derive values",
+      "label": "Interpolation and resolvers",
       "items": ["concepts/interpolation", "concepts/resolvers", "guides/custom-resolvers"]
     },
     {
       "type": "category",
-      "label": "Define a schema",
+      "label": "Structured configs",
       "items": ["concepts/structured-configs", "concepts/field-types", "concepts/optional-fields", "guides/schema-validation"]
     },
     {

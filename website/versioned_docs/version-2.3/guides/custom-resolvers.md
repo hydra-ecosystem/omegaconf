@@ -1,10 +1,10 @@
 ---
 title: Write a custom resolver
-description: Add a computed interpolation and control its caching.
+description: Register custom resolvers and configure caching.
 ---
 
 A resolver is a Python callable used in a
-[resolver call](../concepts/resolvers). Register it once
+[resolver interpolation](../concepts/resolvers). Register it once
 with a name, then use that name in `${name:arguments}`:
 
 ```python
@@ -23,7 +23,8 @@ config node. Names may be namespaced (such as `myapp.add`), and an
 interpolation may even select part of a resolver name.
 
 If the callable declares keyword-only `_parent_` or `_root_` parameters,
-OmegaConf supplies the containing node or config root. This is useful when a
+OmegaConf supplies the interpolation's parent container or config root,
+respectively. This is useful when a
 resolver needs to inspect neighboring values without requiring them as
 explicit interpolation arguments.
 
@@ -45,8 +46,8 @@ explicit interpolation arguments.
 ```
 
 The name `absent` is passed as text; the resolver handles its absence
-through `_parent_`. A missing nested argument, by contrast, fails before
-the resolver is called.
+through `_parent_`. If a nested interpolation references an absent key or a
+mandatory missing value, evaluation fails before the resolver is called.
 
 ## Replace or cache a resolver
 
