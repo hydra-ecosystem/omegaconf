@@ -53,7 +53,7 @@ typed interpolation behavior then builds on both topics.
 | Derive values | How do I refer to other values or compute them? | Node interpolation, relative/nested paths, lazy versus eager resolution, built-in and custom resolver calls. Put environment-input recipes here. Explain the shared expression syntax, while giving node references and resolvers distinct pages. |
 | Define a schema | How do I declare and validate typed config data? | Structured configs, field types and defaults, optional fields, runtime validation and conversion, applying a schema to external input. Explain how typed fields validate interpolation results after both ideas are established. `Optional[T]` follows structured fields; it is not a synonym for `MISSING`. |
 | Reference | What is the exact syntax or API contract? | Generated Python API, supported-type matrix, resolver catalog, interpolation grammar, and precise operation options. Lookup pages do not repeat the learning narrative. |
-| Upgrade | What changes when I adopt a newer release? | 2.3-to-2.4 overview and focused migration guides, including tuples and conversion changes. |
+| Upgrade | What changes when I adopt a newer release? | One 2.3-to-2.4 guide covering breaking changes and required updates, with collapsed tuple migration examples. |
 
 The main reading path is **Start → Work with configs → Derive values → Define
 a schema**. Interpolation and schemas can be used independently; this order
@@ -127,7 +127,7 @@ Docusaurus adds the appropriate version route below `/docs/`.
 | Derive values | `concepts/interpolation`, `concepts/resolvers`, `guides/custom-resolvers` |
 | Define a schema | `concepts/structured-configs`, `concepts/field-types`, `concepts/optional-fields`, `guides/schema-validation` |
 | Reference | `reference/python-api`, `reference/operations`, `reference/types`, `reference/conversion`, `reference/built-in-resolvers`, `reference/grammar`, `reference/yaml-alias-limits` |
-| Upgrade | `migration/2.4`, `migration/2.4-tuples` |
+| Upgrade | `migration/2.4` |
 
 `concepts/field-types` teaches container, Enum, and union annotations before
 optional fields, with `Literal` added in 2.4. `reference/types` remains the
@@ -182,12 +182,13 @@ and navigation rather than copying the Sphinx indices.
 | `custom_resolvers.rst` | Custom resolvers; Resolver annotation validation; Clearing/removing resolvers; clear_resolvers; clear_resolver | `guides/custom-resolvers` |
 | `custom_resolvers.rst` | Built-in resolvers; oc.env; oc.create; oc.deprecated; oc.coerce; oc.decode; oc.select; oc.dict.{keys,value} | `reference/built-in-resolvers` |
 | `grammar.rst` | Interpolation strings; Interpolation types; Element types; Escaped characters; Escaping in interpolation strings; Escaping in unquoted strings; Escaping in quoted strings | `reference/grammar` |
-| `tuple_migration.rst` | What changed; Choosing the intended sequence type; Checking sequence types; Migration checklist | `migration/2.4-tuples` |
+| `tuple_migration.rst` | What changed; Choosing the intended sequence type; Checking sequence types; Migration checklist | `migration/2.4#tuple-inputs-no-longer-become-mutable-lists` |
 | `yaml_aliases.rst` | YAML Alias Limits; Details | `reference/yaml-alias-limits` |
 | `api_reference.rst` | The OmegaConf API; module-level utilities; MISSING | `reference/python-api` |
 
-The 2.4 overview is new and links to the tuple guide and other changed
-behaviors. `docs/notebook/Tutorial.ipynb` remains a separate linked tutorial
+The 2.4 upgrade guide describes breaking changes and contains collapsed
+tuple migration examples. The old `migration/2.4-tuples` route redirects to
+that section. `docs/notebook/Tutorial.ipynb` remains a separate linked tutorial
 and retains its existing `nbval` check initially. The five small YAML source
 files included by the RST pages move with their examples.
 
@@ -249,7 +250,7 @@ source; 2.4-only topics cannot be redirected into 2.3 documentation.
 | `grammar.html#interpolation-strings` | `reference/grammar#interpolation-strings` |
 | `grammar.html#element-types` | `reference/grammar#element-types` |
 | `grammar.html#escaping-in-interpolation-strings` | `reference/grammar#escaping-in-interpolation-strings` |
-| `tuple_migration.html#tuple-migration-24` | `migration/2.4-tuples` |
+| `tuple_migration.html#tuple-migration-24` | `migration/2.4#tuple-inputs-no-longer-become-mutable-lists` |
 | `yaml_aliases.html#yaml-aliases` | `reference/yaml-alias-limits` |
 
 Sphinx also generates anchors from every heading and API symbol, including

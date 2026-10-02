@@ -30,7 +30,7 @@ source statement is not carried forward.
 | Behavior and example family | Website destination | Evidence |
 | --- | --- | --- |
 | Installation, creation from empty/dict/list/YAML, access, defaults, mutation, supported key kinds | `get-started/*`, `concepts/configs-and-values` | Examples form one beginner path; key-type and integer-path rules are explicit. |
-| Native tuple creation, immutable elements, and list-versus-tuple migration | `concepts/configs-and-values`, `reference/types`, `migration/2.4-tuples` | The migration guide has a focused compatibility checklist. |
+| Native tuple creation, immutable elements, and list-versus-tuple migration | `concepts/configs-and-values`, `reference/types`, `migration/2.4#tuple-inputs-no-longer-become-mutable-lists` | The upgrade guide has a breaking-change summary and collapsed migration examples. |
 | Mandatory `???`, escaped literal `\???`, detached values, and YAML round trip | `concepts/missing-values`, `reference/operations` | Missing inspection and structural comparison distinguish missing from literal text. |
 | YAML text/files/file objects, flow style, pickle, and schema loss on YAML load | `guides/load-and-save` | File-object, flow-style, and pickle examples execute. |
 | Dotlist and CLI creation, escaped key paths, shell quoting | `guides/command-line`, `reference/operations` | Interpolation, API, and shell escaping are distinguished. |
