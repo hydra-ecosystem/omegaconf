@@ -48,7 +48,8 @@ export default function Home() {
             <div className="home-hero__copy">
               <div className="home-hero__mascot">
                 <ThemedImage
-                  alt="OmegaConf sprout penguin mascot"
+                  alt="Fingi, the OmegaConf mascot"
+                  title="Fingi"
                   sources={{light: mascotLight, dark: mascotDark}}
                   width={220}
                   height={220}
