@@ -48,7 +48,7 @@ Dictionary keys may be `str`, `int`, `bool`, `float`, `bytes`, or Enum members.
 
 Lists become mutable `ListConfig` values. In 2.3, native tuples also become
 mutable `ListConfig` values. This changes in
-[OmegaConf 2.4](/docs/next/migration/2.4-tuples).
+[OmegaConf 2.4](/docs/next/migration/2.4#tuple-inputs-no-longer-become-mutable-lists).
 
 Next, learn how to [mark a value as missing](./missing-values) when it must be
 provided later.

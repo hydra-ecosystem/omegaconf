@@ -53,7 +53,7 @@ text.
 Lists become mutable `ListConfig` values. In 2.4, tuples become structurally
 immutable `TupleConfig` values. Use a list when you need to change individual elements;
 replace the whole tuple when you need different tuple contents. The
-[tuple migration guide](../migration/2.4-tuples) explains the change from
+[upgrade guide](../migration/2.4#tuple-inputs-no-longer-become-mutable-lists) explains the change from
 earlier releases.
 
 Next, learn how to [mark a value as missing](./missing-values) when it must be
