@@ -4,11 +4,25 @@ on:
   pull_request:
     paths:
       - website/**
+      - omegaconf/**
+      - requirements/**
+      - build_helpers/**
+      - setup.py
+      - pyproject.toml
+      - tests/test_website*.py
+      - tests/conftest.py
       - .github/workflows/deploy-docs.yml
   push:
     branches: [main]
     paths:
       - website/**
+      - omegaconf/**
+      - requirements/**
+      - build_helpers/**
+      - setup.py
+      - pyproject.toml
+      - tests/test_website*.py
+      - tests/conftest.py
       - .github/workflows/deploy-docs.yml
   workflow_dispatch:
 
@@ -16,7 +30,62 @@ permissions:
   contents: read
 
 jobs:
+  validate:
+    name: Validate documentation (${{ matrix.docs-version }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        docs-version: ['2.3', next]
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.10'
+      - name: Set up Java
+        if: matrix.docs-version == 'next'
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '11'
+      - name: Install API generator
+        run: python -m pip install -r website/requirements.txt
+      - name: Install current checkout
+        if: matrix.docs-version == 'next'
+        run: python -m pip install -e . pytest attrs
+      - name: Prepare frozen 2.3.1 source and runtime
+        if: matrix.docs-version == '2.3'
+        run: |
+          curl --fail --location \
+            https://files.pythonhosted.org/packages/ce/3d/e4b57b8d9008c6ebe0d5eff901f91d5700cf7bdb8c8863df817463a7fd5e/omegaconf-2.3.1.tar.gz \
+            --output "$RUNNER_TEMP/omegaconf-2.3.1.tar.gz"
+          echo "e5e7de64aeebeddaf8e6d3f7a783b32ac2a01c0fbd9c878012caecb891a1f42a  $RUNNER_TEMP/omegaconf-2.3.1.tar.gz" \
+            | sha256sum --check
+          tar -xzf "$RUNNER_TEMP/omegaconf-2.3.1.tar.gz" -C "$RUNNER_TEMP"
+          python -m pip install 'omegaconf==2.3.1'
+      - name: Test selected page examples
+        run: python website/scripts/test_examples.py --docs-version '${{ matrix.docs-version }}'
+      - name: Check current API snapshot
+        if: matrix.docs-version == 'next'
+        run: |
+          version=$(sed -n 's/^__version__ = "\(.*\)"/\1/p' omegaconf/version.py)
+          python website/scripts/generate_api.py \
+            --source . --version "$version" \
+            --output website/docs/reference/python-api/omegaconf.md --check
+      - name: Check frozen 2.3 API snapshot
+        if: matrix.docs-version == '2.3'
+        run: |
+          python website/scripts/generate_api.py \
+            --source "$RUNNER_TEMP/omegaconf-2.3.1" --version 2.3.1 \
+            --output website/versioned_docs/version-2.3/reference/python-api/omegaconf.md --check
+      - name: Test example runner
+        if: matrix.docs-version == 'next'
+        run: python -m pytest tests/test_website_examples.py -q
+
   build:
+    needs: validate
     runs-on: ubuntu-latest
     steps:
       - name: Check out repository
