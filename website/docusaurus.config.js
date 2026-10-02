@@ -19,7 +19,7 @@ module.exports = {
             '2.3': {label: '2.3', path: ''},
           },
         },
-        blog: false,
+        blog: {showReadingTime: true},
         theme: {customCss: require.resolve('./src/css/custom.css')},
       },
     ],
@@ -27,16 +27,17 @@ module.exports = {
   themes: [
     [
       require.resolve('@easyops-cn/docusaurus-search-local'),
-      {hashed: true, indexBlog: false},
+      {hashed: true, indexBlog: true},
     ],
   ],
   themeConfig: {
     colorMode: {defaultMode: 'dark', respectPrefersColorScheme: false},
     navbar: {
       title: 'OmegaConf',
-      logo: {alt: 'OmegaConf mark', src: 'img/omegaconf-mark.svg', srcDark: 'img/omegaconf-mark-dark.svg'},
+      logo: {alt: 'Fingi, the OmegaConf mascot', src: 'img/omegaconf-mark.svg', srcDark: 'img/omegaconf-mark-dark.svg'},
       items: [
         {type: 'docSidebar', sidebarId: 'docsSidebar', position: 'left', label: 'Docs'},
+        {to: '/blog', label: 'Blog', position: 'left'},
         {type: 'docsVersionDropdown', position: 'right'},
         {href: 'https://github.com/hydra-ecosystem/omegaconf', label: 'GitHub', position: 'right'},
       ],
@@ -45,7 +46,7 @@ module.exports = {
       style: 'light',
       links: [
         {title: 'Documentation', items: [{label: 'Stable 2.3', to: '/docs/'}, {label: '2.4 prerelease', to: '/docs/next/'}]},
-        {title: 'Project', items: [{label: 'GitHub', href: 'https://github.com/hydra-ecosystem/omegaconf'}]},
+        {title: 'Project', items: [{label: 'Blog', to: '/blog'}, {label: 'GitHub', href: 'https://github.com/hydra-ecosystem/omegaconf'}]},
       ],
     },
   },
