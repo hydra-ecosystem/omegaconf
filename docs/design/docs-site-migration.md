@@ -53,7 +53,7 @@ typed interpolation behavior then builds on both topics.
 | Derive values | How do I refer to other values or compute them? | Node interpolation, relative/nested paths, lazy versus eager resolution, built-in and custom resolver calls. Put environment-input recipes here. Explain the shared expression syntax, while giving node references and resolvers distinct pages. |
 | Define a schema | How do I declare and validate typed config data? | Structured configs, field types and defaults, optional fields, runtime validation and conversion, applying a schema to external input. Explain how typed fields validate interpolation results after both ideas are established. `Optional[T]` follows structured fields; it is not a synonym for `MISSING`. |
 | Reference | What is the exact syntax or API contract? | Generated Python API, supported-type matrix, resolver catalog, interpolation grammar, and precise operation options. Lookup pages do not repeat the learning narrative. |
-| Upgrade | What changes when I adopt a newer release? | 2.3-to-2.4 overview and focused migration guides, including tuples and conversion changes. |
+| Upgrade | What changes when I adopt a newer release? | One 2.3-to-2.4 guide covering breaking changes and required updates, with collapsed tuple migration examples. |
 
 The main reading path is **Start → Work with configs → Derive values → Define
 a schema**. Interpolation and schemas can be used independently; this order
