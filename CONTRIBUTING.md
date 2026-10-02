@@ -155,9 +155,9 @@ pre-release or development package versions to PyPI. It does not run when a
 GitHub pre-release is published.
 
 For a release candidate such as `2.4.0rc1`, assemble `NEWS.md` with
-`towncrier build --version X.Y.ZrcN`, which consumes the news fragments. Use
-that release entry for the GitHub pre-release notes. The stable `publish.yml`
-workflow skips GitHub pre-releases.
+`towncrier build --version X.Y.ZrcN --keep` to retain the news fragments until
+the final stable release. Use that release entry for the GitHub pre-release
+notes. The stable `publish.yml` workflow skips GitHub pre-releases.
 
 1. Commit and push the version and release notes.
 2. Create a GitHub pre-release tagged from that commit (for example,
