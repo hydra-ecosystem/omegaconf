@@ -3,6 +3,8 @@ title: Structured configs
 description: Use dataclasses or attrs classes as runtime config schemas.
 ---
 
+The examples use Python 3.10 or newer type annotation syntax.
+
 A structured config uses a dataclass or `attrs` class to define fields,
 defaults, and types. `OmegaConf.structured()` creates a config with that
 schema. Its fields validate assignments at runtime:

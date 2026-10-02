@@ -63,30 +63,29 @@ a union, the `Literal` branch wins regardless of annotation order.
 
 ## Optional types
 
-`T | None` (equivalent to `Optional[T]`) permits `None` in a typed field. See
+`T | None` permits `None` in a typed field. See
 [optional fields](../concepts/optional-fields) for an example. A field's
 type and its [missing state](../concepts/missing-values) are independent.
 
 ## Unions
 
-`typing.Union[...]` can combine primitive, literal, typed container, or
+`A | B` can combine primitive, literal, typed container, or
 structured config types. Union selection is strict: OmegaConf does not
 convert an assigned value merely to make it match one of several branches.
-If a union includes `Any`, it is equivalent to `Any`. Wrapping any branch in
-`Optional` makes the whole union optional.
+If a union includes `Any`, it is equivalent to `Any`. Adding `None` as a
+branch, as in `A | B | None`, makes the whole union optional.
 On Python 3.12 or newer, PEP 695 `type` aliases are transparent wherever
 their expanded annotations are supported.
 
-For `Union[list[int], list[str]]`, an empty list is ambiguous. Supply an
+For `list[int] | list[str]`, an empty list is ambiguous. Supply an
 explicitly typed container to choose the intended branch:
 
 ```python
 >>> from dataclasses import dataclass, field
->>> from typing import Union
 >>> from omegaconf import OmegaConf
 >>> @dataclass
 ... class Items:
-...     value: Union[list[int], list[str]] = field(default_factory=lambda: [1])
+...     value: list[int] | list[str] = field(default_factory=lambda: [1])
 >>> cfg = OmegaConf.structured(Items)
 >>> cfg.value = OmegaConf.typed_list([], element_type=str)
 >>> cfg.value.append("hello")
