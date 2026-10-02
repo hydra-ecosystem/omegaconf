@@ -27,7 +27,7 @@ supported container or structured config type.
 `typing.Tuple[...]` is accepted in 2.3, but the config value is represented
 as a mutable `ListConfig`. Native tuple inputs are also converted to
 `ListConfig`. This representation changes in
-[OmegaConf 2.4](/docs/next/migration/2.4-tuples).
+[OmegaConf 2.4](/docs/next/migration/2.4#tuple-inputs-no-longer-become-mutable-lists).
 
 ## Dictionaries
 
