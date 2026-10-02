@@ -62,6 +62,12 @@ OmegaConf uses Ruff for formatting, linting, and import sorting. Run
 
 To build the docs execute `nox -s docs` or `make`(inside docs folder). Make gives you different options, for example, you can build the docs as html files with `make html`. Once the docs are built you can open `index.html` in the build directory to view the generated docs with your browser.
 
+For the Docusaurus website, follow [the website checks](website/README.md#example-and-api-checks)
+to execute selected Markdown examples and check generated API snapshots.
+Run current examples against the editable checkout and stable examples in a
+separate OmegaConf 2.3.1 environment. Both version checks must pass before
+the website can build and deploy in CI.
+
 #### Submitting a PR
 
 We welcome your pull requests.

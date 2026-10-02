@@ -384,8 +384,9 @@ converting the full documentation set.
    stable 2.3 and incoming 2.4.
 2. Visual design and review of representative pages, API search, and the
    version switcher in a preview deployment.
-3. CI wiring for the API drift check and selected page examples. The site build
-   itself runs for pull requests and deploys from `main` through GitHub Actions.
+
+API drift checks and selected page examples are wired into GitHub Actions for
+both versions. Validation must pass before the site build and deployment.
 
 Close these after the remaining content and link inventory, not from
 appearance alone.
@@ -450,9 +451,9 @@ inferring them from current source. Reader review and redirect verification
 are still needed before replacing RTD.
 
 The legacy link map above still needs generated heading and API-symbol anchors
-before redirects can be configured. API drift and selected-example CI wiring,
-preview review, and cutover remain open. Sphinx and RTD stay intact during this
-work.
+before redirects can be configured. Preview review and cutover remain open.
+API drift and selected-example checks now run in CI against the matching
+source versions. Sphinx and RTD stay intact during this work.
 
 ## Tool references
 
