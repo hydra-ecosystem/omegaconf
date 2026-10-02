@@ -1,9 +1,9 @@
 {
   "generated_on": "2026-10-02",
-  "generated_at": "2026-10-02T14:17:02Z",
+  "generated_at": "2026-10-02T15:50:48Z",
   "repo": "hydra-ecosystem/omegaconf",
   "summary": {
-    "open_total": 25,
+    "open_total": 26,
     "by_category": [
       {
         "category": "Bug",
@@ -14,14 +14,14 @@
       {
         "category": "Enhancement",
         "emoji": "✨",
-        "count": 21,
-        "percentage": 84.0
+        "count": 22,
+        "percentage": 84.6
       },
       {
         "category": "Documentation",
         "emoji": "📄",
         "count": 1,
-        "percentage": 4.0
+        "percentage": 3.8
       },
       {
         "category": "Question",
@@ -33,13 +33,13 @@
         "category": "Refactor",
         "emoji": "🔧",
         "count": 2,
-        "percentage": 8.0
+        "percentage": 7.7
       },
       {
         "category": "Build",
         "emoji": "🏗️",
         "count": 1,
-        "percentage": 4.0
+        "percentage": 3.8
       }
     ],
     "by_status": [
@@ -61,7 +61,7 @@
       {
         "status": "not started",
         "emoji": "⬜",
-        "count": 25
+        "count": 26
       },
       {
         "status": "done",
@@ -460,6 +460,19 @@
       "url": "https://github.com/hydra-ecosystem/omegaconf/issues/1372"
     },
     {
+      "number": 1388,
+      "title": "Add website example tests and API drift checks to CI",
+      "category": "Enhancement",
+      "category_emoji": "✨",
+      "status": "not started",
+      "status_emoji": "⬜",
+      "prs": [],
+      "created": "2026-10-02",
+      "updated": "2026-10-02",
+      "labels": [],
+      "url": "https://github.com/hydra-ecosystem/omegaconf/issues/1388"
+    },
+    {
       "number": 459,
       "title": "Consider deprecating assignment of strings to non-string nodes like IntegerNode / FloatNode",
       "category": "Enhancement",
@@ -613,6 +626,13 @@
     }
   ],
   "updates": [
+    {
+      "ts": "2026-10-02T15:50:48Z",
+      "kind": "new",
+      "issue": 1388,
+      "issue_url": "https://github.com/hydra-ecosystem/omegaconf/issues/1388",
+      "title": "Add website example tests and API drift checks to CI"
+    },
     {
       "ts": "2026-09-28T16:16:14Z",
       "kind": "closed",
@@ -2266,14 +2286,6 @@
       "issue_url": "https://github.com/omry/omegaconf/issues/813",
       "title": "OmegaConf.masked_copy does not preserve ValueNode type",
       "detail": "linked #1308"
-    },
-    {
-      "ts": "2026-05-22T10:27:41Z",
-      "kind": "pr",
-      "issue": 771,
-      "issue_url": "https://github.com/omry/omegaconf/issues/771",
-      "title": "Document special treatment of \"???\" by OmegaConf.merge",
-      "detail": "linked #1309"
     }
   ]
 }
