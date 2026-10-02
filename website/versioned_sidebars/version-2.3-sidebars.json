@@ -14,7 +14,7 @@
     {
       "type": "category",
       "label": "Interpolation and resolvers",
-      "items": ["concepts/interpolation", "concepts/resolvers", "guides/custom-resolvers"]
+      "items": ["concepts/interpolation", "concepts/resolvers", "reference/built-in-resolvers", "guides/custom-resolvers"]
     },
     {
       "type": "category",
@@ -24,7 +24,7 @@
     {
       "type": "category",
       "label": "Reference",
-      "items": ["reference/python-api", "reference/python-api/omegaconf", "reference/operations", "reference/types", "reference/conversion", "reference/built-in-resolvers", "reference/grammar"]
+      "items": ["reference/python-api", "reference/python-api/omegaconf", "reference/operations", "reference/types", "reference/conversion", "reference/grammar"]
     }
   ]
 }

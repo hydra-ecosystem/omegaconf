@@ -52,7 +52,7 @@ typed interpolation behavior then builds on both topics.
 | Work with configs | How do I create, inspect, change, combine, and exchange ordinary configs? | Container model, access and mutation, required/missing values, merge rules, YAML and Python conversion. Put CLI overrides, flags, and debugging recipes near the operations they use. Explain `None` as a value, without introducing typed optional fields. |
 | Derive values | How do I refer to other values or compute them? | Node interpolation, relative/nested paths, lazy versus eager resolution, built-in and custom resolver calls. Put environment-input recipes here. Explain the shared expression syntax, while giving node references and resolvers distinct pages. |
 | Define a schema | How do I declare and validate typed config data? | Structured configs, field types and defaults, optional fields, runtime validation and conversion, applying a schema to external input. Explain how typed fields validate interpolation results after both ideas are established. `Optional[T]` follows structured fields; it is not a synonym for `MISSING`. |
-| Reference | What is the exact syntax or API contract? | Generated Python API, supported-type matrix, resolver catalog, interpolation grammar, and precise operation options. Lookup pages do not repeat the learning narrative. |
+| Reference | What is the exact syntax or API contract? | Generated Python API, supported-type matrix, interpolation grammar, and precise operation options. Lookup pages do not repeat the learning narrative. |
 | Upgrade | What changes when I adopt a newer release? | One 2.3-to-2.4 guide covering breaking changes and required updates, with collapsed tuple migration examples. |
 
 The main reading path is **Start → Work with configs → Derive values → Define
@@ -124,9 +124,9 @@ Docusaurus adds the appropriate version route below `/docs/`.
 | --- | --- |
 | Start | `get-started/install`, `get-started/first-config` |
 | Work with configs | `concepts/configs-and-values`, `concepts/missing-values`, `guides/merge`, `guides/load-and-save`, `guides/command-line`, `guides/flags`, `guides/debugging` |
-| Derive values | `concepts/interpolation`, `concepts/resolvers`, `guides/custom-resolvers` |
+| Interpolation and resolvers | `concepts/interpolation`, `concepts/resolvers`, `reference/built-in-resolvers`, `guides/custom-resolvers` |
 | Define a schema | `concepts/structured-configs`, `concepts/field-types`, `concepts/optional-fields`, `guides/schema-validation` |
-| Reference | `reference/python-api`, `reference/operations`, `reference/types`, `reference/conversion`, `reference/built-in-resolvers`, `reference/grammar`, `reference/yaml-alias-limits` |
+| Reference | `reference/python-api`, `reference/operations`, `reference/types`, `reference/conversion`, `reference/grammar`, `reference/yaml-alias-limits` |
 | Upgrade | `migration/2.4` |
 
 `concepts/field-types` teaches container, Enum, and union annotations before
