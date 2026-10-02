@@ -26,7 +26,7 @@ supported container or structured config type.
 `tuple[T1, T2]` defines a fixed-length tuple with positional types;
 `tuple[T, ...]` defines a variable-length homogeneous tuple. Both create
 structurally immutable `TupleConfig` fields. Replace the whole tuple through
-its parent when an update is needed. See the [tuple migration guide](../migration/2.4-tuples).
+its parent when an update is needed. See the [tuple migration section](../migration/2.4#tuple-inputs-no-longer-become-mutable-lists).
 
 ## Dictionaries
 
