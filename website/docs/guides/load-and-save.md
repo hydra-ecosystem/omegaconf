@@ -60,6 +60,43 @@ True
 
 ```
 
+## Convert config to YAML
+
+`OmegaConf.to_yaml(cfg)` converts a config to a YAML string.
+By default (`resolve=False`), it preserves interpolation expressions, even
+if you have already accessed their resolved values. This keeps references
+intact when you save and reload a config.
+
+Pass `resolve=True` to include the resolved values in the YAML string:
+
+```python {7,11}
+>>> cfg = OmegaConf.create({"port": 80, "url": "http://localhost:${port}"})
+>>> cfg.url
+'http://localhost:80'
+>>> # The default YAML output keeps the interpolation expression.
+>>> print(OmegaConf.to_yaml(cfg), end="")
+port: 80
+url: http://localhost:${port}
+>>> # Resolve the interpolation in the YAML output.
+>>> print(OmegaConf.to_yaml(cfg, resolve=True), end="")
+port: 80
+url: http://localhost:80
+
+```
+
+`resolve=True` affects the returned YAML string; it does not replace the
+interpolation in `cfg`. The config still resolves `url` using the current port:
+
+```python
+>>> cfg.port = 8080
+>>> cfg.url
+'http://localhost:8080'
+
+```
+
+To replace interpolations inside the config itself, use
+[`OmegaConf.resolve()`](../concepts/interpolation#resolve-now).
+
 ## Pickle
 
 For a Python-only round trip that retains OmegaConf type information, use
