@@ -1,2 +1,4 @@
 griffe==2.3.0
 griffe2md==1.5.0
+# griffe2md uses Black when present to wrap API signatures.
+black==26.5.1

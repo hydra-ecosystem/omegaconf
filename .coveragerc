@@ -5,6 +5,7 @@ omit =
     */tests/*
     .claude/*
     docs/*
+    website/scripts/*
     omegaconf/grammar/gen/*
     omegaconf/vendor/*
     omegaconf/version.py
