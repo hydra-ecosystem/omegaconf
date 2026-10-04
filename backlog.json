@@ -1,6 +1,6 @@
 {
-  "generated_on": "2026-10-03",
-  "generated_at": "2026-10-03T12:23:57Z",
+  "generated_on": "2026-10-04",
+  "generated_at": "2026-10-04T07:17:18Z",
   "repo": "hydra-ecosystem/omegaconf",
   "summary": {
     "open_total": 26,
@@ -46,7 +46,7 @@
       {
         "status": "in progress",
         "emoji": "🔄",
-        "count": 1
+        "count": 0
       },
       {
         "status": "community PR",
@@ -61,7 +61,7 @@
       {
         "status": "not started",
         "emoji": "⬜",
-        "count": 25
+        "count": 26
       },
       {
         "status": "done",
@@ -71,24 +71,6 @@
     ]
   },
   "issues": [
-    {
-      "number": 1388,
-      "title": "Add website example tests and API drift checks to CI",
-      "category": "Enhancement",
-      "category_emoji": "✨",
-      "status": "in progress",
-      "status_emoji": "🔄",
-      "prs": [
-        {
-          "number": 1389,
-          "url": "https://github.com/hydra-ecosystem/omegaconf/pull/1389"
-        }
-      ],
-      "created": "2026-10-02",
-      "updated": "2026-10-02",
-      "labels": [],
-      "url": "https://github.com/hydra-ecosystem/omegaconf/issues/1388"
-    },
     {
       "number": 91,
       "title": "Consider supporting basic operators in interpolations of numbers",
@@ -478,6 +460,19 @@
       "url": "https://github.com/hydra-ecosystem/omegaconf/issues/1372"
     },
     {
+      "number": 1388,
+      "title": "Add website example tests and API drift checks to CI",
+      "category": "Enhancement",
+      "category_emoji": "✨",
+      "status": "not started",
+      "status_emoji": "⬜",
+      "prs": [],
+      "created": "2026-10-02",
+      "updated": "2026-10-02",
+      "labels": [],
+      "url": "https://github.com/hydra-ecosystem/omegaconf/issues/1388"
+    },
+    {
       "number": 459,
       "title": "Consider deprecating assignment of strings to non-string nodes like IntegerNode / FloatNode",
       "category": "Enhancement",
@@ -631,6 +626,22 @@
     }
   ],
   "updates": [
+    {
+      "ts": "2026-10-04T07:17:18Z",
+      "kind": "pr",
+      "issue": 1388,
+      "issue_url": "https://github.com/hydra-ecosystem/omegaconf/issues/1388",
+      "title": "Add website example tests and API drift checks to CI",
+      "detail": "unlinked #1389"
+    },
+    {
+      "ts": "2026-10-04T07:17:18Z",
+      "kind": "status",
+      "issue": 1388,
+      "issue_url": "https://github.com/hydra-ecosystem/omegaconf/issues/1388",
+      "title": "Add website example tests and API drift checks to CI",
+      "detail": "in progress → not started"
+    },
     {
       "ts": "2026-10-02T21:46:50Z",
       "kind": "pr",
@@ -2276,25 +2287,6 @@
       "issue_url": "https://github.com/omry/omegaconf/issues/1310",
       "title": "ListConfig iteration leaks UnionNode for List[Union[...]]",
       "detail": "linked #1311"
-    },
-    {
-      "ts": "2026-06-10T11:01:51Z",
-      "kind": "status",
-      "issue": 1310,
-      "issue_url": "https://github.com/omry/omegaconf/issues/1310",
-      "title": "ListConfig iteration leaks UnionNode for List[Union[...]]",
-      "detail": "not started → community PR",
-      "pr": {
-        "number": 1311,
-        "url": "https://github.com/omry/omegaconf/pull/1311"
-      }
-    },
-    {
-      "ts": "2026-06-10T04:20:45Z",
-      "kind": "new",
-      "issue": 1310,
-      "issue_url": "https://github.com/omry/omegaconf/issues/1310",
-      "title": "ListConfig iteration leaks UnionNode for List[Union[...]]"
     }
   ]
 }
