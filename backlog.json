@@ -1,6 +1,6 @@
 {
   "generated_on": "2026-10-04",
-  "generated_at": "2026-10-04T14:15:22Z",
+  "generated_at": "2026-10-04T15:32:47Z",
   "repo": "hydra-ecosystem/omegaconf",
   "summary": {
     "open_total": 27,
@@ -46,7 +46,7 @@
       {
         "status": "in progress",
         "emoji": "🔄",
-        "count": 0
+        "count": 1
       },
       {
         "status": "community PR",
@@ -61,7 +61,7 @@
       {
         "status": "not started",
         "emoji": "⬜",
-        "count": 27
+        "count": 26
       },
       {
         "status": "done",
@@ -71,6 +71,24 @@
     ]
   },
   "issues": [
+    {
+      "number": 1391,
+      "title": "Adopt annual best-effort documentation dependency maintenance",
+      "category": "Documentation",
+      "category_emoji": "📄",
+      "status": "in progress",
+      "status_emoji": "🔄",
+      "prs": [
+        {
+          "number": 1392,
+          "url": "https://github.com/hydra-ecosystem/omegaconf/pull/1392"
+        }
+      ],
+      "created": "2026-10-04",
+      "updated": "2026-10-04",
+      "labels": [],
+      "url": "https://github.com/hydra-ecosystem/omegaconf/issues/1391"
+    },
     {
       "number": 91,
       "title": "Consider supporting basic operators in interpolations of numbers",
@@ -473,19 +491,6 @@
       "url": "https://github.com/hydra-ecosystem/omegaconf/issues/1388"
     },
     {
-      "number": 1391,
-      "title": "Adopt annual best-effort documentation dependency maintenance",
-      "category": "Documentation",
-      "category_emoji": "📄",
-      "status": "not started",
-      "status_emoji": "⬜",
-      "prs": [],
-      "created": "2026-10-04",
-      "updated": "2026-10-04",
-      "labels": [],
-      "url": "https://github.com/hydra-ecosystem/omegaconf/issues/1391"
-    },
-    {
       "number": 459,
       "title": "Consider deprecating assignment of strings to non-string nodes like IntegerNode / FloatNode",
       "category": "Enhancement",
@@ -639,6 +644,26 @@
     }
   ],
   "updates": [
+    {
+      "ts": "2026-10-04T15:32:47Z",
+      "kind": "pr",
+      "issue": 1391,
+      "issue_url": "https://github.com/hydra-ecosystem/omegaconf/issues/1391",
+      "title": "Adopt annual best-effort documentation dependency maintenance",
+      "detail": "linked #1392"
+    },
+    {
+      "ts": "2026-10-04T15:32:47Z",
+      "kind": "status",
+      "issue": 1391,
+      "issue_url": "https://github.com/hydra-ecosystem/omegaconf/issues/1391",
+      "title": "Adopt annual best-effort documentation dependency maintenance",
+      "detail": "not started → in progress",
+      "pr": {
+        "number": 1392,
+        "url": "https://github.com/hydra-ecosystem/omegaconf/pull/1392"
+      }
+    },
     {
       "ts": "2026-10-04T14:15:22Z",
       "kind": "new",
@@ -2285,20 +2310,6 @@
       "issue_url": "https://github.com/omry/omegaconf/issues/731",
       "title": "Subclasses of `Generic` cannot be used as structured configs",
       "detail": "removed \"needs triage\""
-    },
-    {
-      "ts": "2026-06-10T17:17:31Z",
-      "kind": "closed",
-      "issue": 1310,
-      "issue_url": "https://github.com/omry/omegaconf/issues/1310",
-      "title": "ListConfig iteration leaks UnionNode for List[Union[...]]"
-    },
-    {
-      "ts": "2026-06-10T17:17:31Z",
-      "kind": "new",
-      "issue": 1312,
-      "issue_url": "https://github.com/omry/omegaconf/issues/1312",
-      "title": "Support more flexible merge semantics in OmegaConf.merge"
     }
   ]
 }
