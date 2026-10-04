@@ -874,6 +874,7 @@ class OmegaConf:
         replace: bool = False,
         use_cache: bool = False,
     ) -> None:
+        """Deprecated since version 2.4. Use ``OmegaConf.register_resolver()`` instead."""
         warnings.warn(
             dedent("""\
             register_new_resolver() is deprecated and will be removed in a future release.
@@ -888,6 +889,7 @@ class OmegaConf:
 
     @staticmethod
     def legacy_register_resolver(name: str, resolver: Resolver) -> None:
+        """Deprecated since version 2.4. Use ``OmegaConf.register_resolver()`` instead."""
         warnings.warn(
             dedent("""\
             legacy_register_resolver() is deprecated and will be removed in a future release.
