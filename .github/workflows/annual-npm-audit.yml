@@ -1,0 +1,87 @@
+name: Annual npm dependency audit
+
+on:
+  schedule:
+    - cron: '0 2 30 1 *'  # January 30, 02:00 UTC
+  workflow_dispatch:
+    inputs:
+      directory:
+        description: npm project directory; leave empty to use the configured directory
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: annual-npm-audit
+  cancel-in-progress: false
+
+env:
+  # Change this fallback when copying the workflow to another deployment.
+  NPM_PROJECT: ${{ inputs.directory || 'website' }}
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+          persist-credentials: false
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.13'
+      - name: Audit, propose upgrades, and build
+        run: python .github/scripts/annual_npm_audit.py --directory "$NPM_PROJECT"
+      - uses: actions/upload-artifact@v5
+        with:
+          name: annual-npm-audit
+          if-no-files-found: error
+          path: |
+            ${{ env.NPM_PROJECT }}/package.json
+            ${{ env.NPM_PROJECT }}/package-lock.json
+            ${{ env.NPM_PROJECT }}/DEPENDENCY-AUDIT.md
+
+  pull-request:
+    needs: audit
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+      - uses: actions/download-artifact@v6
+        with:
+          name: annual-npm-audit
+          path: ${{ env.NPM_PROJECT }}
+      - name: Open or update the umbrella PR
+        uses: peter-evans/create-pull-request@5f6978faf089d4d20b00c7766989d076bb2fc7f1 # v8
+        with:
+          branch: maintenance/annual-npm-audit
+          draft: always-true
+          title: 'Annual documentation dependencies: best-effort upgrade drive'
+          commit-message: 'Annual documentation dependency audit and upgrades'
+          add-paths: |
+            ${{ env.NPM_PROJECT }}/package.json
+            ${{ env.NPM_PROJECT }}/package-lock.json
+            ${{ env.NPM_PROJECT }}/DEPENDENCY-AUDIT.md
+          body: |
+            Annual best-effort maintenance of the `${{ env.NPM_PROJECT }}` npm project.
+
+            This umbrella PR proposes current stable direct dependencies and compatible
+            transitive security fixes. Remaining findings are accepted between annual
+            reviews. It does not promise to resolve every advisory or migration.
+
+            See `${{ env.NPM_PROJECT }}/DEPENDENCY-AUDIT.md` for before/after audit counts,
+            proposed upgrades, build results, and outstanding manual work.
+
+            Review major-version changes and retained overrides, and approve the normal
+            PR validation workflows before merging. Nothing is merged automatically.
+
+            Run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}

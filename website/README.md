@@ -1,5 +1,8 @@
 # Documentation site
 
+Dependency vulnerabilities follow the
+[annual best-effort maintenance policy](../.github/annual-npm-audit.md).
+
 The Docusaurus site is published at
 <https://hydra-ecosystem.github.io/omegaconf/>. Its navigation starts with
 ordinary configs, then covers interpolation and resolvers before structured
