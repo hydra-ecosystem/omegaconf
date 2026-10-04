@@ -25,6 +25,8 @@ they do not prevent creation of a draft PR. The timestamped
 
 The audit job has read-only repository permissions. A separate job publishes only
 the manifest, lockfile, and report. Upgrades are never merged automatically.
+The workflow uses only GitHub-owned actions; the runner's Git and GitHub CLI
+create or update the draft PR without a third-party PR action.
 The audit does not certify that every vulnerability has been fixed. Normal PR
 validation and human review are still required before merging.
 
