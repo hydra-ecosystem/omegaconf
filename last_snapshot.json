@@ -7,9 +7,10 @@
     "1335": "2026-09-25",
     "1338": "2026-09-25",
     "1357": "2026-09-25",
+    "1391": "2026-10-04",
     "459": "2026-09-25"
   },
-  "generated_at": "2026-10-04T16:23:53Z",
+  "generated_at": "2026-10-04T16:37:21Z",
   "issues": {
     "1024": {
       "category": "Enhancement",
@@ -269,18 +270,6 @@
       "title": "Add website example tests and API drift checks to CI",
       "updated_at": "2026-10-02T15:49:25Z"
     },
-    "1391": {
-      "category": "Documentation",
-      "created_at": "2026-10-04T14:14:03Z",
-      "labels": [],
-      "pr_numbers": [
-        "1392"
-      ],
-      "state": "OPEN",
-      "status": "in progress",
-      "title": "Adopt annual best-effort documentation dependency maintenance",
-      "updated_at": "2026-10-04T14:14:03Z"
-    },
     "144": {
       "category": "Enhancement",
       "created_at": "2020-01-30T01:58:10Z",
@@ -444,6 +433,18 @@
       "status": "done",
       "title": "Consider order-independent handling of overlapping scalar union members",
       "updated_at": "2026-09-10T20:49:56Z"
+    },
+    "1391": {
+      "category": "Documentation",
+      "created_at": "2026-10-04T14:14:03Z",
+      "labels": [],
+      "pr_numbers": [
+        "1392"
+      ],
+      "state": "CLOSED",
+      "status": "done",
+      "title": "Adopt annual best-effort documentation dependency maintenance",
+      "updated_at": "2026-10-04T14:14:03Z"
     },
     "459": {
       "category": "Enhancement",
