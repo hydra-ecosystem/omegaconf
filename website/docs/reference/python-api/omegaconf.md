@@ -408,6 +408,8 @@ Native Python tuples return ``False``.
 legacy_register_resolver(name: str, resolver: Resolver) -> None
 ```
 
+Deprecated since version 2.4. Use ``OmegaConf.register_resolver()`` instead.
+
 ### `load`
 
 ```python
@@ -518,6 +520,8 @@ register_new_resolver(
     use_cache: bool = False
 ) -> None
 ```
+
+Deprecated since version 2.4. Use ``OmegaConf.register_resolver()`` instead.
 
 ### `register_resolver`
 

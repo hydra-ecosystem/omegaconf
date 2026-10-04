@@ -26,4 +26,11 @@ interpolations, and [`open_dict`](./python-api/omegaconf#open_dict),
 [`flag_override`](./python-api/omegaconf#flag_override) for temporary flag
 changes.
 
+### Deprecated functions
+
+In 2.3, [`OmegaConf.register_resolver()`](./python-api/omegaconf#register_resolver)
+is deprecated. Use
+[`OmegaConf.register_new_resolver()`](./python-api/omegaconf#register_new_resolver)
+instead. This differs from 2.4, where `register_resolver()` is the canonical API.
+
 [Browse every public symbol →](./python-api/omegaconf)

@@ -31,4 +31,14 @@ For explicit container types in 2.4, see
 [`typed_dict`](./python-api/omegaconf#typed_dict), and
 [`typed_tuple`](./python-api/omegaconf#typed_tuple).
 
+### Deprecated functions
+
+In 2.4, use `OmegaConf.register_resolver()` instead of these deprecated
+registration methods:
+
+| Deprecated function | Replacement |
+| --- | --- |
+| [`register_new_resolver()`](./python-api/omegaconf#register_new_resolver) | [`register_resolver()`](./python-api/omegaconf#register_resolver) |
+| [`legacy_register_resolver()`](./python-api/omegaconf#legacy_register_resolver) | [`register_resolver()`](./python-api/omegaconf#register_resolver) |
+
 [Browse every public symbol →](./python-api/omegaconf)

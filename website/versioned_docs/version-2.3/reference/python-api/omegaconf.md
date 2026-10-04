@@ -277,6 +277,8 @@ ${foo:${bar}} will always return the same value regardless of the value of
 
 ### `register_resolver`
 
+> **Deprecated:** register_resolver() is deprecated. See https://github.com/omry/omegaconf/issues/426 for migration instructions.
+
 ```python
 register_resolver(name: str, resolver: Resolver) -> None
 ```

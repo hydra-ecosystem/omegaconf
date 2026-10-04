@@ -1,12 +1,54 @@
 """Render the public OmegaConf API from a specific source release."""
 
 import argparse
+import ast
 import json
 import re
 import subprocess
 import sys
 from pathlib import Path
 from tempfile import TemporaryDirectory
+
+
+def add_deprecation_notices(rendered: str, source: str) -> str:
+    """Keep function deprecation warnings visible when a docstring omits them."""
+    for node in ast.walk(ast.parse(source)):
+        if not isinstance(node, ast.FunctionDef) or node.name.startswith("_"):
+            continue
+        for warning in ast.walk(node):
+            if (
+                not isinstance(warning, ast.Call)
+                or not isinstance(warning.func, ast.Attribute)
+                or not isinstance(warning.func.value, ast.Name)
+                or warning.func.value.id != "warnings"
+                or warning.func.attr != "warn"
+                or not warning.args
+            ):
+                continue
+            message = warning.args[0]
+            if (
+                isinstance(message, ast.Call)
+                and isinstance(message.func, ast.Name)
+                and message.func.id == "dedent"
+                and len(message.args) == 1
+            ):
+                message = message.args[0]
+            if not isinstance(message, ast.Constant) or not isinstance(
+                message.value, str
+            ):
+                continue
+            if f"{node.name}() is deprecated" not in message.value:
+                continue
+            pattern = rf"(^#{{2,3}} `{re.escape(node.name)}`\n)(.*?)(?=^#{{1,3}} |\Z)"
+            entry = re.search(pattern, rendered, flags=re.MULTILINE | re.DOTALL)
+            if entry is not None and "deprecated" not in entry[2].lower():
+                notice = " ".join(message.value.split())
+                rendered = (
+                    rendered[: entry.start(2)]
+                    + f"\n> **Deprecated:** {notice}\n"
+                    + rendered[entry.start(2) :]
+                )
+    return rendered
 
 
 def main() -> int:
@@ -61,6 +103,9 @@ def main() -> int:
     # This legacy reST directive is not recognized by Griffe's Sphinx parser.
     rendered = re.sub(
         r"(?m)^\.\. warning:\n[ \t]+(.+)$", r"> **Warning:** \1", rendered
+    )
+    rendered = add_deprecation_notices(
+        rendered, (source / "omegaconf" / "omegaconf.py").read_text()
     )
     rendered = (
         f"---\ntitle: OmegaConf symbols\n"
