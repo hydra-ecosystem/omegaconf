@@ -12,6 +12,7 @@ audit_module = runpy.run_path(
 )
 prepare = audit_module["prepare"]
 audit = audit_module["audit"]
+format_audit = audit_module["format_audit"]
 run = audit_module["run"]
 main = audit_module["main"]
 
@@ -84,14 +85,14 @@ def test_upgrade_keeps_manual_constraints_and_reports_unfixed_findings(
     npm_project, monkeypatch
 ):
     commands = fake_npm(monkeypatch)
-    report = prepare(npm_project).read_text()
+    report = prepare(npm_project)
     manifest = json.loads((npm_project / "package.json").read_text())
     assert manifest["dependencies"]["renderer"] == "2.0.0"
     assert manifest["dependencies"]["local-plugin"] == "file:../plugin"
     assert manifest["overrides"] == {"transitive": "2.0.0"}
     assert manifest["peerDependencies"] == {"react": "^19.0.0"}
     assert "high: 1, total: 1" in report
-    assert "npm fix candidate not available" in report
+    assert "npm fix candidate not offered by npm" in report
     assert "## Production build\n\nPassed." in report
     assert "does not certify" in report
     assert "--force" not in [arg for command in commands for arg in command]
@@ -103,12 +104,204 @@ def test_failed_resolution_restores_original_files(npm_project, monkeypatch):
         for name in ("package.json", "package-lock.json")
     }
     commands = fake_npm(monkeypatch, resolution=1)
-    report = prepare(npm_project).read_text()
+    report = prepare(npm_project)
     for name, content in original.items():
         assert (npm_project / name).read_bytes() == content
-    assert "restored the original" in report
-    assert "No direct dependency upgrades resolved" in report
-    assert not any(command[:2] == ["audit", "fix"] for command in commands)
+    assert "from the initial security fix attempt" in report
+    assert "No other direct dependency upgrades resolved" in report
+    assert sum(command[:2] == ["audit", "fix"] for command in commands) == 1
+
+
+def test_security_fixes_run_first_and_survive_failed_stable_upgrade(
+    npm_project, monkeypatch
+):
+    commands = fake_npm(monkeypatch, resolution=1)
+    invoke = subprocess.run
+    security_lock = '{"packages": {"node_modules/transitive": {"version": "2.1.0"}}}\n'
+
+    def fix(command, **kwargs):
+        result = invoke(command, **kwargs)
+        if command[4:6] == ["audit", "fix"]:
+            (npm_project / "package-lock.json").write_text(security_lock)
+        return result
+
+    monkeypatch.setattr(subprocess, "run", fix)
+    report = prepare(npm_project)
+    assert commands[1][:2] == ["audit", "fix"]
+    assert (npm_project / "package-lock.json").read_text() == security_lock
+    assert (
+        json.loads((npm_project / "package.json").read_text())["dependencies"][
+            "renderer"
+        ]
+        == "1.0.0"
+    )
+    assert "Stable upgrade resolution failed" in report
+
+
+def test_audit_reports_advisory_links_versions_and_severity_order():
+    data = {
+        "metadata": {"vulnerabilities": {"critical": 1, "high": 1}},
+        "vulnerabilities": {
+            "parent": {
+                "severity": "high",
+                "range": "<=3.0.0",
+                "fixAvailable": False,
+                "nodes": ["node_modules/parent"],
+                "via": ["transitive"],
+            },
+            "transitive": {
+                "severity": "critical",
+                "range": "<2.1.0",
+                "fixAvailable": True,
+                "nodes": [
+                    "node_modules/transitive",
+                    "node_modules/parent/node_modules/transitive",
+                ],
+                "via": [
+                    {
+                        "title": "Example advisory",
+                        "url": "https://github.com/advisories/GHSA-example",
+                        "severity": "critical",
+                        "range": "<2.1.0",
+                    }
+                ],
+            },
+        },
+    }
+    lock = {
+        "packages": {
+            "node_modules/parent": {"version": "3.0.0"},
+            "node_modules/transitive": {"version": "2.0.0"},
+            "node_modules/parent/node_modules/transitive": {"version": "1.0.0"},
+        }
+    }
+    report = format_audit(data, lock)
+    assert report.index("**transitive**") < report.index("**parent**")
+    assert "locked versions `1.0.0, 2.0.0`" in report
+    assert "[Example advisory](https://github.com/advisories/GHSA-example)" in report
+    assert "Depends on affected `transitive`" in report
+
+
+@pytest.mark.parametrize("after_audit_error", [False, True])
+def test_report_distinguishes_security_changes_from_other_stable_upgrades(
+    npm_project, monkeypatch, after_audit_error
+):
+    lock = {"packages": {"node_modules/transitive": {"version": "2.0.0"}}}
+    (npm_project / "package-lock.json").write_text(json.dumps(lock))
+    fake_npm(monkeypatch)
+    invoke = subprocess.run
+    audits = 0
+
+    def fix(command, **kwargs):
+        nonlocal audits
+        result = invoke(command, **kwargs)
+        if command[4] == "install" or command[4:6] == ["audit", "fix"]:
+            lock["packages"]["node_modules/transitive"]["version"] = "2.1.0"
+            (npm_project / "package-lock.json").write_text(json.dumps(lock))
+        if command[4:6] == ["audit", "--json"]:
+            audits += 1
+            data = json.loads(result.stdout)
+            if audits == 1:
+                data["vulnerabilities"]["transitive"]["nodes"] = [
+                    "node_modules/transitive"
+                ]
+            else:
+                data = (
+                    {"error": {"code": "ENETUNREACH"}}
+                    if after_audit_error
+                    else {
+                        "metadata": {"vulnerabilities": {"total": 0}},
+                        "vulnerabilities": {},
+                    }
+                )
+            result.stdout = json.dumps(data)
+        return result
+
+    monkeypatch.setattr(subprocess, "run", fix)
+    report = prepare(npm_project)
+    security, stable = report.split("## Other stable dependency upgrades")
+    assert "transitive: `2.0.0` → `2.1.0`" in security
+    assert "renderer: `1.0.0` → `2.0.0`" in stable
+    assert "renderer: `1.0.0` → `2.0.0`" not in security
+    if after_audit_error:
+        assert "fix unconfirmed" in security
+        assert "no longer reported by npm" not in security
+    else:
+        assert "no longer reported by npm" in security
+        assert "No known vulnerabilities reported by npm" in security
+    assert not (npm_project / "DEPENDENCY-AUDIT.md").exists()
+
+
+@pytest.mark.parametrize("still_affected", [False, True])
+def test_security_report_tracks_hoisted_dependency_versions(
+    npm_project, monkeypatch, still_affected
+):
+    old_node = "node_modules/parent/node_modules/transitive"
+    new_node = "node_modules/transitive"
+    (npm_project / "package-lock.json").write_text(
+        json.dumps({"packages": {old_node: {"version": "2.0.0"}}})
+    )
+    fake_npm(monkeypatch)
+    invoke = subprocess.run
+    audits = 0
+
+    def hoist(command, **kwargs):
+        nonlocal audits
+        result = invoke(command, **kwargs)
+        if command[4] == "install" or command[4:6] == ["audit", "fix"]:
+            (npm_project / "package-lock.json").write_text(
+                json.dumps({"packages": {new_node: {"version": "2.1.0"}}})
+            )
+        if command[4:6] == ["audit", "--json"]:
+            audits += 1
+            data = json.loads(result.stdout)
+            if audits == 1 or still_affected:
+                data["vulnerabilities"]["transitive"]["nodes"] = [
+                    old_node if audits == 1 else new_node
+                ]
+            else:
+                data = {
+                    "metadata": {"vulnerabilities": {"total": 0}},
+                    "vulnerabilities": {},
+                }
+            result.stdout = json.dumps(data)
+        return result
+
+    monkeypatch.setattr(subprocess, "run", hoist)
+    report = prepare(npm_project)
+    changes = report.split("### Before")[0]
+    status = "still reported by npm" if still_affected else "no longer reported by npm"
+    assert f"transitive: `2.0.0` → `2.1.0`; {status}." in changes
+    assert "not recorded in lockfile" not in changes
+
+
+def test_security_report_lists_affected_direct_upgrade_once(npm_project, monkeypatch):
+    node = "node_modules/renderer"
+    (npm_project / "package-lock.json").write_text(
+        json.dumps({"packages": {node: {"version": "1.0.0"}}})
+    )
+    fake_npm(monkeypatch)
+    invoke = subprocess.run
+
+    def upgrade(command, **kwargs):
+        result = invoke(command, **kwargs)
+        if command[4] == "install":
+            (npm_project / "package-lock.json").write_text(
+                json.dumps({"packages": {node: {"version": "2.0.0"}}})
+            )
+        if command[4:6] == ["audit", "--json"]:
+            data = json.loads(result.stdout)
+            vulnerability = data["vulnerabilities"].pop("transitive")
+            vulnerability["nodes"] = [node]
+            data["vulnerabilities"]["renderer"] = vulnerability
+            result.stdout = json.dumps(data)
+        return result
+
+    monkeypatch.setattr(subprocess, "run", upgrade)
+    report = prepare(npm_project)
+    changes = report.split("### Before")[0]
+    assert changes.count("- renderer:") == 1
+    assert "renderer: `1.0.0` → `2.0.0`; still reported by npm." in changes
 
 
 @pytest.mark.parametrize("install,build", [(1, 0), (0, 1)])
@@ -116,7 +309,7 @@ def test_failed_validation_still_produces_an_honest_report(
     npm_project, monkeypatch, install, build
 ):
     commands = fake_npm(monkeypatch, install=install, build=build)
-    report = prepare(npm_project).read_text()
+    report = prepare(npm_project)
     assert "failed" in report.lower()
     assert "## Production build\n\nPassed." not in report
     if install:
@@ -125,7 +318,7 @@ def test_failed_validation_still_produces_an_honest_report(
 
 def test_registry_failure_does_not_claim_an_upgrade(npm_project, monkeypatch):
     fake_npm(monkeypatch, lookup=1)
-    report = prepare(npm_project).read_text()
+    report = prepare(npm_project)
     manifest = json.loads((npm_project / "package.json").read_text())
     assert manifest["dependencies"]["renderer"] == "1.0.0"
     assert "Could not look up renderer" in report
@@ -152,7 +345,9 @@ def test_breaking_fix_candidate_is_flagged_for_manual_review(npm_project, monkey
         return subprocess.CompletedProcess(command, 1, json.dumps(data), "")
 
     monkeypatch.setattr(subprocess, "run", invoke)
-    assert "requires breaking changes; manual review" in audit(npm_project)
+    assert "requires breaking changes; manual review" in format_audit(
+        audit(npm_project), {}
+    )
 
 
 @pytest.mark.parametrize("exit_code", [-9, 137])
@@ -179,7 +374,7 @@ def test_malformed_audit_response_is_unavailable(npm_project, monkeypatch):
 
 def test_malformed_registry_response_retains_dependency(npm_project, monkeypatch):
     fake_npm(monkeypatch, lookup_output="not JSON")
-    report = prepare(npm_project).read_text()
+    report = prepare(npm_project)
     manifest = json.loads((npm_project / "package.json").read_text())
     assert manifest["dependencies"]["renderer"] == "1.0.0"
     assert "Could not look up renderer" in report
@@ -190,7 +385,7 @@ def test_failed_audit_fix_preserves_validation_and_reports_error(
     npm_project, monkeypatch, exit_code
 ):
     fake_npm(monkeypatch, audit_fix=exit_code)
-    report = prepare(npm_project).read_text()
+    report = prepare(npm_project)
     assert f"Automatic audit fix returned exit {exit_code}" in report
     assert "## Production build\n\nPassed." in report
 
@@ -201,11 +396,11 @@ def test_shared_time_budget_stops_commands_and_writes_partial_report(
     commands = fake_npm(monkeypatch)
     clock = iter([0, 0, 2700])
     monkeypatch.setattr(audit_module["time"], "monotonic", lambda: next(clock, 2700))
-    report = prepare(npm_project).read_text()
-    assert commands == [["audit", "--json", "--audit"]]
+    report = prepare(npm_project)
+    assert commands == [["audit", "--json", "--audit", "--package-lock-only"]]
     assert "Could not look up renderer" in report
     assert "Not run: npm ci failed (exit 124)." in report
-    assert "After: Audit unavailable (exit 124)." in report
+    assert "### After\n\nAudit unavailable (exit 124)." in report
     assert "time budget was exhausted" in report
 
 
@@ -247,7 +442,11 @@ def test_timeout_terminates_child_before_it_can_modify_files(npm_project, monkey
 
 @pytest.mark.parametrize("directory", ["/tmp", "../website", "website;command"])
 def test_cli_rejects_unsafe_project_paths(monkeypatch, capsys, directory):
-    monkeypatch.setattr(sys, "argv", ["annual-npm-audit", "--directory", directory])
+    monkeypatch.setattr(
+        sys,
+        "argv",
+        ["annual-npm-audit", "--directory", directory, "--report", "/tmp/report"],
+    )
     with pytest.raises(SystemExit) as error:
         main()
     assert error.value.code == 2
@@ -258,7 +457,9 @@ def test_cli_rejects_unsafe_project_paths(monkeypatch, capsys, directory):
 def test_cli_requires_manifest_and_lockfile(npm_project, monkeypatch, capsys, missing):
     (npm_project / missing).unlink()
     monkeypatch.chdir(npm_project)
-    monkeypatch.setattr(sys, "argv", ["annual-npm-audit", "--directory", "."])
+    monkeypatch.setattr(
+        sys, "argv", ["annual-npm-audit", "--directory", ".", "--report", "/tmp/report"]
+    )
     with pytest.raises(SystemExit) as error:
         main()
     assert error.value.code == 2
@@ -268,8 +469,14 @@ def test_cli_requires_manifest_and_lockfile(npm_project, monkeypatch, capsys, mi
 def test_cli_entrypoint_prepares_selected_project(npm_project, monkeypatch):
     fake_npm(monkeypatch)
     monkeypatch.chdir(npm_project)
-    monkeypatch.setattr(sys, "argv", ["annual-npm-audit", "--directory", "."])
+    report = npm_project.parent / f"{npm_project.name}-pr-body.md"
+    monkeypatch.setattr(
+        sys,
+        "argv",
+        ["annual-npm-audit", "--directory", ".", "--report", str(report)],
+    )
     runpy.run_path(audit_module["__file__"], run_name="__main__")
-    assert (npm_project / "DEPENDENCY-AUDIT.md").is_file()
+    assert "Security findings and fixes" in report.read_text()
+    assert not (npm_project / "DEPENDENCY-AUDIT.md").exists()
     manifest = json.loads((npm_project / "package.json").read_text())
     assert manifest["dependencies"]["renderer"] == "2.0.0"

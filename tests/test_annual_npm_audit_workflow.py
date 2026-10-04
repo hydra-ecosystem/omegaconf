@@ -43,13 +43,14 @@ elif args[:2] == ['pr', 'list']:
                             input=os.environ['PR_LIST_JSON'], text=True,
                             capture_output=True, check=True)
     print(result.stdout, end='')
-elif args[:2] == ['pr', 'view']:
-    print(os.environ['IS_DRAFT'])
 """
     )
     mock_cli.chmod(0o755)
     for tool in ("git", "gh"):
         (tmp_path / tool).symlink_to(mock_cli)
+    (tmp_path / "annual-npm-audit-pr.md").write_text(
+        "## Security findings and fixes\n\n$(never-execute)\n"
+    )
 
     def invoke(**overrides):
         number = overrides.get("PR_NUMBER", "")
@@ -62,7 +63,7 @@ elif args[:2] == ['pr', 'view']:
             "BASE_BRANCH": "main",
             "PR_BRANCH": PUBLISH["env"]["PR_BRANCH"],
             "PR_TITLE": PUBLISH["env"]["PR_TITLE"],
-            "PR_BODY": "Review `docs/site/DEPENDENCY-AUDIT.md`.\n$(never-execute)",
+            "PR_FOOTER": "Review validation before merging.",
             "EXPECTED_HEAD": "",
             "HAS_CHANGES": "1",
             "PUSH_STATUS": "0",
@@ -70,7 +71,6 @@ elif args[:2] == ['pr', 'view']:
             "PR_LIST_JSON": json.dumps(
                 [{"number": int(number), "isCrossRepository": False}] if number else []
             ),
-            "IS_DRAFT": "true",
             **overrides,
         }
         result = subprocess.run(
@@ -101,20 +101,15 @@ def test_publisher_ignores_fork_pr_with_matching_branch(publisher, same_reposito
         assert any(command[:4] == ["gh", "pr", "edit", "42"] for command in commands)
         assert not any(command[:3] == ["gh", "pr", "create"] for command in commands)
     else:
-        assert any(
-            command[:4] == ["gh", "pr", "create", "--draft"] for command in commands
-        )
+        assert any(command[:3] == ["gh", "pr", "create"] for command in commands)
         assert not any(command[:3] == ["gh", "pr", "edit"] for command in commands)
 
 
-@pytest.mark.parametrize("existing,draft", [(False, True), (True, True), (True, False)])
-def test_publisher_creates_or_updates_one_draft_pr(
-    publisher, tmp_path, existing, draft
-):
+@pytest.mark.parametrize("existing", [False, True])
+def test_publisher_creates_or_updates_one_regular_pr(publisher, tmp_path, existing):
     result, commands = publisher(
         EXPECTED_HEAD="previous-head" if existing else "",
         PR_NUMBER="42" if existing else "",
-        IS_DRAFT=str(draft).lower(),
     )
     assert result.returncode == 0, result.stderr
     branch = "maintenance/annual-npm-audit"
@@ -124,7 +119,6 @@ def test_publisher_creates_or_updates_one_draft_pr(
         "--",
         "docs/site/package.json",
         "docs/site/package-lock.json",
-        "docs/site/DEPENDENCY-AUDIT.md",
     ] in commands
     push = next(command for command in commands if command[:2] == ["git", "push"])
     expected_head = "previous-head" if existing else ""
@@ -143,14 +137,14 @@ def test_publisher_creates_or_updates_one_draft_pr(
     if existing:
         assert pr_write[:4] == ["gh", "pr", "edit", "42"]
     else:
-        assert pr_write[:4] == ["gh", "pr", "create", "--draft"]
+        assert pr_write[:3] == ["gh", "pr", "create"]
+        assert "--draft" not in pr_write
         assert pr_write[pr_write.index("--head") + 1] == branch
         assert pr_write[pr_write.index("--base") + 1] == "main"
-    assert (["gh", "pr", "ready", "42", "--undo"] in commands) == (
-        existing and not draft
-    )
+    assert not any(command[:3] == ["gh", "pr", "ready"] for command in commands)
     assert (tmp_path / "annual-npm-audit-pr.md").read_text() == (
-        "Review `docs/site/DEPENDENCY-AUDIT.md`.\n$(never-execute)\n"
+        "## Security findings and fixes\n\n$(never-execute)\n\n"
+        "Review validation before merging.\n"
     )
 
 
@@ -162,7 +156,25 @@ def test_publisher_does_not_open_pr_without_successful_push(
 ):
     result, commands = publisher(**overrides)
     assert result.returncode == expected_status
-    assert not any(command[0] == "gh" for command in commands)
+    assert not any(
+        command[:2] == ["gh", "pr"] and command[2] in ("create", "edit", "ready")
+        for command in commands
+    )
+
+
+def test_no_dependency_changes_updates_existing_report_without_commit(
+    publisher, tmp_path
+):
+    result, commands = publisher(HAS_CHANGES="0", PR_NUMBER="42")
+    assert result.returncode == 0, result.stderr
+    assert any(command[:4] == ["gh", "pr", "edit", "42"] for command in commands)
+    assert not any(
+        command[:2] in (["git", "commit"], ["git", "push"]) for command in commands
+    )
+    assert (
+        "existing PR branch was left unchanged"
+        in (tmp_path / "annual-npm-audit-pr.md").read_text()
+    )
 
 
 def test_workflow_uses_only_github_owned_actions():
