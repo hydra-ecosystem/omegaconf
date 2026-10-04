@@ -9,7 +9,7 @@
     "1357": "2026-09-25",
     "459": "2026-09-25"
   },
-  "generated_at": "2026-10-04T13:06:58Z",
+  "generated_at": "2026-10-04T14:15:22Z",
   "issues": {
     "1024": {
       "category": "Enhancement",
@@ -268,6 +268,16 @@
       "status": "not started",
       "title": "Add website example tests and API drift checks to CI",
       "updated_at": "2026-10-02T15:49:25Z"
+    },
+    "1391": {
+      "category": "Documentation",
+      "created_at": "2026-10-04T14:14:03Z",
+      "labels": [],
+      "pr_numbers": [],
+      "state": "OPEN",
+      "status": "not started",
+      "title": "Adopt annual best-effort documentation dependency maintenance",
+      "updated_at": "2026-10-04T14:14:03Z"
     },
     "144": {
       "category": "Enhancement",
