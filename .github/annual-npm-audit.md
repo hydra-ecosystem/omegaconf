@@ -14,19 +14,38 @@ The `Annual npm dependency audit` workflow runs on January 30 at 02:00 UTC and
 can also be run manually. It updates one fixed branch,
 `maintenance/annual-npm-audit`, so reruns update an existing umbrella PR.
 
-The npm audit script proposes the latest stable direct dependencies, including
-major versions, resolves the lockfile, attempts compatible transitive fixes
-without `--force`, and tries installation and the project's `build` script.
+The npm audit script first attempts compatible security fixes without `--force`.
+It then proposes the latest stable direct dependencies, including major versions,
+resolves the lockfile, retries compatible security fixes, and tries installation
+and the project's `build` script.
 Overrides, peer constraints, and nonstandard version specifiers remain for
-manual review. An unsuccessful upgrade resolution restores the original files.
+manual review. An unsuccessful stable upgrade resolution restores the files from
+the initial security fix attempt, preserving those fixes.
 Unresolved findings and failed installation/build checks are reported explicitly;
-they do not prevent creation of a draft PR. The timestamped
-`DEPENDENCY-AUDIT.md` ensures an audit-only PR is possible even with no upgrades.
+they do not prevent creation of a PR with dependency changes.
+
+The PR body contains the audit report. Security-related changes and before/after
+findings appear first, including locked versions, severity, affected ranges,
+advisory links, and npm fix candidates. Other stable dependency upgrades follow.
+The report distinguishes propagated findings in parent packages from the
+underlying advisories; package counts are not distinct advisory counts or proof
+of exploitable paths. An npm fix candidate is not a guarantee that a published
+fix exists for every advisory.
+
+The report is also available in the Actions run summary and as an artifact. Its
+temporary file lives in the runner's temporary directory and is never committed
+to the npm project or the repository.
+If there are no dependency changes, an existing umbrella PR receives the updated
+report without a commit or push. If none exists, no new PR is opened; the report
+remains in the Actions run summary and artifact.
+An updated report explicitly notes when the existing PR branch was left unchanged.
 
 The audit job has read-only repository permissions. A separate job publishes only
-the manifest, lockfile, and report. Upgrades are never merged automatically.
+the manifest and lockfile and puts the report in the PR body. Upgrades are never
+merged automatically.
 The workflow uses only GitHub-owned actions; the runner's Git and GitHub CLI
-create or update the draft PR without a third-party PR action.
+create or update the PR without a third-party PR action. New umbrella PRs are
+ready for review; reruns do not change an existing PR's draft status.
 The audit does not certify that every vulnerability has been fixed. Normal PR
 validation and human review are still required before merging.
 
@@ -75,6 +94,9 @@ including npm lifecycle and build children.
 
 For a manual run, leave `directory` empty to use the workflow's configured
 `NPM_PROJECT` fallback, or enter a directory to override it for that run.
+The audit uses the workflow's triggering revision, so selecting a branch for a
+manual run tests that branch's script and dependencies. Scheduled runs use the
+default branch. The publisher still targets the repository's default branch.
 
 Apply this policy to that deployment, add `audit=false` to its project-local
 `.npmrc`, and merge the relevant `ignore` entry into its existing Dependabot
@@ -88,8 +110,9 @@ initial upgrade drive; subsequent scheduled runs occur annually on January 30.
 Run an audit locally with:
 
 ```sh
-python3 .github/scripts/annual_npm_audit.py --directory website
+python3 .github/scripts/annual_npm_audit.py --directory website --report /tmp/annual-npm-audit-pr.md
 ```
 
 This command modifies the selected manifest and lockfile and installs and builds
-dependencies. Use an isolated checkout when evaluating upgrade candidates.
+dependencies. It writes the report to the explicitly selected temporary path.
+Use an isolated checkout when evaluating upgrade candidates.
