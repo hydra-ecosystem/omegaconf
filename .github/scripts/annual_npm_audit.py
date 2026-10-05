@@ -1,4 +1,4 @@
-"""Prepare a best-effort npm upgrade and report for one documentation project."""
+"""Prepare a best-effort npm or pnpm upgrade report for one documentation project."""
 
 import argparse
 import json
@@ -8,11 +8,119 @@ import time
 from datetime import datetime, timezone
 from pathlib import Path
 
+import yaml
+
+SEVERITY_ORDER = {"critical": 0, "high": 1, "moderate": 2, "low": 3, "info": 4}
+
+
+def manager(directory: Path) -> str:
+    try:
+        declared = json.loads((directory / "package.json").read_bytes()).get(
+            "packageManager", ""
+        )
+    except (OSError, ValueError, AttributeError):
+        declared = ""
+    return (
+        "pnpm"
+        if declared.startswith("pnpm@") or (directory / "pnpm-workspace.yaml").exists()
+        else "npm"
+    )
+
+
+def valid_snapshot(
+    directory: Path,
+) -> tuple[bytes, dict[str, bytes], dict, dict] | None:
+    """Retain manifest, lockfile and pnpm policy together for safe restoration."""
+    try:
+        manifest_bytes = (directory / "package.json").read_bytes()
+        manifest = json.loads(manifest_bytes)
+        if manager(directory) == "pnpm":
+            if (directory / "package-lock.json").exists():
+                return None
+            files = {
+                name: (directory / name).read_bytes()
+                for name in ("pnpm-lock.yaml", "pnpm-workspace.yaml")
+            }
+            policy = yaml.safe_load(files["pnpm-workspace.yaml"])
+            lock = yaml.safe_load(files["pnpm-lock.yaml"])
+            if (
+                not isinstance(policy, dict)
+                or policy.get("packages") != ["."]
+                or not isinstance(lock, dict)
+                or "lockfileVersion" not in lock
+                or set(lock.get("importers", {})) != {"."}
+                or not isinstance(lock.get("packages", {}), dict)
+            ):
+                return None
+            packages = {}
+            for key in lock.get("packages", {}):
+                name, version = key.rsplit("@", 1)
+                packages[key] = {"name": name, "version": version.split("(", 1)[0]}
+            lock = {"packages": packages}
+        else:
+            if (directory / "pnpm-lock.yaml").exists():
+                return None
+            files = {
+                "package-lock.json": (directory / "package-lock.json").read_bytes()
+            }
+            lock = json.loads(files["package-lock.json"])
+    except (OSError, UnicodeDecodeError, ValueError, TypeError, yaml.YAMLError):
+        return None
+    if not isinstance(manifest, dict) or not isinstance(lock, dict):
+        return None
+    return manifest_bytes, files, manifest, lock
+
+
+def restore_snapshot(
+    directory: Path, snapshot: tuple[bytes, dict[str, bytes], dict, dict]
+) -> None:
+    (directory / "package.json").write_bytes(snapshot[0])
+    for name, content in snapshot[1].items():
+        (directory / name).write_bytes(content)
+
+
+def restore_invalid_state(
+    directory: Path,
+    snapshot: tuple[bytes, dict[str, bytes], dict, dict],
+    notes: list[str],
+    operation: str,
+) -> bool:
+    """Restore a valid snapshot when a command damaged package files or policy."""
+    if valid_snapshot(directory) is not None:
+        return False
+    restore_snapshot(directory, snapshot)
+    notes.append(
+        f"{operation} left an invalid or missing package manifest/lockfile; restored "
+        "the last valid snapshot and did not claim its changes."
+    )
+    return True
+
+
+def restore_unexpected_state(
+    directory: Path,
+    snapshot: tuple[bytes, dict[str, bytes], dict, dict],
+    notes: list[str],
+    operation: str,
+) -> bool:
+    """Restore the frozen proposal when validation changes package files."""
+    current = valid_snapshot(directory)
+    if current is not None and current[0] == snapshot[0] and current[1] == snapshot[1]:
+        return False
+    restore_snapshot(directory, snapshot)
+    notes.append(
+        f"{operation} changed the package manifest, lockfile, or workspace policy "
+        "during validation; restored the frozen proposal and marked validation "
+        "as failed; did not claim its changes."
+    )
+    return True
+
 
 def run(
     directory: Path, *args: str, deadline: float | None = None
 ) -> subprocess.CompletedProcess[str]:
-    command = ["npm", *args]
+    command = (
+        ["corepack", "pnpm"] if manager(directory) == "pnpm" else ["npm"]
+    ) + list(args)
     timeout = min(900, deadline - time.monotonic()) if deadline is not None else 900
     if timeout <= 0:
         return subprocess.CompletedProcess(
@@ -29,7 +137,7 @@ def run(
         result = subprocess.CompletedProcess(
             command, 124, result.stdout, result.stderr + "\nCommand timed out."
         )
-    print(f"npm {' '.join(args)}: exit {result.returncode}")
+    print(f"{' '.join(command)}: exit {result.returncode}")
     if result.returncode:
         print(result.stdout)
         print(result.stderr)
@@ -37,22 +145,113 @@ def run(
 
 
 def audit(directory: Path, *, deadline: float | None = None) -> dict | str:
+    if manager(directory) == "pnpm":
+        policy = yaml.safe_load((directory / "pnpm-workspace.yaml").read_bytes())
+        if policy.get("audit", {}).get("ignore") or policy.get("auditConfig", {}).get(
+            "ignoreGhsas"
+        ):
+            return "Audit unavailable: pnpm advisory-ignore rules would hide annual findings; manual review required."
+        flags = ["--audit-level", "low"]
+    else:
+        flags = ["--audit", "--package-lock-only"]
     result = run(
         directory,
         "audit",
         "--json",
-        "--audit",
-        "--package-lock-only",
+        *flags,
         deadline=deadline,
     )
     try:
         data = json.loads(result.stdout)
     except json.JSONDecodeError:
         return f"Audit unavailable (exit {result.returncode})."
-    counts = data.get("metadata", {}).get("vulnerabilities")
-    if result.returncode not in (0, 1) or data.get("error") or counts is None:
+    if not isinstance(data, dict):
+        return f"Audit unavailable (exit {result.returncode})."
+    if "advisories" in data and isinstance(data["advisories"], dict):
+        vulnerabilities = {}
+        for advisory in data["advisories"].values():
+            if (
+                not isinstance(advisory, dict)
+                or any(
+                    not isinstance(advisory.get(key), str)
+                    for key in (
+                        "module_name",
+                        "severity",
+                        "title",
+                        "url",
+                        "vulnerable_versions",
+                    )
+                )
+                or not isinstance(advisory.get("findings", []), list)
+                or any(
+                    not isinstance(finding, dict)
+                    or not isinstance(finding.get("version"), str)
+                    for finding in advisory.get("findings", [])
+                )
+            ):
+                return "Audit unavailable: malformed pnpm advisory response."
+            name = advisory["module_name"]
+            vulnerability = vulnerabilities.setdefault(
+                name,
+                {
+                    "severity": advisory["severity"],
+                    "range": advisory["vulnerable_versions"],
+                    "nodes": [],
+                    "via": [],
+                    "fixAvailable": False,
+                },
+            )
+            vulnerability["via"].append(
+                {
+                    "title": advisory["title"],
+                    "url": advisory["url"],
+                    "severity": advisory["severity"],
+                    "range": advisory["vulnerable_versions"],
+                }
+            )
+            vulnerability["severity"] = min(
+                (vulnerability["severity"], advisory["severity"]),
+                key=lambda severity: SEVERITY_ORDER.get(severity, 5),
+            )
+            vulnerability["range"] = " || ".join(
+                sorted({via["range"] for via in vulnerability["via"]})
+            )
+            vulnerability["nodes"].extend(
+                f"{name}@{finding['version']}"
+                for finding in advisory.get("findings", [])
+            )
+            vulnerability["fixAvailable"] = vulnerability["fixAvailable"] or bool(
+                advisory.get("patched_versions") not in (None, "<0.0.0")
+            )
+        data["vulnerabilities"] = vulnerabilities
+        data["package_manager"] = "pnpm"
+    metadata = data.get("metadata")
+    counts = metadata.get("vulnerabilities") if isinstance(metadata, dict) else None
+    if (
+        result.returncode not in (0, 1)
+        or data.get("error")
+        or not isinstance(counts, dict)
+        or not isinstance(data.get("vulnerabilities", {}), dict)
+    ):
         return f"Audit unavailable (exit {result.returncode})."
     return data
+
+
+def fix_security(directory: Path, deadline: float) -> subprocess.CompletedProcess[str]:
+    if manager(directory) == "pnpm":
+        # Update the lockfile without introducing broad security overrides.
+        return run(
+            directory, "audit", "--fix=update", "--ignore-scripts", deadline=deadline
+        )
+    return run(
+        directory,
+        "audit",
+        "fix",
+        "--package-lock-only",
+        "--ignore-scripts",
+        "--audit",
+        deadline=deadline,
+    )
 
 
 def versions(lock: dict, vulnerability: dict) -> str:
@@ -68,18 +267,18 @@ def versions(lock: dict, vulnerability: dict) -> str:
 def format_audit(data: dict | str, lock: dict) -> str:
     if isinstance(data, str):
         return data
+    source = data.get("package_manager", "npm")
     summary = ", ".join(
         f"{level}: {count}"
         for level, count in data["metadata"]["vulnerabilities"].items()
     )
     findings = []
-    severity_order = {"critical": 0, "high": 1, "moderate": 2, "low": 3, "info": 4}
     for name, vulnerability in sorted(
         data.get("vulnerabilities", {}).items(),
-        key=lambda item: (severity_order.get(item[1]["severity"], 5), item[0]),
+        key=lambda item: (SEVERITY_ORDER.get(item[1]["severity"], 5), item[0]),
     ):
         candidate = vulnerability.get("fixAvailable")
-        fix = "available" if candidate else "not offered by npm"
+        fix = "available" if candidate else f"not offered by {source}"
         if isinstance(candidate, dict):
             fix = f"`{candidate['name']}@{candidate.get('version', 'unspecified')}`"
             if candidate.get("isSemVerMajor"):
@@ -87,7 +286,7 @@ def format_audit(data: dict | str, lock: dict) -> str:
         findings.append(
             f"- **{name}**: {vulnerability['severity']}; locked versions "
             f"`{versions(lock, vulnerability)}`; affected range "
-            f"`{vulnerability['range']}`; npm fix candidate {fix}."
+            f"`{vulnerability['range']}`; {source} fix candidate {fix}."
         )
         for via in vulnerability.get("via", []):
             if isinstance(via, dict):
@@ -103,8 +302,52 @@ def format_audit(data: dict | str, lock: dict) -> str:
         + (
             "\n".join(findings)
             if findings
-            else "No known vulnerabilities reported by npm."
+            else f"No known vulnerabilities reported by {source}."
         )
+    )
+
+
+def format_remaining_audit(data: dict | str, lock: dict) -> str:
+    if isinstance(data, str):
+        return data
+    source = data.get("package_manager", "npm")
+    counts = ", ".join(
+        f"{level}: {count}"
+        for level, count in data["metadata"]["vulnerabilities"].items()
+    )
+    vulnerabilities = data.get("vulnerabilities", {})
+    if not vulnerabilities:
+        return f"No known vulnerabilities reported by {source}."
+    advisories = {}
+    for name, vulnerability in vulnerabilities.items():
+        for via in vulnerability.get("via", []):
+            if isinstance(via, dict):
+                advisory = advisories.setdefault(
+                    via["url"], {"detail": via, "packages": set()}
+                )
+                advisory["packages"].add(f"{name}@{versions(lock, vulnerability)}")
+    lines = []
+    for advisory in sorted(
+        advisories.values(),
+        key=lambda item: (
+            SEVERITY_ORDER.get(item["detail"]["severity"], 5),
+            item["detail"]["url"],
+        ),
+    ):
+        detail = advisory["detail"]
+        packages = ", ".join(sorted(advisory["packages"]))
+        lines.append(
+            f"- [{detail['title']}]({detail['url']}): {detail['severity']}; "
+            f"locked `{packages}`; affected range `{detail['range']}`."
+        )
+    heading = (
+        f"Registry advisory counts: {counts}.\n\n"
+        if data.get("package_manager") == "pnpm"
+        else f"Affected package entries: {counts}. These are not distinct advisory counts.\n\n"
+    )
+    return heading + (
+        "\n".join(lines)
+        or f"{source} supplied no direct advisory details; see the full findings below."
     )
 
 
@@ -112,32 +355,33 @@ def prepare(directory: Path) -> str:
     # Leave time in the 60-minute job to write and upload a partial report.
     deadline = time.monotonic() + 45 * 60
     manifest_path = directory / "package.json"
-    lock_path = directory / "package-lock.json"
-    before_lock = json.loads(lock_path.read_text())
+    package_manager = manager(directory)
+    notes = []
+    initial_snapshot = valid_snapshot(directory)
+    if initial_snapshot is None:
+        raise ValueError(
+            "Valid manifest, one deployment lockfile and package-manager policy are required"
+        )
+    before_lock = initial_snapshot[3]
     before = audit(directory, deadline=deadline)
+    if restore_invalid_state(directory, initial_snapshot, notes, "Initial audit"):
+        before = f"Audit unavailable: {package_manager} left invalid package files; restored the initial snapshot."
+    last_valid_snapshot = valid_snapshot(directory) or initial_snapshot
     affected = before.get("vulnerabilities", {}) if isinstance(before, dict) else {}
     changes = []
-    notes = []
 
     # Give compatible security fixes the first use of the shared time budget.
-    fixed = run(
-        directory,
-        "audit",
-        "fix",
-        "--package-lock-only",
-        "--ignore-scripts",
-        "--audit",
-        deadline=deadline,
-    )
+    fixed = fix_security(directory, deadline)
+    restore_invalid_state(directory, last_valid_snapshot, notes, "Initial security fix")
     if fixed.returncode:
         notes.append(
             f"Initial security fix returned exit {fixed.returncode}; remaining findings "
             "or a tool error require manual review."
         )
     # Preserve those fixes if the wider stable-version upgrade cannot resolve.
-    security_manifest = manifest_path.read_text()
-    security_lock = lock_path.read_bytes()
-    manifest = json.loads(security_manifest)
+    security_snapshot = valid_snapshot(directory) or last_valid_snapshot
+    last_valid_snapshot = security_snapshot
+    manifest = security_snapshot[2]
 
     # Preserve overrides and peer constraints for a maintainer to review.
     for section in ("dependencies", "devDependencies", "optionalDependencies"):
@@ -171,51 +415,84 @@ def prepare(directory: Path) -> str:
 
     if changes:
         manifest_path.write_text(json.dumps(manifest, indent=2) + "\n")
+    if valid_snapshot(directory) is None:
+        restore_snapshot(directory, security_snapshot)
+        notes.append(
+            "Stable upgrade preparation left invalid package files; restored the "
+            "last valid snapshot and discarded those upgrades."
+        )
+        changes = []
+    lock_flags = (
+        ["--lockfile-only", "--no-frozen-lockfile", "--ignore-scripts"]
+        if package_manager == "pnpm"
+        else ["--package-lock-only", "--ignore-scripts", "--no-audit"]
+    )
     lock = run(
         directory,
         "install",
-        "--package-lock-only",
-        "--ignore-scripts",
-        "--no-audit",
+        *lock_flags,
         deadline=deadline,
     )
     if lock.returncode:
-        manifest_path.write_text(security_manifest)
-        lock_path.write_bytes(security_lock)
+        restore_snapshot(directory, security_snapshot)
         notes.append(
-            "Stable upgrade resolution failed; restored the manifest and lockfile "
-            "from the initial security fix attempt."
+            f"Stable upgrade resolution failed (exit {lock.returncode}); restored "
+            "the manifest and lockfile from the initial security fix attempt."
         )
         changes = []
     else:
+        invalid_stable_state = restore_invalid_state(
+            directory, security_snapshot, notes, "Stable install"
+        )
+        if invalid_stable_state:
+            changes = []
+        stable_snapshot = valid_snapshot(directory) or security_snapshot
+        last_valid_snapshot = stable_snapshot
         # Keep fixes within the proposed manifest constraints; never use --force.
-        fixed = run(
-            directory,
-            "audit",
-            "fix",
-            "--package-lock-only",
-            "--ignore-scripts",
-            "--audit",
-            deadline=deadline,
+        fixed = fix_security(directory, deadline)
+        restore_invalid_state(
+            directory, stable_snapshot, notes, "Follow-up security fix"
         )
         if fixed.returncode:
             notes.append(
                 f"Automatic audit fix returned exit {fixed.returncode}; remaining findings "
                 "or a tool error require manual review."
             )
+        last_valid_snapshot = valid_snapshot(directory) or stable_snapshot
 
-    install = run(directory, "ci", "--no-audit", deadline=deadline)
-    if install.returncode:
-        build_status = f"Not run: npm ci failed (exit {install.returncode})."
+    validation_snapshot = last_valid_snapshot
+    install_args = (
+        ["install", "--frozen-lockfile"]
+        if package_manager == "pnpm"
+        else ["ci", "--no-audit"]
+    )
+    install = run(directory, *install_args, deadline=deadline)
+    invalid_install_state = restore_unexpected_state(
+        directory, validation_snapshot, notes, "Frozen install"
+    )
+    last_valid_snapshot = validation_snapshot
+    if install.returncode or invalid_install_state:
+        build_status = f"Not run: {package_manager} frozen install failed (exit {install.returncode}); validation failed."
     else:
         build = run(directory, "run", "build", deadline=deadline)
-        build_status = (
-            "Passed."
-            if build.returncode == 0
-            else f"Failed (exit {build.returncode}); manual repair required."
+        invalid_build_state = restore_unexpected_state(
+            directory, last_valid_snapshot, notes, f"{package_manager} run build"
         )
+        last_valid_snapshot = validation_snapshot
+        if invalid_build_state:
+            build_status = (
+                f"Failed: {package_manager} run build changed package files; restored the "
+                "frozen proposal; validation failed; manual repair required."
+            )
+        elif build.returncode == 0:
+            build_status = "Passed."
+        else:
+            build_status = f"Failed (exit {build.returncode}); manual repair required."
     after = audit(directory, deadline=deadline)
-    after_lock = json.loads(lock_path.read_text())
+    if restore_unexpected_state(directory, validation_snapshot, notes, "Final audit"):
+        after = f"Audit unavailable: {package_manager} changed package files during final validation; restored the frozen proposal."
+    after_snapshot = validation_snapshot
+    after_lock = after_snapshot[3]
     after_affected = after.get("vulnerabilities", {}) if isinstance(after, dict) else {}
     security_changes = []
     reported_changes = set()
@@ -237,9 +514,9 @@ def prepare(directory: Path) -> str:
             status = "after audit unavailable; fix unconfirmed"
             if isinstance(after, dict):
                 status = (
-                    "still reported by npm"
+                    f"still reported by {package_manager}"
                     if name in after.get("vulnerabilities", {})
-                    else "no longer reported by npm"
+                    else f"no longer reported by {package_manager}"
                 )
             security_changes.append(f"- {name}: `{old}` → `{new}`; {status}.")
             reported_changes.add(name)
@@ -250,11 +527,19 @@ def prepare(directory: Path) -> str:
     )
     if time.monotonic() >= deadline:
         notes.append(
-            "The shared 45-minute npm time budget was exhausted; remaining commands were skipped."
+            "The shared 45-minute dependency command time budget was exhausted; remaining commands were skipped."
         )
+    count_explanation = (
+        "pnpm reports registry advisory counts. Multiple affected dependency "
+        "paths do not demonstrate exploitability."
+        if package_manager == "pnpm"
+        else "npm counts affected package entries, including propagated findings in "
+        "parent packages. These are not counts of distinct advisories or "
+        "demonstrated exploit paths."
+    )
     return (
-        "# Annual npm dependency audit\n\n"
-        f"Project: `{directory}`\n\n"
+        "# Annual documentation dependency audit\n\n"
+        f"Project: `{directory}`; package manager: `{package_manager}`\n\n"
         f"Run: {datetime.now(timezone.utc).isoformat()}\n\n"
         "This is a best-effort upgrade drive. Remaining vulnerabilities are accepted "
         "between annual reviews; this report does not certify that the project is "
@@ -266,17 +551,14 @@ def prepare(directory: Path) -> str:
             or "No upgrades to affected dependencies resolved."
         )
         + "\n\n"
-        "npm counts affected package entries, including propagated findings in "
-        "parent packages. These are not counts of distinct advisories or "
-        "demonstrated exploit paths. Fix candidates can require manual migrations.\n\n"
-        f"### Before\n\n{format_audit(before, before_lock)}\n\n"
-        f"### After\n\n{format_audit(after, after_lock)}\n\n"
+        f"{count_explanation} Fix candidates can require manual migrations.\n\n"
         "## Other stable dependency upgrades\n\n"
         + (
             "\n".join(line for name, line in changes if name not in affected)
             or "No other direct dependency upgrades resolved."
         )
         + "\n\n"
+        f"## Remaining advisories\n\n{format_remaining_audit(after, after_lock)}\n\n"
         f"## Production build\n\n{build_status}\n\n"
         "## Remaining work\n\n"
         "Review retained overrides and peer constraints, transitive dependency fixes, "
@@ -287,6 +569,10 @@ def prepare(directory: Path) -> str:
             or "No additional tool errors recorded."
         )
         + "\n"
+        f"\n<details>\n<summary>Full before/after {package_manager} audit</summary>\n\n"
+        f"### Before\n\n{format_audit(before, before_lock)}\n\n"
+        f"### After\n\n{format_audit(after, after_lock)}\n\n"
+        "</details>\n"
     )
 
 
@@ -304,11 +590,10 @@ def main() -> None:
         or not re.fullmatch(r"[A-Za-z0-9_./-]+", args.directory)
     ):
         parser.error("directory must be a relative npm project path without '..'")
-    if (
-        not (directory / "package.json").is_file()
-        or not (directory / "package-lock.json").is_file()
-    ):
-        parser.error("directory must contain package.json and package-lock.json")
+    if valid_snapshot(directory) is None:
+        parser.error(
+            "directory must contain valid package files for one npm or pnpm deployment"
+        )
     report = prepare(directory)
     args.report.write_text(report)
     print(report)

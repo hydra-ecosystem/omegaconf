@@ -228,7 +228,7 @@ def test_report_distinguishes_security_changes_from_other_stable_upgrades(
         assert "no longer reported by npm" not in security
     else:
         assert "no longer reported by npm" in security
-        assert "No known vulnerabilities reported by npm" in security
+        assert "No known vulnerabilities reported by npm" in report
     assert not (npm_project / "DEPENDENCY-AUDIT.md").exists()
 
 
@@ -399,7 +399,7 @@ def test_shared_time_budget_stops_commands_and_writes_partial_report(
     report = prepare(npm_project)
     assert commands == [["audit", "--json", "--audit", "--package-lock-only"]]
     assert "Could not look up renderer" in report
-    assert "Not run: npm ci failed (exit 124)." in report
+    assert "Not run: npm frozen install failed (exit 124)" in report
     assert "### After\n\nAudit unavailable (exit 124)." in report
     assert "time budget was exhausted" in report
 
@@ -463,7 +463,9 @@ def test_cli_requires_manifest_and_lockfile(npm_project, monkeypatch, capsys, mi
     with pytest.raises(SystemExit) as error:
         main()
     assert error.value.code == 2
-    assert "must contain package.json and package-lock.json" in capsys.readouterr().err
+    assert (
+        "valid package files for one npm or pnpm deployment" in capsys.readouterr().err
+    )
 
 
 def test_cli_entrypoint_prepares_selected_project(npm_project, monkeypatch):
@@ -480,3 +482,61 @@ def test_cli_entrypoint_prepares_selected_project(npm_project, monkeypatch):
     assert not (npm_project / "DEPENDENCY-AUDIT.md").exists()
     manifest = json.loads((npm_project / "package.json").read_text())
     assert manifest["dependencies"]["renderer"] == "2.0.0"
+
+
+@pytest.mark.parametrize("manifest", [None, "{", "[]"])
+def test_manager_recovers_from_unreadable_or_invalid_manifest(tmp_path, manifest):
+    if manifest is not None:
+        (tmp_path / "package.json").write_text(manifest)
+    assert audit_module["manager"](tmp_path) == "npm"
+
+
+@pytest.mark.parametrize("filename", ["package.json", "package-lock.json"])
+def test_snapshot_rejects_non_object_package_files(npm_project, filename):
+    (npm_project / filename).write_text("[]")
+    assert audit_module["valid_snapshot"](npm_project) is None
+
+
+def test_audit_rejects_non_object_registry_response(npm_project, monkeypatch):
+    monkeypatch.setattr(
+        subprocess,
+        "run",
+        lambda command, **kwargs: subprocess.CompletedProcess(command, 1, "[]", ""),
+    )
+    assert audit(npm_project) == "Audit unavailable (exit 1)."
+
+
+@pytest.mark.parametrize("phase", ["initial-audit", "lookup", "stable-install"])
+def test_prepare_restores_files_damaged_before_validation(
+    npm_project, monkeypatch, phase
+):
+    fake_npm(monkeypatch)
+    invoke = subprocess.run
+    damaged = False
+
+    def damage(command, **kwargs):
+        nonlocal damaged
+        result = invoke(command, **kwargs)
+        args = command[4:]
+        selected = (
+            (phase == "initial-audit" and args[:2] == ["audit", "--json"])
+            or (phase == "lookup" and args[0] == "view")
+            or (phase == "stable-install" and args[0] == "install")
+        )
+        if selected and not damaged:
+            (npm_project / "package-lock.json").unlink()
+            damaged = True
+        return result
+
+    monkeypatch.setattr(subprocess, "run", damage)
+    report = prepare(npm_project)
+    assert damaged
+    assert audit_module["valid_snapshot"](npm_project) is not None
+    manifest = json.loads((npm_project / "package.json").read_text())
+    assert manifest["overrides"] == {"transitive": "2.0.0"}
+    if phase == "initial-audit":
+        assert "Audit unavailable: npm left invalid package files" in report
+    else:
+        assert manifest["dependencies"]["renderer"] == "1.0.0"
+        assert "renderer: `1.0.0` → `2.0.0`" not in report
+        assert "restored" in report
