@@ -32,6 +32,7 @@ temp
 
 # Agents hooks etc
 .agents
+/.awd/
 .claude/*
 !.claude/skills/
 !.claude/skills/**
