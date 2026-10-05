@@ -10,14 +10,23 @@ configs. It includes task pages, an API overview, and generated symbol details
 for two versions: 2.3.1 at `/omegaconf/docs/` and the current 2.4 prerelease at
 `/omegaconf/docs/next/`.
 
-From the repository root, install the pinned Python generator and site packages:
+Use Node 24 (recorded in `.node-version`) and the pnpm version pinned in
+`package.json`. From the repository root, install the Python generator and site
+packages:
 
 ```sh
 .venv/bin/python -m pip install -r website/requirements.txt
 cd website
-npm ci
-npm run build
+corepack enable
+corepack pnpm install --frozen-lockfile
+corepack pnpm run build
 ```
+
+The pnpm workspace policy delays new package releases by 10 days, blocks exotic
+dependency sources, and requires explicit dependency build-script approvals.
+Exact-version exceptions preserve already-locked dependencies during migration;
+future versions remain subject to the delay. Security overrides live in
+`pnpm-workspace.yaml`.
 
 The generated API pages are versioned snapshots. To regenerate or check the
 current 2.4 page from this checkout, run from `website/`:

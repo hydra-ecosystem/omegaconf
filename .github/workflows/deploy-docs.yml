@@ -12,6 +12,9 @@ on:
       - tests/test_website*.py
       - tests/conftest.py
       - .github/workflows/deploy-docs.yml
+      - .github/workflows/annual-npm-audit.yml
+      - .github/scripts/annual_npm_audit.py
+      - tests/test_annual_npm_audit*.py
   push:
     branches: [main]
     paths:
@@ -24,6 +27,9 @@ on:
       - tests/test_website*.py
       - tests/conftest.py
       - .github/workflows/deploy-docs.yml
+      - .github/workflows/annual-npm-audit.yml
+      - .github/scripts/annual_npm_audit.py
+      - tests/test_annual_npm_audit*.py
   workflow_dispatch:
 
 permissions:
@@ -94,14 +100,14 @@ jobs:
         uses: actions/setup-node@v7
         with:
           node-version: 24
-          cache: npm
-          cache-dependency-path: website/package-lock.json
+      - name: Enable the project's pinned pnpm
+        run: corepack enable
       - name: Install dependencies
         working-directory: website
-        run: npm ci
+        run: corepack pnpm install --frozen-lockfile
       - name: Build site
         working-directory: website
-        run: npm run build
+        run: corepack pnpm run build
       - name: Configure GitHub Pages
         if: github.ref == 'refs/heads/main'
         uses: actions/configure-pages@v6

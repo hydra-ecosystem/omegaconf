@@ -10,23 +10,30 @@ security policy.
 
 ## Annual umbrella PR
 
-The `Annual npm dependency audit` workflow runs on January 30 at 02:00 UTC and
+The `Annual documentation dependency audit` workflow runs on January 30 at 02:00 UTC and
 can also be run manually. It updates one fixed branch,
 `maintenance/annual-npm-audit`, so reruns update an existing umbrella PR.
 
-The npm audit script first attempts compatible security fixes without `--force`.
+The helper supports npm and pnpm. OmegaConf uses its pinned pnpm toolchain.
+It first attempts compatible security fixes without `--force`, using pnpm's
+`audit --fix=update` rather than adding blanket security overrides.
 It then proposes the latest stable direct dependencies, including major versions,
 resolves the lockfile, retries compatible security fixes, and tries installation
 and the project's `build` script.
 Overrides, peer constraints, and nonstandard version specifiers remain for
 manual review. An unsuccessful stable upgrade resolution restores the files from
-the initial security fix attempt, preserving those fixes.
+the initial security fix attempt, preserving those fixes and pnpm workspace
+policy together. Security fixes may add exact patched-version release-age
+exceptions; the 10-day rule remains in force for future releases.
+Validation restores the frozen proposal if installation, build, or audit changes
+its manifest, lockfile, or workspace policy, and reports the failure explicitly.
 Unresolved findings and failed installation/build checks are reported explicitly;
 they do not prevent creation of a PR with dependency changes.
 
 The PR body contains the audit report. Security-related changes and before/after
 findings appear first, including locked versions, severity, affected ranges,
-advisory links, and npm fix candidates. Other stable dependency upgrades follow.
+and advisory links. Other stable dependency upgrades follow. Remaining findings
+are grouped by distinct advisory; full before/after chains are collapsed.
 The report distinguishes propagated findings in parent packages from the
 underlying advisories; package counts are not distinct advisory counts or proof
 of exploitable paths. An npm fix candidate is not a guarantee that a published
@@ -41,8 +48,11 @@ remains in the Actions run summary and artifact.
 An updated report explicitly notes when the existing PR branch was left unchanged.
 
 The audit job has read-only repository permissions. A separate job publishes only
-the manifest and lockfile and puts the report in the PR body. Upgrades are never
-merged automatically.
+the manifest, lockfile, and pnpm workspace policy and puts the report in the PR
+body. It refuses publication if those files differ between the audit revision
+and the current default branch; rerun from the current default branch in that
+case. Unrelated default-branch changes do not invalidate the audit.
+Upgrades are never merged automatically.
 The workflow uses only GitHub-owned actions; the runner's Git and GitHub CLI
 create or update the PR without a third-party PR action. New umbrella PRs are
 ready for review; reruns do not change an existing PR's draft status.
@@ -54,8 +64,10 @@ validation and human review are still required before merging.
 The workflow becomes scheduled after it reaches the default branch. In
 **Settings → Actions → General → Workflow permissions**, enable **Allow GitHub
 Actions to create and approve pull requests**. The workflow requests PR creation
-permission but does not approve PRs. GitHub may require a maintainer to approve
-validation workflows on its generated PRs.
+permission but does not approve PRs. PRs created or updated with `GITHUB_TOKEN`
+trigger checks that require maintainer approval. Select **Approve workflows to
+run** on the PR before merging. See
+[GitHub's token-triggered workflow rules](https://docs.github.com/en/actions/concepts/security/github_token#when-github_token-triggers-workflow-runs).
 
 For dormant public repositories, GitHub can disable scheduled workflows after
 60 days without repository activity. Re-enable the workflow or use its manual
@@ -67,36 +79,40 @@ repository-level rule under **Settings → Advanced Security → Dependabot rule
 
 - Name: `Annual documentation dependency maintenance`
 - Ecosystem: `npm`
-- Manifest path: `website/package-lock.json`
+- Manifest path: `website/pnpm-lock.yaml`
 - All severities, both scopes, and any patch availability
 - Action: dismiss indefinitely
 
 This rule applies to existing and future matching alerts. Dismissed alerts remain
 available for review and can reopen when advisory metadata changes. The annual
-`npm audit` examines the lockfile independently of GitHub dismissal state.
+`corepack pnpm audit` examines the lockfile independently of GitHub dismissal state.
 GitHub's documented custom-rule setup uses the settings UI; its public Dependabot
 REST API supports individual alert dismissal, not creation of these rules.
 
 The scoped `ignore` entry in `dependabot.yml` suppresses automatic update PRs for
 this npm project. Its required schedule does not schedule security updates.
 The project's `.npmrc` disables routine npm installation audit messages; explicit
-`npm audit --audit` remains available during annual review.
+`npm audit --audit` and `corepack pnpm audit` remain available during annual review.
+No pnpm advisory-ignore rules are added.
 
 ## Reuse in other repositories
 
 Copy `.github/scripts/annual_npm_audit.py` and
 `.github/workflows/annual-npm-audit.yml`. Change the workflow's `NPM_PROJECT`
-fallback to your npm project directory and choose its annual cron date. The
-project must have `package.json`, `package-lock.json`, and an npm `build` script.
-The script requires Python, npm, and GNU `timeout`, which is included in the
-workflow's Ubuntu runner. Timed-out commands terminate their process group,
-including npm lifecycle and build children.
+value to your documentation project directory. Keep a distinct branch,
+concurrency group, and artifact identity for each deployment in a repository.
+The project must have `package.json`, a `build` script, and either
+`package-lock.json` or `pnpm-lock.yaml` with a single-project
+`pnpm-workspace.yaml`. A shared multi-project lockfile requires a scope plan.
+The helper requires Python with PyYAML, the project's package manager, and GNU
+`timeout`, included in the workflow's Ubuntu runner. Timed-out commands terminate
+their process group, including lifecycle and build children.
 
-For a manual run, leave `directory` empty to use the workflow's configured
-`NPM_PROJECT` fallback, or enter a directory to override it for that run.
-The audit uses the workflow's triggering revision, so selecting a branch for a
-manual run tests that branch's script and dependencies. Scheduled runs use the
-default branch. The publisher still targets the repository's default branch.
+Manual runs use the configured `NPM_PROJECT` and triggering revision. Scheduled
+runs use the default branch. The publisher always targets the default branch
+and checks that the selected dependency files still match the triggering state.
+Adapting to npm also requires changing artifact, publication, and comparison
+paths to `package-lock.json` and removing the pnpm workspace path.
 
 Apply this policy to that deployment, add `audit=false` to its project-local
 `.npmrc`, and merge the relevant `ignore` entry into its existing Dependabot
