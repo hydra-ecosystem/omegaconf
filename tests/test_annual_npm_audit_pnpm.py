@@ -12,6 +12,7 @@ audit_module = runpy.run_path(
 format_remaining_audit = audit_module["format_remaining_audit"]
 prepare = audit_module["prepare"]
 audit = audit_module["audit"]
+valid_snapshot = audit_module["valid_snapshot"]
 
 
 @pytest.fixture
@@ -21,6 +22,56 @@ def npm_project(tmp_path):
     )
     (tmp_path / "package-lock.json").write_text('{"lockfileVersion": 3}')
     return tmp_path
+
+
+@pytest.mark.parametrize(
+    ("first_versions", "second_versions"),
+    [(["1.0.0"], ["2.0.0"]), (["1.0.0", "2.0.0"], ["2.0.0"]), ([], ["2.0.0"])],
+)
+def test_pnpm_remaining_versions_are_scoped_to_each_advisory(
+    pnpm_project, monkeypatch, first_versions, second_versions
+):
+    lockfile = pnpm_project / "pnpm-lock.yaml"
+    lock = yaml.safe_load(lockfile.read_bytes())
+    lock["packages"]["renderer@2.0.0"] = {}
+    lockfile.write_text(yaml.safe_dump(lock))
+    advisories = {
+        name: {
+            "module_name": "renderer",
+            "severity": "high",
+            "title": name,
+            "url": f"https://github.com/advisories/{name}",
+            "vulnerable_versions": "*",
+            "patched_versions": "<0.0.0",
+            "findings": [{"version": version} for version in versions],
+        }
+        for name, versions in (("first", first_versions), ("second", second_versions))
+    }
+
+    def invoke(command, **kwargs):
+        return subprocess.CompletedProcess(
+            command,
+            1,
+            json.dumps(
+                {
+                    "metadata": {"vulnerabilities": {"high": 2, "total": 2}},
+                    "advisories": advisories,
+                }
+            ),
+            "",
+        )
+
+    monkeypatch.setattr(subprocess, "run", invoke)
+    data = audit(pnpm_project)
+    report = format_remaining_audit(data, valid_snapshot(pnpm_project)[3])
+
+    for name, versions in (("first", first_versions), ("second", second_versions)):
+        line = next(line for line in report.splitlines() if f"[{name}]" in line)
+        expected = ", ".join(sorted(versions)) or "not recorded in lockfile"
+        assert f"locked `renderer@{expected}`;" in line
+    assert set(data["vulnerabilities"]["renderer"]["nodes"]) == {
+        f"renderer@{version}" for version in first_versions + second_versions
+    }
 
 
 def test_remaining_summary_deduplicates_propagated_advisories():
@@ -121,7 +172,12 @@ def test_validation_restores_valid_mutations(
         elif args[:2] == ["audit", "--json"]:
             audit_calls += 1
             stdout = json.dumps(
-                {"metadata": {"vulnerabilities": {"total": 0}}, "vulnerabilities": {}}
+                {
+                    "metadata": {"vulnerabilities": {"total": 0}},
+                    "advisories"
+                    if package_manager == "pnpm"
+                    else "vulnerabilities": {},
+                }
             )
             if phase == "final-audit" and audit_calls == 2:
                 mutate()
@@ -147,7 +203,7 @@ def test_validation_restores_valid_mutations(
     assert all(
         (project / name).read_bytes() == content for name, content in proposal.items()
     )
-    assert "changed the package manifest, lockfile, or workspace policy" in report
+    assert "changed protected pnpm policy, changed frozen package files" in report
     if phase == "final-audit":
         assert f"Audit unavailable: {package_manager} changed package files" in report
     else:
@@ -247,9 +303,9 @@ def test_pnpm_security_first_and_policy_restoration(pnpm_project, monkeypatch, f
     assert policy["blockExoticSubdeps"] and policy["strictDepBuilds"]
     assert policy["allowBuilds"] == {"core-js": False}
     assert policy["overrides"] == {"other": "3.0.0"}
-    assert commands.index(["audit", "--fix=update", "--ignore-scripts"]) < next(
-        i for i, args in enumerate(commands) if args[0] == "view"
-    )
+    assert commands.index(
+        ["audit", "--fix=update", "--audit-level", "info", "--ignore-scripts"]
+    ) < next(i for i, args in enumerate(commands) if args[0] == "view")
     assert "--force" not in str(commands)
     assert "pnpm" in report and "Render bug" in report
     assert "Registry advisory counts" in report
@@ -386,10 +442,7 @@ def test_workflow_limits_credentials_artifacts_and_publication():
     assert audit["steps"][0]["with"]["persist-credentials"] is False
     publisher = workflow["jobs"]["pull-request"]
     assert publisher["permissions"] == {"contents": "write", "pull-requests": "write"}
-    assert (
-        publisher["steps"][0]["with"]["ref"]
-        == "${{ github.event.repository.default_branch }}"
-    )
+    assert publisher["steps"][0]["with"]["ref"] == "${{ github.sha }}"
     files = next(
         step["with"]["path"]
         for step in audit["steps"]

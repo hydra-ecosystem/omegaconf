@@ -46,7 +46,10 @@ if tool == 'git':
             sys.exit(1)
         print(os.environ['AUDIT_SHA'])
     elif args[0] == 'fetch':
-        sys.exit(int(os.environ['FETCH_STATUS']))
+        setting = 'FETCH_STATUS' if args[-1] == os.environ['AUDIT_SHA'] else 'BASE_FETCH_STATUS'
+        sys.exit(int(os.environ[setting]))
+    elif args[0] == 'checkout':
+        sys.exit(int(os.environ['CHECKOUT_STATUS']))
     elif args[0] == 'diff':
         if '--cached' in args:
             sys.exit(int(os.environ['HAS_CHANGES']))
@@ -85,6 +88,8 @@ elif args[:2] == ['pr', 'list']:
             "AUDIT_SHA": "audit-sha",
             "AUDIT_COMMIT_AVAILABLE": "1",
             "FETCH_STATUS": "0",
+            "BASE_FETCH_STATUS": "0",
+            "CHECKOUT_STATUS": "0",
             "DEPENDENCY_DIFF_STATUS": "0",
             "HAS_CHANGES": "1",
             "PUSH_STATUS": "0",
@@ -248,7 +253,31 @@ def test_publisher_stops_when_triggering_revision_remains_unresolved(publisher):
 def test_publisher_allows_unrelated_default_branch_advance(publisher):
     result, commands = publisher.verify(DEPENDENCY_DIFF_STATUS="0")
     assert result.returncode == 0, result.stderr
+    assert commands[:2] == [
+        ["git", "fetch", "--no-tags", "origin", "main:refs/remotes/origin/main"],
+        ["git", "checkout", "--detach", "refs/remotes/origin/main"],
+    ]
     assert any(command[:3] == ["git", "diff", "--quiet"] for command in commands)
+
+
+@pytest.mark.parametrize("failure", ["BASE_FETCH_STATUS", "CHECKOUT_STATUS"])
+def test_publisher_stops_when_default_branch_refresh_fails(publisher, failure):
+    result, commands = publisher.verify(**{failure: "2"})
+    assert result.returncode == 2
+    assert not any(command[:2] == ["git", "diff"] for command in commands)
+    assert not any(command[0] == "gh" for command in commands)
+
+
+def test_both_jobs_start_at_the_same_immutable_revision():
+    for job in ("audit", "pull-request"):
+        checkout = WORKFLOW["jobs"][job]["steps"][0]
+        assert checkout["with"]["ref"] == "${{ github.sha }}"
+    assert (
+        VERIFY["env"]["BASE_BRANCH"] == "${{ github.event.repository.default_branch }}"
+    )
+    assert (
+        PUBLISH["env"]["BASE_BRANCH"] == "${{ github.event.repository.default_branch }}"
+    )
 
 
 def test_workflow_uses_only_github_owned_actions():
@@ -256,6 +285,9 @@ def test_workflow_uses_only_github_owned_actions():
         Path(__file__).parents[1] / ".github/workflows/annual-npm-audit.yml"
     ).read_text()
     pins = {
+        "actions/checkout": "3d3c42e5aac5ba805825da76410c181273ba90b1",
+        "actions/setup-node": "820762786026740c76f36085b0efc47a31fe5020",
+        "actions/setup-python": "5fda3b95a4ea91299a34e894583c3862153e4b97",
         "actions/upload-artifact": "330a01c490aca151604b8cf639adc76d48f6c5d4",
         "actions/download-artifact": "018cc2cf5baa6db3ef3c5f8a56943fffe632ef53",
     }
