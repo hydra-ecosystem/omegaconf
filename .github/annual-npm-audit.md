@@ -16,7 +16,9 @@ can also be run manually. It updates one fixed branch,
 
 The helper supports npm and pnpm. OmegaConf uses its pinned pnpm toolchain.
 It first attempts compatible security fixes without `--force`, using pnpm's
-`audit --fix=update` rather than adding blanket security overrides.
+`audit --fix=update --audit-level info` rather than adding blanket security overrides.
+JSON audit reports also use `--audit-level info`, so informational advisories
+remain visible alongside every higher severity.
 It then proposes the latest stable direct dependencies, including major versions,
 resolves the lockfile, retries compatible security fixes, and tries installation
 and the project's `build` script.
@@ -25,8 +27,16 @@ manual review. An unsuccessful stable upgrade resolution restores the files from
 the initial security fix attempt, preserving those fixes and pnpm workspace
 policy together. Security fixes may add exact patched-version release-age
 exceptions; the 10-day rule remains in force for future releases.
+Every command preserves the complete workspace policy. Only an individual
+security-fix command may add exact-version release-age exceptions for packages
+newly present across that invocation's complete normalized lockfile package set.
+Existing exclusions must remain, including when pnpm combines exact versions
+with `||`; previously installed versions and versions introduced by an earlier
+stable resolution do not qualify. Rejected changes restore the manifest,
+lockfile, and workspace together and identify the offending operation.
 Validation restores the frozen proposal if installation, build, or audit changes
 its manifest, lockfile, or workspace policy, and reports the failure explicitly.
+Version lookups also preserve the exact package-file bytes.
 Unresolved findings and failed installation/build checks are reported explicitly;
 they do not prevent creation of a PR with dependency changes.
 
@@ -38,6 +48,10 @@ The report distinguishes propagated findings in parent packages from the
 underlying advisories; package counts are not distinct advisory counts or proof
 of exploitable paths. An npm fix candidate is not a guarantee that a published
 fix exists for every advisory.
+Each pnpm advisory retains its own affected versions; the combined severity and
+ranges describe the package summary only. Missing, malformed, or inconsistent
+advisory counts and details are reported as unavailable audit evidence, including
+in the full findings, rather than as a clean audit.
 
 The report is also available in the Actions run summary and as an artifact. Its
 temporary file lives in the runner's temporary directory and is never committed
@@ -51,7 +65,12 @@ The audit job has read-only repository permissions. A separate job publishes onl
 the manifest, lockfile, and pnpm workspace policy and puts the report in the PR
 body. It refuses publication if those files differ between the audit revision
 and the current default branch; rerun from the current default branch in that
-case. Unrelated default-branch changes do not invalidate the audit.
+case. Both jobs initially check out the immutable triggering revision. Before
+downloading artifacts, the publisher fetches and checks out the current default
+branch, then compares the selected dependency inputs. Fetch, checkout, and
+comparison failures prevent publication. Unrelated default-branch changes are
+retained in the proposed branch. Annual workflow actions use reviewed full
+commit SHA pins.
 Upgrades are never merged automatically.
 The workflow uses only GitHub-owned actions; the runner's Git and GitHub CLI
 create or update the PR without a third-party PR action. New umbrella PRs are

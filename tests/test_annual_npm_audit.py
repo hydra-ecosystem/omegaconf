@@ -70,6 +70,8 @@ def fake_npm(
                         "transitive": {
                             "severity": "high",
                             "range": "<=2.0.0",
+                            "nodes": [],
+                            "via": [],
                             "fixAvailable": False,
                         }
                     },
@@ -331,11 +333,13 @@ def test_audit_error_is_not_reported_as_zero_vulnerabilities(npm_project, monkey
 
 def test_breaking_fix_candidate_is_flagged_for_manual_review(npm_project, monkeypatch):
     data = {
-        "metadata": {"vulnerabilities": {"high": 1}},
+        "metadata": {"vulnerabilities": {"high": 1, "total": 1}},
         "vulnerabilities": {
             "renderer": {
                 "severity": "high",
                 "range": "<=1.0.0",
+                "nodes": [],
+                "via": [],
                 "fixAvailable": {"name": "renderer", "isSemVerMajor": True},
             }
         },
@@ -535,7 +539,7 @@ def test_prepare_restores_files_damaged_before_validation(
     manifest = json.loads((npm_project / "package.json").read_text())
     assert manifest["overrides"] == {"transitive": "2.0.0"}
     if phase == "initial-audit":
-        assert "Audit unavailable: npm left invalid package files" in report
+        assert "Audit unavailable: npm changed package files" in report
     else:
         assert manifest["dependencies"]["renderer"] == "1.0.0"
         assert "renderer: `1.0.0` → `2.0.0`" not in report
