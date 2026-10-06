@@ -89,17 +89,25 @@ Upgrades are never merged automatically.
 The workflow uses only GitHub-owned actions; the runner's Git and GitHub CLI
 create or update the PR without a third-party PR action. New umbrella PRs are
 ready for review; reruns do not change an existing PR's draft status.
-The audit does not certify that every vulnerability has been fixed. Normal PR
-validation and human review are still required before merging.
+The audit does not certify that every vulnerability has been fixed.
+
+Generated dependency commits carry `[skip ci]` to suppress duplicate GitHub
+Actions and CircleCI PR checks. The audit's own frozen install and production
+build are the validation evidence; preserve failures explicitly in the report
+and require human review. Scope the marker to generated dependency commits,
+not ordinary source changes. Explain in the PR footer that the marker must be
+removed from the squash message for normal post-merge CI/deployment, or the
+existing manual deployment trigger must be used. Check target required-check
+rules before adoption: required checks cannot be satisfied by skipped runs.
 
 ## GitHub activation
 
 The workflow becomes scheduled after it reaches the default branch. In
 **Settings → Actions → General → Workflow permissions**, enable **Allow GitHub
 Actions to create and approve pull requests**. The workflow requests PR creation
-permission but does not approve PRs. PRs created or updated with `GITHUB_TOKEN`
-trigger checks that require maintainer approval. Select **Approve workflows to
-run** on the PR before merging. See
+permission but does not approve PRs. Generated commits skip the duplicate
+`push`/`pull_request` checks. Without the skip marker, PRs created or updated
+with `GITHUB_TOKEN` require maintainer approval to run those checks. See
 [GitHub's token-triggered workflow rules](https://docs.github.com/en/actions/concepts/security/github_token#when-github_token-triggers-workflow-runs).
 
 For dormant public repositories, GitHub can disable scheduled workflows after

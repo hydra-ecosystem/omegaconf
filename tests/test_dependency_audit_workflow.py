@@ -159,6 +159,12 @@ def test_publisher_creates_or_updates_one_regular_pr(publisher, tmp_path, existi
         "docs/site/pnpm-workspace.yaml",
     ] in commands
     assert len([command for command in commands if command[:2] == ["git", "add"]]) == 2
+    assert [
+        "git",
+        "commit",
+        "-m",
+        "Documentation dependency audit and upgrades [skip ci]",
+    ] in commands
     push = next(command for command in commands if command[:2] == ["git", "push"])
     expected_head = "previous-head" if existing else ""
     assert push == [
