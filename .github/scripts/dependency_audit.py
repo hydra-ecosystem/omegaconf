@@ -7,6 +7,7 @@ import subprocess
 import time
 from datetime import datetime, timezone
 from pathlib import Path
+from tempfile import TemporaryDirectory
 
 import yaml
 
@@ -133,10 +134,118 @@ def restore_invalid_state(
             allowed = {f"{name}@{version}" for name, version in after - before}
             existing_versions = exclusion_versions(existing)
             current_versions = exclusion_versions(exclusions)
-            preserved_exclusions = (
-                existing_versions <= current_versions
-                and current_versions - existing_versions <= allowed
+            preserved_exclusions = existing_versions <= current_versions and all(
+                re.fullmatch(r".+@\d+\.\d+\.\d+(?:-[\w.-]+)?(?:\+[\w.-]+)?", item)
+                for item in current_versions - existing_versions
             )
+            unused = current_versions - existing_versions - allowed
+            if policy == reference and preserved_exclusions:
+                retained = existing + sorted(
+                    (current_versions - existing_versions) & allowed
+                )
+                workspace = directory / "pnpm-workspace.yaml"
+                if retained == existing:
+                    workspace.write_bytes(snapshot[1]["pnpm-workspace.yaml"])
+                else:
+                    # Reuse the original policy text: serializing the whole mapping
+                    # would discard comments and reformat unrelated settings.
+                    text = snapshot[1]["pnpm-workspace.yaml"].decode()
+                    document = yaml.compose(text)
+                    entry = next(
+                        (
+                            (key, value)
+                            for key, value in document.value
+                            if key.value == "minimumReleaseAgeExclude"
+                        ),
+                        None,
+                    )
+                    additions = sorted((current_versions - existing_versions) & allowed)
+                    if entry is None:
+                        index = end = document.end_mark.index
+                        addition = "minimumReleaseAgeExclude:\n" + yaml.safe_dump(
+                            additions
+                        )
+                    else:
+                        key, sequence = entry
+                        tokens = list(yaml.scan(text))
+                        start = next(
+                            token
+                            for token in tokens
+                            if token.start_mark.index >= key.end_mark.index
+                            and isinstance(
+                                token,
+                                (
+                                    yaml.AliasToken,
+                                    yaml.FlowSequenceStartToken,
+                                    yaml.BlockEntryToken,
+                                ),
+                            )
+                        )
+                        if isinstance(start, yaml.AliasToken):
+                            index, end = start.start_mark.index, start.end_mark.index
+                            addition = json.dumps(retained)
+                        else:
+                            flow = isinstance(start, yaml.FlowSequenceStartToken)
+                            if flow:
+                                closing_index = sequence.end_mark.index - 1
+                                closing = next(
+                                    index
+                                    for index, token in enumerate(tokens)
+                                    if isinstance(token, yaml.FlowSequenceEndToken)
+                                    and token.start_mark.index == closing_index
+                                )
+                                trailing_comma = closing > 0 and isinstance(
+                                    tokens[closing - 1], yaml.FlowEntryToken
+                                )
+                                items = json.dumps(additions)[1:-1]
+                                if trailing_comma:
+                                    index = end = closing_index
+                                    addition = " " + items
+                                elif sequence.value:
+                                    index = end = sequence.value[-1].end_mark.index
+                                    addition = ", " + items
+                                else:
+                                    index = end = closing_index
+                                    addition = items
+                            else:
+                                index = end = sequence.end_mark.index
+                                addition = "".join(
+                                    " " * start.start_mark.column + line
+                                    for line in yaml.safe_dump(additions).splitlines(
+                                        keepends=True
+                                    )
+                                )
+                    if addition.endswith("\n") and index and text[index - 1] != "\n":
+                        addition = "\n" + addition
+                    workspace.write_text(text[:index] + addition + text[end:])
+                repaired = valid_snapshot(directory)
+                repaired_policy = (
+                    yaml.safe_load(repaired[1]["pnpm-workspace.yaml"])
+                    if repaired is not None
+                    else None
+                )
+                repaired_exclusions = (
+                    repaired_policy.pop("minimumReleaseAgeExclude", [])
+                    if isinstance(repaired_policy, dict)
+                    else None
+                )
+                if (
+                    repaired is None
+                    or repaired_exclusions != retained
+                    or repaired_policy != reference
+                ):
+                    restore_snapshot(directory, snapshot)
+                    notes.append(
+                        f"{operation} reconstructed an invalid pnpm policy; restored "
+                        "the last valid snapshot and did not claim its changes."
+                    )
+                    return True
+                if unused:
+                    notes.append(
+                        f"{operation}: removed unused release-age exceptions "
+                        f"({', '.join(sorted(unused))}); retained resolved dependency changes."
+                    )
+                return False
         if policy == reference and preserved_exclusions:
             return False
     restore_snapshot(directory, snapshot)
@@ -157,7 +266,7 @@ def run(
     timeout = min(900, deadline - time.monotonic()) if deadline is not None else 900
     if timeout <= 0:
         return subprocess.CompletedProcess(
-            command, 124, "", "Annual audit time budget exhausted."
+            command, 124, "", "Dependency audit time budget exhausted."
         )
     # GNU timeout owns the process group and kills npm and lifecycle/build children.
     result = subprocess.run(
@@ -273,7 +382,7 @@ def audit(directory: Path, *, deadline: float | None = None) -> dict | str:
         if policy.get("audit", {}).get("ignore") or policy.get("auditConfig", {}).get(
             "ignoreGhsas"
         ):
-            return "Audit unavailable: pnpm advisory-ignore rules would hide annual findings; manual review required."
+            return "Audit unavailable: pnpm advisory-ignore rules would hide dependency findings; manual review required."
         flags = ["--audit-level", "info"]
     else:
         flags = ["--audit", "--package-lock-only"]
@@ -358,6 +467,7 @@ def audit(directory: Path, *, deadline: float | None = None) -> dict | str:
                     "severity": advisory["severity"],
                     "range": advisory["vulnerable_versions"],
                     "nodes": nodes,
+                    "patchedRange": advisory["patched_versions"],
                 }
             )
             vulnerability["nodes"].extend(nodes)
@@ -391,10 +501,12 @@ def audit(directory: Path, *, deadline: float | None = None) -> dict | str:
     return data
 
 
-def fix_security(directory: Path, deadline: float) -> subprocess.CompletedProcess[str]:
+def fix_security(
+    directory: Path, deadline: float, notes: list[str] | None = None
+) -> subprocess.CompletedProcess[str]:
     if manager(directory) == "pnpm":
-        # Update the lockfile without introducing broad security overrides.
-        return run(
+        snapshot = valid_snapshot(directory)
+        result = run(
             directory,
             "audit",
             "--fix=update",
@@ -403,6 +515,53 @@ def fix_security(directory: Path, deadline: float) -> subprocess.CompletedProces
             "--ignore-scripts",
             deadline=deadline,
         )
+        current = valid_snapshot(directory)
+        if result.returncode != 1 or snapshot is None or current is None:
+            return result
+        reference = yaml.safe_load(snapshot[1]["pnpm-workspace.yaml"])
+        policy = yaml.safe_load(current[1]["pnpm-workspace.yaml"])
+        existing = exclusion_versions(reference.pop("minimumReleaseAgeExclude", []))
+        exclusions = exclusion_versions(policy.pop("minimumReleaseAgeExclude", []))
+        # Refuse weakened policy before executing another dependency command.
+        if (
+            policy != reference
+            or not existing <= exclusions
+            or any(
+                not re.fullmatch(r".+@\d+\.\d+\.\d+(?:-[\w.-]+)?(?:\+[\w.-]+)?", item)
+                for item in exclusions - existing
+            )
+        ):
+            return result
+        # pnpm can reintroduce vulnerable pins during automatic peer resolution.
+        # A fresh compatible resolution avoids those pins, including the installed
+        # virtual store's lockfile, without adding overrides or running scripts.
+        (directory / "pnpm-lock.yaml").unlink()
+        with TemporaryDirectory(prefix="dependency-audit-resolution-") as modules:
+            resolved = run(
+                directory,
+                "install",
+                "--lockfile-only",
+                "--no-frozen-lockfile",
+                "--ignore-scripts",
+                "--config.optimistic-repeat-install=false",
+                "--modules-dir",
+                modules,
+                "--virtual-store-dir",
+                str(Path(modules) / ".pnpm"),
+                deadline=deadline,
+            )
+        failed = bool(resolved.returncode) or valid_snapshot(directory) is None
+        if failed:
+            restore_snapshot(directory, current)
+        if notes is not None:
+            notes.append(
+                "Regenerated the pnpm lockfile within existing manifest constraints "
+                "using isolated module metadata after audit --fix=update left findings."
+                if not failed
+                else f"Compatible lockfile regeneration failed (exit {resolved.returncode}); "
+                "restored the preceding security-fix proposal."
+            )
+        return result
     return run(
         directory,
         "audit",
@@ -424,6 +583,128 @@ def versions(lock: dict, vulnerability: dict) -> str:
     return ", ".join(sorted(found)) or "not recorded in lockfile"
 
 
+def describe_pnpm_fixes(
+    directory: Path,
+    data: dict | str,
+    files: dict[str, bytes],
+    notes: list[str],
+    deadline: float,
+    cache: dict,
+) -> None:
+    """Verify published patches and explain constraints using registry metadata."""
+    if not isinstance(data, dict) or data.get("package_manager") != "pnpm":
+        return
+    lock = yaml.safe_load(files["pnpm-lock.yaml"])
+
+    def query(package: str, *fields: str) -> object:
+        key = (package, fields)
+        if key not in cache:
+            snapshot = valid_snapshot(directory)
+            result = run(
+                directory, "view", package, *fields, "--json", deadline=deadline
+            )
+            if snapshot is None or restore_invalid_state(
+                directory,
+                snapshot,
+                notes,
+                f"Patch metadata lookup for {package}",
+                frozen=True,
+            ):
+                cache[key] = None
+            else:
+                try:
+                    value = json.loads(result.stdout)
+                except ValueError:
+                    value = None
+                error = value.get("error", {}) if isinstance(value, dict) else {}
+                if not isinstance(error, dict):
+                    error = {}
+                cache[key] = (
+                    []
+                    if error.get("code") == "ERR_PNPM_PACKAGE_NOT_FOUND"
+                    else value
+                    if result.returncode == 0
+                    else None
+                )
+        return cache[key]
+
+    def published(specifier: str) -> set[str] | None:
+        value = query(specifier, "version")
+        values = [value] if isinstance(value, str) else value
+        if not isinstance(values, list) or any(not isinstance(v, str) for v in values):
+            return None
+        return {v for v in values if re.fullmatch(r"\d+\.\d+\.\d+", v)}
+
+    for name, vulnerability in data["vulnerabilities"].items():
+        vulnerability["fixAvailable"] = False
+        for detail in vulnerability["via"]:
+            patched = detail.get("patchedRange")
+            if patched in (None, "<0.0.0", ""):
+                detail["fixStatus"] = "No patched version declared by the registry."
+                continue
+            patches = published(f"{name}@{patched}")
+            if patches is None:
+                detail["fixStatus"] = (
+                    f"Could not verify publication of patched range `{patched}`."
+                )
+                continue
+            if not patches:
+                detail["fixStatus"] = (
+                    f"No published stable patch matches registry range `{patched}`."
+                )
+                continue
+            vulnerability["fixAvailable"] = True
+            blocked = []
+            unknown = False
+            for parent, snapshot in lock.get("snapshots", {}).items():
+                edges = {
+                    **snapshot.get("dependencies", {}),
+                    **snapshot.get("optionalDependencies", {}),
+                }
+                reference = edges.get(name)
+                if (
+                    not isinstance(reference, str)
+                    or f"{name}@{reference.split('(', 1)[0]}" not in detail["nodes"]
+                ):
+                    continue
+                parent = parent.split("(", 1)[0]
+                metadata = query(parent, "dependencies", "optionalDependencies")
+                if not isinstance(metadata, dict) or any(
+                    not isinstance(metadata.get(field, {}), dict)
+                    for field in ("dependencies", "optionalDependencies")
+                ):
+                    unknown = True
+                    continue
+                constraint = {
+                    **metadata.get("dependencies", {}),
+                    **metadata.get("optionalDependencies", {}),
+                }.get(name)
+                if not isinstance(constraint, str):
+                    unknown = True
+                    continue
+                intersections = [
+                    published(f"{name}@{parent_range.strip()} {patch_range.strip()}")
+                    for parent_range in constraint.split("||")
+                    for patch_range in patched.split("||")
+                ]
+                if any(versions is None for versions in intersections):
+                    unknown = True
+                elif not any(intersections):
+                    blocked.append(f"`{parent}` requires `{name} {constraint}`")
+                for matches in intersections:
+                    patches.update(matches or ())
+            version = min(patches, key=lambda v: tuple(map(int, v.split("."))))
+            detail["fixStatus"] = f"Published patch: `{name}@{version}`. " + (
+                "Blocked by existing parent constraints: "
+                + "; ".join(sorted(set(blocked)))
+                + "."
+                if blocked
+                else "Parent compatibility could not be fully verified; manual review required."
+                if unknown
+                else "No checked parent constraint excludes published patches; review manifest constraints and resolution logs."
+            )
+
+
 def format_audit(data: dict | str, lock: dict) -> str:
     if isinstance(data, str):
         return data
@@ -439,6 +720,12 @@ def format_audit(data: dict | str, lock: dict) -> str:
     ):
         candidate = vulnerability.get("fixAvailable")
         fix = "available" if candidate else f"not offered by {source}"
+        if source == "pnpm":
+            fix = (
+                "published stable patch verified"
+                if candidate
+                else "publication not verified; see advisory details"
+            )
         if isinstance(candidate, dict):
             fix = f"`{candidate['name']}@{candidate.get('version', 'unspecified')}`"
             if candidate.get("isSemVerMajor"):
@@ -453,6 +740,7 @@ def format_audit(data: dict | str, lock: dict) -> str:
                 findings.append(
                     f"  - [{via['title']}]({via['url']}); "
                     f"{via['severity']}; affected range `{via['range']}`."
+                    + (f" {via['fixStatus']}" if via.get("fixStatus") else "")
                 )
             else:
                 findings.append(f"  - Depends on affected `{via}` (see its entry).")
@@ -500,6 +788,7 @@ def format_remaining_audit(data: dict | str, lock: dict) -> str:
         lines.append(
             f"- [{detail['title']}]({detail['url']}): {detail['severity']}; "
             f"locked `{packages}`; affected range `{detail['range']}`."
+            + (f" {detail['fixStatus']}" if detail.get("fixStatus") else "")
         )
     heading = (
         f"Registry advisory counts: {counts}.\n\n"
@@ -534,7 +823,7 @@ def prepare(directory: Path) -> str:
     changes = []
 
     # Give compatible security fixes the first use of the shared time budget.
-    fixed = fix_security(directory, deadline)
+    fixed = fix_security(directory, deadline, notes)
     restore_invalid_state(
         directory, last_valid_snapshot, notes, "Initial security fix", security_fix=True
     )
@@ -613,7 +902,7 @@ def prepare(directory: Path) -> str:
         stable_snapshot = valid_snapshot(directory) or security_snapshot
         last_valid_snapshot = stable_snapshot
         # Keep fixes within the proposed manifest constraints; never use --force.
-        fixed = fix_security(directory, deadline)
+        fixed = fix_security(directory, deadline, notes)
         restore_invalid_state(
             directory,
             stable_snapshot,
@@ -667,6 +956,9 @@ def prepare(directory: Path) -> str:
         after = f"Audit unavailable: {package_manager} changed package files; restored the last valid snapshot."
     after_snapshot = valid_snapshot(directory) or last_valid_snapshot
     after_lock = after_snapshot[3]
+    cache: dict = {}
+    describe_pnpm_fixes(directory, before, initial_snapshot[1], notes, deadline, cache)
+    describe_pnpm_fixes(directory, after, after_snapshot[1], notes, deadline, cache)
     after_affected = after.get("vulnerabilities", {}) if isinstance(after, dict) else {}
     security_changes = []
     reported_changes = set()
@@ -712,11 +1004,11 @@ def prepare(directory: Path) -> str:
         "demonstrated exploit paths."
     )
     return (
-        "# Annual documentation dependency audit\n\n"
+        "# Documentation dependency audit\n\n"
         f"Project: `{directory}`; package manager: `{package_manager}`\n\n"
         f"Run: {datetime.now(timezone.utc).isoformat()}\n\n"
         "This is a best-effort upgrade drive. Remaining vulnerabilities are accepted "
-        "between annual reviews; this report does not certify that the project is "
+        "between maintenance reviews; this report does not certify that the project is "
         "free of vulnerabilities. Review compatibility and validation before merging.\n\n"
         "## Security findings and fixes\n\n"
         "### Changes to affected dependencies\n\n"

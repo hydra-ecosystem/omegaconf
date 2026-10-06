@@ -7,7 +7,7 @@ import pytest
 import yaml
 
 audit_module = runpy.run_path(
-    str(Path(__file__).parents[1] / ".github/scripts/annual_npm_audit.py")
+    str(Path(__file__).parents[1] / ".github/scripts/dependency_audit.py")
 )
 format_remaining_audit = audit_module["format_remaining_audit"]
 prepare = audit_module["prepare"]
@@ -353,7 +353,7 @@ def test_pnpm_audit_refuses_advisory_ignore_rules(pnpm_project, monkeypatch, rul
         "run",
         lambda *args, **kwargs: pytest.fail("audit must not run with hidden findings"),
     )
-    assert "advisory-ignore rules would hide annual findings" in audit(pnpm_project)
+    assert "advisory-ignore rules would hide dependency findings" in audit(pnpm_project)
 
 
 @pytest.mark.parametrize(
@@ -434,7 +434,7 @@ def test_workspace_classifies_platform_specific_build_scripts():
 
 def test_workflow_limits_credentials_artifacts_and_publication():
     root = Path(__file__).parents[1]
-    text = (root / ".github/workflows/annual-npm-audit.yml").read_text()
+    text = (root / ".github/workflows/dependency-audit.yml").read_text()
     workflow = yaml.safe_load(text)
     assert workflow["permissions"] == {"contents": "read"}
     audit = workflow["jobs"]["audit"]
@@ -446,7 +446,7 @@ def test_workflow_limits_credentials_artifacts_and_publication():
     files = next(
         step["with"]["path"]
         for step in audit["steps"]
-        if step.get("with", {}).get("name") == "annual-npm-dependencies"
+        if step.get("with", {}).get("name") == "dependency-audit-dependencies"
     ).splitlines()
     assert files == [
         "${{ env.NPM_PROJECT }}/package.json",
@@ -461,5 +461,5 @@ def test_workflow_limits_credentials_artifacts_and_publication():
     # PyYAML's YAML 1.1 loader reads the GitHub 'on' key as True.
     for event in ("push", "pull_request"):
         paths = deploy[True][event]["paths"]
-        assert ".github/scripts/annual_npm_audit.py" in paths
-        assert ".github/workflows/annual-npm-audit.yml" in paths
+        assert ".github/scripts/dependency_audit.py" in paths
+        assert ".github/workflows/dependency-audit.yml" in paths

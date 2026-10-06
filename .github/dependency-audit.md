@@ -1,22 +1,30 @@
-# Annual documentation dependency maintenance
+# Documentation dependency maintenance
 
 Dependency vulnerabilities in the designated Docusaurus npm project are accepted
-between annual maintenance reviews, at all severities. Each deployment receives
-one best-effort dependency upgrade drive per year. These findings do not trigger
-out-of-cycle remediation. This is an accepted-risk policy, not a claim that every
+between maintenance reviews, at all severities. Each deployment receives
+best-effort dependency upgrade drives at its configured cadence or on demand.
+These findings do not trigger out-of-cycle remediation. This is an accepted-risk
+policy, not a claim that every
 advisory is incorrect or that the build environment is immune to compromise.
 Dependencies outside the designated documentation project retain their existing
 security policy.
 
-## Annual umbrella PR
+## Dependency umbrella PR
 
-The `Annual documentation dependency audit` workflow runs on January 30 at 02:00 UTC and
+The `Documentation dependency audit` workflow runs on January 30 at 02:00 UTC and
 can also be run manually. It updates one fixed branch,
-`maintenance/annual-npm-audit`, so reruns update an existing umbrella PR.
+`maintenance/dependency-audit`, so reruns update an existing umbrella PR.
 
 The helper supports npm and pnpm. OmegaConf uses its pinned pnpm toolchain.
 It first attempts compatible security fixes without `--force`, using pnpm's
 `audit --fix=update --audit-level info` rather than adding blanket security overrides.
+When that command leaves findings, it regenerates the lockfile within the
+existing manifest constraints using isolated temporary module metadata. This
+avoids pnpm restoring vulnerable pins during automatic peer resolution without
+removing the project's installed dependencies. The regeneration also disables
+pnpm's optimistic repeat-install shortcut, which can restore the stale lockfile.
+Failed regeneration restores the
+preceding security-fix proposal.
 JSON audit reports also use `--audit-level info`, so informational advisories
 remain visible alongside every higher severity.
 It then proposes the latest stable direct dependencies, including major versions,
@@ -32,7 +40,9 @@ security-fix command may add exact-version release-age exceptions for packages
 newly present across that invocation's complete normalized lockfile package set.
 Existing exclusions must remain, including when pnpm combines exact versions
 with `||`; previously installed versions and versions introduced by an earlier
-stable resolution do not qualify. Rejected changes restore the manifest,
+stable resolution do not qualify. Unused new exact-version exceptions are
+removed while preserving resolved dependency changes; broad new rules or other
+policy mutations are rejected. Rejected changes restore the manifest,
 lockfile, and workspace together and identify the offending operation.
 Validation restores the frozen proposal if installation, build, or audit changes
 its manifest, lockfile, or workspace policy, and reports the failure explicitly.
@@ -52,6 +62,10 @@ Each pnpm advisory retains its own affected versions; the combined severity and
 ranges describe the package summary only. Missing, malformed, or inconsistent
 advisory counts and details are reported as unavailable audit evidence, including
 in the full findings, rather than as a clean audit.
+Patch publication is checked against registry versions. The report distinguishes
+unpublished patch ranges, published patches blocked by existing parent dependency
+constraints, and metadata that could not be verified. A registry's claimed patched
+range alone is not proof that a patch was released.
 
 The report is also available in the Actions run summary and as an artifact. Its
 temporary file lives in the runner's temporary directory and is never committed
@@ -69,7 +83,7 @@ case. Both jobs initially check out the immutable triggering revision. Before
 downloading artifacts, the publisher fetches and checks out the current default
 branch, then compares the selected dependency inputs. Fetch, checkout, and
 comparison failures prevent publication. Unrelated default-branch changes are
-retained in the proposed branch. Annual workflow actions use reviewed full
+retained in the proposed branch. Audit workflow actions use reviewed full
 commit SHA pins.
 Upgrades are never merged automatically.
 The workflow uses only GitHub-owned actions; the runner's Git and GitHub CLI
@@ -90,20 +104,20 @@ run** on the PR before merging. See
 
 For dormant public repositories, GitHub can disable scheduled workflows after
 60 days without repository activity. Re-enable the workflow or use its manual
-trigger during the annual review. See
+trigger during the maintenance review. See
 [GitHub's scheduling behavior](https://docs.github.com/en/actions/reference/workflows-and-actions/events-that-trigger-workflows#schedule).
 
 To suppress alerts and notifications before they are sent, create an enabled
 repository-level rule under **Settings → Advanced Security → Dependabot rules**:
 
-- Name: `Annual documentation dependency maintenance`
+- Name: `Documentation dependency maintenance`
 - Ecosystem: `npm`
 - Manifest path: `website/pnpm-lock.yaml`
 - All severities, both scopes, and any patch availability
 - Action: dismiss indefinitely
 
 This rule applies to existing and future matching alerts. Dismissed alerts remain
-available for review and can reopen when advisory metadata changes. The annual
+available for review and can reopen when advisory metadata changes. The explicit
 `corepack pnpm audit` examines the lockfile independently of GitHub dismissal state.
 GitHub's documented custom-rule setup uses the settings UI; its public Dependabot
 REST API supports individual alert dismissal, not creation of these rules.
@@ -111,13 +125,13 @@ REST API supports individual alert dismissal, not creation of these rules.
 The scoped `ignore` entry in `dependabot.yml` suppresses automatic update PRs for
 this npm project. Its required schedule does not schedule security updates.
 The project's `.npmrc` disables routine npm installation audit messages; explicit
-`npm audit --audit` and `corepack pnpm audit` remain available during annual review.
+`npm audit --audit` and `corepack pnpm audit` remain available during maintenance review.
 No pnpm advisory-ignore rules are added.
 
 ## Reuse in other repositories
 
-Copy `.github/scripts/annual_npm_audit.py` and
-`.github/workflows/annual-npm-audit.yml`. Change the workflow's `NPM_PROJECT`
+Copy `.github/scripts/dependency_audit.py` and
+`.github/workflows/dependency-audit.yml`. Change the workflow's `NPM_PROJECT`
 value to your documentation project directory. Keep a distinct branch,
 concurrency group, and artifact identity for each deployment in a repository.
 The project must have `package.json`, a `build` script, and either
@@ -140,12 +154,13 @@ path and enable workflow PR creation. Other repositories and dependency
 ecosystems are not changed by copying the implementation.
 
 After activation, trigger the workflow manually once in each project for its
-initial upgrade drive; subsequent scheduled runs occur annually on January 30.
+initial upgrade drive. OmegaConf's scheduled runs remain January 30; change the
+workflow cron expression when adopting a different cadence.
 
 Run an audit locally with:
 
 ```sh
-python3 .github/scripts/annual_npm_audit.py --directory website --report /tmp/annual-npm-audit-pr.md
+python3 .github/scripts/dependency_audit.py --directory website --report /tmp/dependency-audit-pr.md
 ```
 
 This command modifies the selected manifest and lockfile and installs and builds
