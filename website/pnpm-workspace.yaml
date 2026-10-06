@@ -41,3 +41,5 @@ minimumReleaseAgeExclude:
 - regenerate-unicode-properties@10.3.0
 - webpack-sources@3.6.0
 - ws@8.22.0
+- shell-quote@1.11.0
+- source-map-js@1.2.2
