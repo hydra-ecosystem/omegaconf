@@ -10,7 +10,7 @@ import pytest
 import yaml
 
 WORKFLOW = yaml.safe_load(
-    (Path(__file__).parents[1] / ".github/workflows/annual-npm-audit.yml").read_text()
+    (Path(__file__).parents[1] / ".github/workflows/dependency-audit.yml").read_text()
 )
 VERIFY = next(
     step
@@ -68,7 +68,7 @@ elif args[:2] == ['pr', 'list']:
     mock_cli.chmod(0o755)
     for tool in ("git", "gh"):
         (tmp_path / tool).symlink_to(mock_cli)
-    (tmp_path / "annual-npm-audit-pr.md").write_text(
+    (tmp_path / "dependency-audit-pr.md").write_text(
         "## Security findings and fixes\n\n$(never-execute)\n"
     )
 
@@ -144,7 +144,7 @@ def test_publisher_creates_or_updates_one_regular_pr(publisher, tmp_path, existi
         PR_NUMBER="42" if existing else "",
     )
     assert result.returncode == 0, result.stderr
-    branch = "maintenance/annual-npm-audit"
+    branch = "maintenance/dependency-audit"
     assert [
         "git",
         "add",
@@ -181,7 +181,7 @@ def test_publisher_creates_or_updates_one_regular_pr(publisher, tmp_path, existi
         assert pr_write[pr_write.index("--head") + 1] == branch
         assert pr_write[pr_write.index("--base") + 1] == "main"
     assert not any(command[:3] == ["gh", "pr", "ready"] for command in commands)
-    assert (tmp_path / "annual-npm-audit-pr.md").read_text() == (
+    assert (tmp_path / "dependency-audit-pr.md").read_text() == (
         "## Security findings and fixes\n\n$(never-execute)\n\n"
         "Review validation before merging.\n"
     )
@@ -212,7 +212,7 @@ def test_no_dependency_changes_updates_existing_report_without_commit(
     )
     assert (
         "existing PR branch was left unchanged"
-        in (tmp_path / "annual-npm-audit-pr.md").read_text()
+        in (tmp_path / "dependency-audit-pr.md").read_text()
     )
 
 
@@ -282,7 +282,7 @@ def test_both_jobs_start_at_the_same_immutable_revision():
 
 def test_workflow_uses_only_github_owned_actions():
     text = (
-        Path(__file__).parents[1] / ".github/workflows/annual-npm-audit.yml"
+        Path(__file__).parents[1] / ".github/workflows/dependency-audit.yml"
     ).read_text()
     pins = {
         "actions/checkout": "3d3c42e5aac5ba805825da76410c181273ba90b1",

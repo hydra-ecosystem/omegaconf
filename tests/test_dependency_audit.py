@@ -8,7 +8,7 @@ from pathlib import Path
 import pytest
 
 audit_module = runpy.run_path(
-    str(Path(__file__).parents[1] / ".github/scripts/annual_npm_audit.py")
+    str(Path(__file__).parents[1] / ".github/scripts/dependency_audit.py")
 )
 prepare = audit_module["prepare"]
 audit = audit_module["audit"]
@@ -449,7 +449,7 @@ def test_cli_rejects_unsafe_project_paths(monkeypatch, capsys, directory):
     monkeypatch.setattr(
         sys,
         "argv",
-        ["annual-npm-audit", "--directory", directory, "--report", "/tmp/report"],
+        ["dependency-audit", "--directory", directory, "--report", "/tmp/report"],
     )
     with pytest.raises(SystemExit) as error:
         main()
@@ -462,7 +462,7 @@ def test_cli_requires_manifest_and_lockfile(npm_project, monkeypatch, capsys, mi
     (npm_project / missing).unlink()
     monkeypatch.chdir(npm_project)
     monkeypatch.setattr(
-        sys, "argv", ["annual-npm-audit", "--directory", ".", "--report", "/tmp/report"]
+        sys, "argv", ["dependency-audit", "--directory", ".", "--report", "/tmp/report"]
     )
     with pytest.raises(SystemExit) as error:
         main()
@@ -479,7 +479,7 @@ def test_cli_entrypoint_prepares_selected_project(npm_project, monkeypatch):
     monkeypatch.setattr(
         sys,
         "argv",
-        ["annual-npm-audit", "--directory", ".", "--report", str(report)],
+        ["dependency-audit", "--directory", ".", "--report", str(report)],
     )
     runpy.run_path(audit_module["__file__"], run_name="__main__")
     assert "Security findings and fixes" in report.read_text()

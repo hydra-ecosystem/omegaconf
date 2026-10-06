@@ -9,7 +9,7 @@ import pytest
 import yaml
 
 audit_module = runpy.run_path(
-    str(Path(__file__).parents[1] / ".github/scripts/annual_npm_audit.py")
+    str(Path(__file__).parents[1] / ".github/scripts/dependency_audit.py")
 )
 format_remaining_audit = audit_module["format_remaining_audit"]
 format_audit = audit_module["format_audit"]
@@ -85,9 +85,15 @@ def test_info_advisory_is_reported_and_fix_attempt_includes_info(
     monkeypatch.setattr(subprocess, "run", invoke)
     data = audit(pnpm_project)
     audit_module["fix_security"](pnpm_project, float("inf"))
-    assert commands == [
+    assert commands[:2] == [
         ["audit", "--json", "--audit-level", "info"],
         ["audit", "--fix=update", "--audit-level", "info", "--ignore-scripts"],
+    ]
+    assert commands[2][:4] == [
+        "install",
+        "--lockfile-only",
+        "--no-frozen-lockfile",
+        "--ignore-scripts",
     ]
     lock = audit_module["valid_snapshot"](pnpm_project)[3]
     for report in (format_remaining_audit(data, lock), format_audit(data, lock)):
@@ -354,19 +360,19 @@ def test_valid_policy_mutation_restores_all_package_files(
 
 @pytest.mark.parametrize("phase", ["initial", "followup"])
 @pytest.mark.parametrize(
-    "addition, expected",
+    "addition, accepted, retained",
     [
-        ("renderer@1.0.1", True),
-        ("renderer@2.0.0", False),
-        ("@scope/safe@2.0.0", False),
-        ("unrelated@3.0.0", False),
-        ("renderer@*", False),
-        ("renderer@1.0.1 || 2.0.0", False),
-        (None, False),
+        ("renderer@1.0.1", True, True),
+        ("renderer@2.0.0", True, False),
+        ("@scope/safe@2.0.0", True, False),
+        ("unrelated@3.0.0", True, False),
+        ("renderer@*", False, False),
+        ("renderer@1.0.1 || 2.0.0", True, True),
+        (None, False, False),
     ],
 )
 def test_security_exclusions_require_each_fix_complete_normalized_lock_delta(
-    pnpm_project, monkeypatch, phase, addition, expected
+    pnpm_project, monkeypatch, phase, addition, accepted, retained
 ):
     workspace = pnpm_project / "pnpm-workspace.yaml"
     lockfile = pnpm_project / "pnpm-lock.yaml"
@@ -416,12 +422,12 @@ def test_security_exclusions_require_each_fix_complete_normalized_lock_delta(
     monkeypatch.setattr(subprocess, "run", invoke)
     report = prepare(pnpm_project)
     policy = yaml.safe_load(workspace.read_text())
-    if expected:
-        original_policy["minimumReleaseAgeExclude"].append(addition)
+    if retained:
+        original_policy["minimumReleaseAgeExclude"].append("renderer@1.0.1")
     assert policy == original_policy
     packages = yaml.safe_load(lockfile.read_text())["packages"]
-    assert ("renderer@1.0.1" in packages) == expected
-    assert ("changed protected pnpm policy" in report) == (not expected)
+    assert ("renderer@1.0.1" in packages) == accepted
+    assert ("changed protected pnpm policy" in report) == (not accepted)
 
 
 @pytest.mark.parametrize("security_fix", [False, True])
@@ -431,7 +437,7 @@ def test_security_exclusions_require_each_fix_complete_normalized_lock_delta(
         ("renderer@1.0.0 || 1.0.1", True),
         ("renderer@1.0.1", False),
         ("renderer@1.0.0 || *", False),
-        ("renderer@1.0.0 || 2.0.0", False),
+        ("renderer@1.0.0 || 2.0.0", True),
         ("renderer@1.0.0 || ^1.0.1", False),
     ],
 )
@@ -443,6 +449,14 @@ def test_pnpm_merged_exclusions_preserve_existing_exact_versions(
     policy = yaml.safe_load(workspace.read_text())
     policy["minimumReleaseAgeExclude"].append("renderer@1.0.0")
     workspace.write_text(yaml.safe_dump(policy))
+    original_policy = workspace.read_text().replace(
+        "minimumReleaseAgeExclude:\n- other@3.0.0\n- renderer@1.0.0\n",
+        "# Preserve the release-age policy.\n"
+        "minimumReleaseAgeExclude: # Existing policy.\n"
+        "- 'other@3.0.0' # Existing rationale.\n"
+        "- 'renderer@1.0.0' # Baseline pin.\n",
+    )
+    workspace.write_text(original_policy)
     lock = yaml.safe_load(lockfile.read_text())
     lock["packages"]["renderer@2.0.0"] = {}
     lockfile.write_text(yaml.safe_dump(lock))
@@ -461,9 +475,24 @@ def test_pnpm_merged_exclusions_preserve_existing_exact_versions(
     accepted = permitted and security_fix
     assert restored == (not accepted)
     if accepted:
-        assert yaml.safe_load(workspace.read_text()) == policy
+        expected_policy_text = original_policy
+        if union == "renderer@1.0.0 || 1.0.1":
+            expected_policy_text = original_policy.replace(
+                "- 'renderer@1.0.0' # Baseline pin.\n",
+                "- 'renderer@1.0.0' # Baseline pin.\n- renderer@1.0.1\n",
+            )
+        assert workspace.read_text() == expected_policy_text
+        expected_policy = yaml.safe_load(expected_policy_text)
+        baseline_policy = yaml.safe_load(snapshot[1]["pnpm-workspace.yaml"])
+        expected_exclusions = ["other@3.0.0", "renderer@1.0.0"]
+        if union == "renderer@1.0.0 || 1.0.1":
+            expected_exclusions.append("renderer@1.0.1")
+        assert expected_policy["minimumReleaseAgeExclude"] == expected_exclusions
+        expected_policy.pop("minimumReleaseAgeExclude")
+        baseline_policy.pop("minimumReleaseAgeExclude")
+        assert expected_policy == baseline_policy
         assert yaml.safe_load(lockfile.read_text()) == lock
-        assert not notes
+        assert bool(notes) == (union == "renderer@1.0.0 || 2.0.0")
     else:
         assert (pnpm_project / "package.json").read_bytes() == snapshot[0]
         for name, content in snapshot[1].items():

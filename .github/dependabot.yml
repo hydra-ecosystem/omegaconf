@@ -2,12 +2,12 @@ version: 2
 updates:
   - package-ecosystem: npm
     directory: /website
-    # Dependency maintenance is handled by the annual npm audit workflow.
+    # Dependency maintenance is handled by the dependency audit workflow.
     schedule:
       interval: yearly
     open-pull-requests-limit: 0
     # Suppress update PRs, including security updates, for this project only.
     # Alert suppression requires the manifest-based rule documented in
-    # .github/annual-npm-audit.md.
+    # .github/dependency-audit.md.
     ignore:
       - dependency-name: "*"
