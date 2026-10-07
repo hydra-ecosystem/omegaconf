@@ -7,7 +7,7 @@ import pytest
 import yaml
 
 audit_module = runpy.run_path(
-    str(Path(__file__).parents[1] / ".github/scripts/dependency_audit.py")
+    str(Path(__file__).parents[1] / ".github/docusaurus/templates/dependency_audit.py")
 )
 format_remaining_audit = audit_module["format_remaining_audit"]
 prepare = audit_module["prepare"]
@@ -149,7 +149,7 @@ def test_validation_restores_valid_mutations(
     if package_manager == "pnpm":
         package_files.append("pnpm-workspace.yaml")
     proposal = {}
-    audit_calls = 0
+    built = False
 
     def mutate():
         proposal.update({name: (project / name).read_bytes() for name in package_files})
@@ -164,13 +164,12 @@ def test_validation_restores_valid_mutations(
             path.write_text(yaml.safe_dump(content))
 
     def invoke(command, *, cwd, **kwargs):
-        nonlocal audit_calls
+        nonlocal built
         args = command[5:] if package_manager == "pnpm" else command[4:]
         stdout, code = "", 0
         if args[0] == "view":
             stdout = '"2.0.0"'
         elif args[:2] == ["audit", "--json"]:
-            audit_calls += 1
             stdout = json.dumps(
                 {
                     "metadata": {"vulnerabilities": {"total": 0}},
@@ -179,7 +178,7 @@ def test_validation_restores_valid_mutations(
                     else "vulnerabilities": {},
                 }
             )
-            if phase == "final-audit" and audit_calls == 2:
+            if phase == "final-audit" and built:
                 mutate()
         elif args[:2] in (["audit", "fix"], ["audit", "--fix=update"]):
             pass
@@ -191,6 +190,7 @@ def test_validation_restores_valid_mutations(
             if phase == "frozen":
                 mutate()
         elif args == ["run", "build"]:
+            built = True
             if phase == "build":
                 mutate()
         return subprocess.CompletedProcess(command, code, stdout, "")
@@ -439,7 +439,12 @@ def test_workflow_limits_credentials_artifacts_and_publication():
     assert workflow["permissions"] == {"contents": "read"}
     audit = workflow["jobs"]["audit"]
     assert "permissions" not in audit
-    assert audit["steps"][0]["with"]["persist-credentials"] is False
+    checkout = next(
+        step
+        for step in audit["steps"]
+        if "uses" in step and step["uses"].startswith("actions/checkout@")
+    )
+    assert checkout["with"]["persist-credentials"] is False
     publisher = workflow["jobs"]["pull-request"]
     assert publisher["permissions"] == {"contents": "write", "pull-requests": "write"}
     assert publisher["steps"][0]["with"]["ref"] == "${{ github.sha }}"
@@ -450,6 +455,7 @@ def test_workflow_limits_credentials_artifacts_and_publication():
     ).splitlines()
     assert files == [
         "${{ env.NPM_PROJECT }}/package.json",
+        "${{ env.NPM_PROJECT }}/package-lock.json",
         "${{ env.NPM_PROJECT }}/pnpm-lock.yaml",
         "${{ env.NPM_PROJECT }}/pnpm-workspace.yaml",
     ]
@@ -461,5 +467,7 @@ def test_workflow_limits_credentials_artifacts_and_publication():
     # PyYAML's YAML 1.1 loader reads the GitHub 'on' key as True.
     for event in ("push", "pull_request"):
         paths = deploy[True][event]["paths"]
-        assert ".github/scripts/dependency_audit.py" in paths
+        assert ".github/docusaurus/**" in paths
+        assert ".github/docusaurus.json" in paths
+        assert ".github/workflows/docusaurus-audit.yml" not in paths
         assert ".github/workflows/dependency-audit.yml" in paths

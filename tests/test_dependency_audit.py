@@ -8,7 +8,7 @@ from pathlib import Path
 import pytest
 
 audit_module = runpy.run_path(
-    str(Path(__file__).parents[1] / ".github/scripts/dependency_audit.py")
+    str(Path(__file__).parents[1] / ".github/docusaurus/templates/dependency_audit.py")
 )
 prepare = audit_module["prepare"]
 audit = audit_module["audit"]

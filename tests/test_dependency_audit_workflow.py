@@ -71,6 +71,10 @@ elif args[:2] == ['pr', 'list']:
     (tmp_path / "dependency-audit-pr.md").write_text(
         "## Security findings and fixes\n\n$(never-execute)\n"
     )
+    project = tmp_path / "docs/site"
+    project.mkdir(parents=True)
+    for name in ("package.json", "pnpm-lock.yaml", "pnpm-workspace.yaml"):
+        (project / name).touch()
 
     def run_step(step, **overrides):
         number = overrides.get("PR_NUMBER", "")
@@ -151,14 +155,9 @@ def test_publisher_creates_or_updates_one_regular_pr(publisher, tmp_path, existi
         "--",
         "docs/site/package.json",
     ] in commands
-    assert [
-        "git",
-        "add",
-        "--",
-        "docs/site/pnpm-lock.yaml",
-        "docs/site/pnpm-workspace.yaml",
-    ] in commands
-    assert len([command for command in commands if command[:2] == ["git", "add"]]) == 2
+    assert ["git", "add", "--", "docs/site/pnpm-lock.yaml"] in commands
+    assert ["git", "add", "--", "docs/site/pnpm-workspace.yaml"] in commands
+    assert len([command for command in commands if command[:2] == ["git", "add"]]) == 3
     assert [
         "git",
         "commit",
@@ -256,14 +255,14 @@ def test_publisher_stops_when_triggering_revision_remains_unresolved(publisher):
     assert not any(command[:2] == ["git", "add"] for command in commands)
 
 
-def test_publisher_allows_unrelated_default_branch_advance(publisher):
+def test_publisher_allows_unchanged_default_branch_tree(publisher):
     result, commands = publisher.verify(DEPENDENCY_DIFF_STATUS="0")
     assert result.returncode == 0, result.stderr
     assert commands[:2] == [
         ["git", "fetch", "--no-tags", "origin", "main:refs/remotes/origin/main"],
         ["git", "checkout", "--detach", "refs/remotes/origin/main"],
     ]
-    assert any(command[:3] == ["git", "diff", "--quiet"] for command in commands)
+    assert ["git", "diff", "--quiet", "audit-sha", "HEAD", "--", "."] in commands
 
 
 @pytest.mark.parametrize("failure", ["BASE_FETCH_STATUS", "CHECKOUT_STATUS"])
@@ -276,7 +275,11 @@ def test_publisher_stops_when_default_branch_refresh_fails(publisher, failure):
 
 def test_both_jobs_start_at_the_same_immutable_revision():
     for job in ("audit", "pull-request"):
-        checkout = WORKFLOW["jobs"][job]["steps"][0]
+        checkout = next(
+            step
+            for step in WORKFLOW["jobs"][job]["steps"]
+            if step.get("uses", "").startswith("actions/checkout@")
+        )
         assert checkout["with"]["ref"] == "${{ github.sha }}"
     assert (
         VERIFY["env"]["BASE_BRANCH"] == "${{ github.event.repository.default_branch }}"
@@ -294,8 +297,8 @@ def test_workflow_uses_only_github_owned_actions():
         "actions/checkout": "3d3c42e5aac5ba805825da76410c181273ba90b1",
         "actions/setup-node": "820762786026740c76f36085b0efc47a31fe5020",
         "actions/setup-python": "5fda3b95a4ea91299a34e894583c3862153e4b97",
-        "actions/upload-artifact": "330a01c490aca151604b8cf639adc76d48f6c5d4",
-        "actions/download-artifact": "018cc2cf5baa6db3ef3c5f8a56943fffe632ef53",
+        "actions/upload-artifact": "043fb46d1a93c77aae656e7c1c64a875d1fc6a0a",
+        "actions/download-artifact": "3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c",
     }
     for action, pin in pins.items():
         assert f"{action}@{pin}" in text

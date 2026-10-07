@@ -1,7 +1,10 @@
 # Documentation site
 
 Dependency vulnerabilities follow the
-[best-effort maintenance policy](../.github/dependency-audit.md).
+[shared best-effort maintenance policy](../.github/docusaurus/maintenance.md).
+The directory and audit schedule are configured in
+[`.github/docusaurus.json`](../.github/docusaurus.json); shared implementation
+files under `.github/docusaurus/` are copied unchanged from the producer.
 
 The Docusaurus site is published at
 <https://hydra-ecosystem.github.io/omegaconf/>. Its navigation starts with
@@ -10,7 +13,7 @@ configs. It includes task pages, an API overview, and generated symbol details
 for two versions: 2.3.1 at `/omegaconf/docs/` and the current 2.4 prerelease at
 `/omegaconf/docs/next/`.
 
-Use Node 24 (recorded in `.node-version`) and the pnpm version pinned in
+Use Node 24 (recorded in `.nvmrc`) and the pnpm version pinned in
 `package.json`. From the repository root, install the Python generator and site
 packages:
 
