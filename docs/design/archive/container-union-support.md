@@ -8,7 +8,7 @@ summary: Historical design for unions containing typed list and dictionary branc
 
 > Archived after implementation in [PR #1262](https://github.com/omry/omegaconf/pull/1262).
 > Current user-facing behavior is documented in
-> [`structured_config.rst`](../../source/structured_config.rst).
+> [`structured_config.rst`](../../../legacy/rtd/source/structured_config.rst).
 
 OmegaConf currently supports unions of primitive value types, for example
 `Union[int, str]`, but rejects unions that include containers:

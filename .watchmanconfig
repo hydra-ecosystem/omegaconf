@@ -3,7 +3,7 @@
     ".agents",
     ".benchmarks",
     ".nox",
-    "docs/build",
+    "legacy/rtd/build",
     "omegaconf/grammar/gen",
     "subprojects/backlog-tool/.backlog-tool",
     "subprojects/backlog-tool/.benchmarks",

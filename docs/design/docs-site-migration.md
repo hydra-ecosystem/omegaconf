@@ -19,7 +19,7 @@ redirects belong to a subsequent implementation stage.
 
 ## Current state
 
-The user-facing source is `docs/source/`, linked from `README.md`. Its seven
+The original Sphinx source is now `legacy/rtd/source/`. Its seven
 content pages are organized mainly by source file rather than by reader task:
 
 | Page | Approximate size | Current role |
@@ -188,7 +188,7 @@ and navigation rather than copying the Sphinx indices.
 
 The 2.4 upgrade guide describes breaking changes and contains collapsed
 tuple migration examples. The old `migration/2.4-tuples` route redirects to
-that section. `docs/notebook/Tutorial.ipynb` remains a separate linked tutorial
+that section. `legacy/rtd/notebook/Tutorial.ipynb` remains a separate linked tutorial
 and retains its existing `nbval` check initially. The five small YAML source
 files included by the RST pages move with their examples.
 

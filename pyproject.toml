@@ -12,7 +12,7 @@ extend-exclude = [
 ]
 
 [tool.ruff.lint]
-exclude = ["docs/notebook/Tutorial.ipynb"]
+exclude = ["legacy/rtd/notebook/Tutorial.ipynb"]
 fixable = ["I"]
 ignore = ["E501", "E701", "E714", "E721"]
 select = ["E", "F", "I", "W"]
@@ -114,7 +114,7 @@ project-excludes = [
 project-includes = [
     "benchmark",
     "build_helpers",
-    "docs/source/conf.py",
+    "legacy/rtd/source/conf.py",
     "omegaconf",
     "tests",
     "noxfile.py",
