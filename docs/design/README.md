@@ -2,7 +2,8 @@
 
 This directory contains durable design context for OmegaConf architecture,
 invariants, interfaces, and compatibility decisions. It is maintainer-facing;
-user documentation remains under [`docs/source/`](../source/).
+current user documentation lives under [`website/docs/`](../../website/docs/),
+with legacy RTD sources under [`legacy/rtd/source/`](../../legacy/rtd/source/).
 
 For lifecycle statuses and metadata conventions, see
 [`../document-lifecycle.md`](../document-lifecycle.md). Start new design

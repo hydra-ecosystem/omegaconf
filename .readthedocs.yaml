@@ -5,9 +5,9 @@
 # Required
 version: 2
 
-# Build documentation in the doc/ directory with Sphinx
+# Build the legacy documentation with Sphinx
 sphinx:
-  configuration: docs/source/conf.py
+  configuration: legacy/rtd/source/conf.py
 
 
 # Optionally build your docs in additional formats such as PDF and ePub

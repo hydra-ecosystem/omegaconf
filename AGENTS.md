@@ -61,9 +61,10 @@ repo tooling.
 
 ## Documentation map
 
-- Sphinx/ReadTheDocs source: [`docs/source/`](./docs/source/)
-- Entry point: [`docs/source/index.rst`](./docs/source/index.rst)
-- Notebook tutorial: [`docs/notebook/Tutorial.ipynb`](./docs/notebook/Tutorial.ipynb)
+- Current documentation: [`website/docs/`](./website/docs/)
+- Legacy Sphinx/ReadTheDocs source: [`legacy/rtd/source/`](./legacy/rtd/source/)
+- Legacy entry point: [`legacy/rtd/source/index.rst`](./legacy/rtd/source/index.rst)
+- Notebook tutorial: [`legacy/rtd/notebook/Tutorial.ipynb`](./legacy/rtd/notebook/Tutorial.ipynb)
 
 ## Reproduction files
 

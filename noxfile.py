@@ -36,7 +36,7 @@ def benchmark(session: Session) -> None:
 @nox.session  # type: ignore
 def docs(session: Session) -> None:
     deps(session, False, "requirements/docs.txt")
-    session.chdir("docs")
+    session.chdir("legacy/rtd")
     session.run("sphinx-build", "-W", "-b", "html", "source", "build")
     session.install("pytest")  # required for `sphinx-build -b doctest`:
     session.run("sphinx-build", "-W", "-b", "doctest", "source", "build")
@@ -101,5 +101,9 @@ def test_jupyter_notebook(session: Session) -> None:
         ]
     )
     session.run(
-        "pytest", "--nbval", "docs/notebook/Tutorial.ipynb", *extra_flags, silent=True
+        "pytest",
+        "--nbval",
+        "legacy/rtd/notebook/Tutorial.ipynb",
+        *extra_flags,
+        silent=True,
     )

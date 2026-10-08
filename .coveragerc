@@ -6,6 +6,7 @@ omit =
     */tests/*
     .claude/*
     docs/*
+    legacy/rtd/*
     website/scripts/*
     omegaconf/grammar/gen/*
     omegaconf/vendor/*
@@ -24,4 +25,4 @@ exclude_lines =
     if TYPE_CHECKING:
 
 [html]
-directory = docs/build/coverage
+directory = legacy/rtd/build/coverage

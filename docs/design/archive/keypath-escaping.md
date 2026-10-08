@@ -8,7 +8,7 @@ summary: Historical design for escaping delimiters in OmegaConf keypath APIs.
 
 > Archived after implementation in [PR #1279](https://github.com/omry/omegaconf/pull/1279).
 > Current user-facing behavior is documented in
-> [`usage.rst`](../../source/usage.rst). Direct interpolation support is tracked
+> [`usage.rst`](../../../legacy/rtd/source/usage.rst). Direct interpolation support is tracked
 > by [issue #1335](https://github.com/omry/omegaconf/issues/1335).
 
 ## Problem

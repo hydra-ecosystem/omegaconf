@@ -2,7 +2,7 @@
 
 Status: content audit, 2026-09-30. This is the cutover checklist for the
 Docusaurus content, alongside [the site design](docs-site-migration.md). It
-compares `website/docs/` with the current 2.4 `docs/source/` and
+compares `website/docs/` with the current 2.4 `legacy/rtd/source/` and
 `website/versioned_docs/version-2.3/` with the
 [published 2.3 RTD documentation](https://omegaconf.readthedocs.io/en/2.3_branch/).
 The 2.3 examples are checked with the 2.3.1 source distribution, because

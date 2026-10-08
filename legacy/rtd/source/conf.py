@@ -19,7 +19,7 @@ import sys
 
 from packaging.version import parse
 
-sys.path.insert(0, os.path.abspath("../../"))
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../../..")))
 
 from omegaconf import version as v  # noqa E402
 
