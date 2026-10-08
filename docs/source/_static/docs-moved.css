@@ -1,0 +1,22 @@
+.docs-moved-banner {
+  background: #fff3cd;
+  border-bottom: 4px solid #b45309;
+  color: #422006;
+  font-family: system-ui, sans-serif;
+  font-size: 1rem;
+  line-height: 1.5;
+  padding: 1rem 1.5rem;
+  text-align: center;
+}
+
+.docs-moved-banner strong {
+  display: block;
+  font-size: 1.25rem;
+  margin-bottom: 0.25rem;
+}
+
+.docs-moved-banner a {
+  color: #78350f;
+  font-weight: 700;
+  text-decoration: underline;
+}
