@@ -1,6 +1,6 @@
 {
   "generated_on": "2026-10-08",
-  "generated_at": "2026-10-08T13:32:42Z",
+  "generated_at": "2026-10-08T13:52:23Z",
   "repo": "hydra-ecosystem/omegaconf",
   "summary": {
     "open_total": 27,
@@ -79,10 +79,6 @@
       "status": "in progress",
       "status_emoji": "🔄",
       "prs": [
-        {
-          "number": 1407,
-          "url": "https://github.com/hydra-ecosystem/omegaconf/pull/1407"
-        },
         {
           "number": 1408,
           "url": "https://github.com/hydra-ecosystem/omegaconf/pull/1408"
@@ -666,6 +662,14 @@
     }
   ],
   "updates": [
+    {
+      "ts": "2026-10-08T13:52:23Z",
+      "kind": "pr",
+      "issue": 1405,
+      "issue_url": "https://github.com/hydra-ecosystem/omegaconf/issues/1405",
+      "title": "Complete documentation cutover and retain RTD as the pre-2.4 archive",
+      "detail": "unlinked #1407"
+    },
     {
       "ts": "2026-10-08T13:32:42Z",
       "kind": "pr",
@@ -2327,18 +2331,6 @@
       "issue_url": "https://github.com/omry/omegaconf/issues/1126",
       "title": "Improve error message for relative interpolations",
       "detail": "linked #1317"
-    },
-    {
-      "ts": "2026-06-11T11:59:42Z",
-      "kind": "status",
-      "issue": 1126,
-      "issue_url": "https://github.com/omry/omegaconf/issues/1126",
-      "title": "Improve error message for relative interpolations",
-      "detail": "not started → in progress",
-      "pr": {
-        "number": 1317,
-        "url": "https://github.com/omry/omegaconf/pull/1317"
-      }
     }
   ]
 }
