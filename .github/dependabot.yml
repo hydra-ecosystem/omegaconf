@@ -8,6 +8,6 @@ updates:
     open-pull-requests-limit: 0
     # Suppress update PRs, including security updates, for this project only.
     # Alert suppression requires the manifest-based rule documented in
-    # .github/dependency-audit.md.
+    # .github/docusaurus/maintenance.md.
     ignore:
       - dependency-name: "*"

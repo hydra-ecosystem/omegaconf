@@ -5,13 +5,14 @@ import json
 import re
 import subprocess
 import time
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from tempfile import TemporaryDirectory
 
 import yaml
 
 SEVERITY_ORDER = {"critical": 0, "high": 1, "moderate": 2, "low": 3, "info": 4}
+DIRECTORY_PATTERN = re.compile(r"[A-Za-z0-9_./ -]+")
 
 
 def manager(directory: Path) -> str:
@@ -61,7 +62,7 @@ def valid_snapshot(
             packages = {}
             for key in lock.get("packages", {}):
                 name, version = key.split("(", 1)[0].rsplit("@", 1)
-                packages[key] = {"name": name, "version": version}
+                packages[f"{name}@{version}"] = {"name": name, "version": version}
             lock = {"packages": packages}
         else:
             if (directory / "pnpm-lock.yaml").exists():
@@ -99,6 +100,78 @@ def exclusion_versions(exclusions: list[str]) -> set[str]:
     return expanded
 
 
+def stable_version(value: object) -> tuple[int, int, int] | None:
+    if not isinstance(value, str):
+        return None
+    value = value.split("(", 1)[0]
+    if not re.fullmatch(r"\d+\.\d+\.\d+", value):
+        return None
+    major, minor, patch = value.split(".")
+    return int(major), int(minor), int(patch)
+
+
+def stable_manifest_minimum(value: object) -> tuple[int, int, int] | None:
+    if not isinstance(value, str) or not re.fullmatch(r"[~^]?\d+\.\d+\.\d+", value):
+        return None
+    return stable_version(value.lstrip("~^"))
+
+
+def direct_pnpm_versions(
+    files: dict[str, bytes],
+) -> dict[tuple[str, str], tuple[int, int, int]]:
+    try:
+        lock = yaml.safe_load(files["pnpm-lock.yaml"])
+        importer = lock["importers"]["."]
+    except (KeyError, TypeError, ValueError, yaml.YAMLError):
+        return {}
+    versions = {}
+    if not isinstance(importer, dict):
+        return versions
+    for section in ("dependencies", "devDependencies", "optionalDependencies"):
+        entries = importer.get(section, {})
+        if not isinstance(entries, dict):
+            continue
+        for name, entry in entries.items():
+            if isinstance(name, str) and isinstance(entry, dict):
+                version = stable_version(entry.get("version"))
+                if version is not None:
+                    versions[(section, name)] = version
+    return versions
+
+
+def direct_dependency_regressed(
+    snapshot: tuple[bytes, dict[str, bytes], dict, dict],
+    current: tuple[bytes, dict[str, bytes], dict, dict],
+) -> bool:
+    before_manifest = snapshot[2]
+    after_manifest = current[2]
+    before_locked = direct_pnpm_versions(snapshot[1])
+    after_locked = direct_pnpm_versions(current[1])
+    for section in ("dependencies", "devDependencies", "optionalDependencies"):
+        before_entries = before_manifest.get(section, {})
+        after_entries = after_manifest.get(section, {})
+        if not isinstance(before_entries, dict):
+            continue
+        if not isinstance(after_entries, dict):
+            after_entries = {}
+        names = set(before_entries) | {
+            name for section_name, name in before_locked if section_name == section
+        }
+        for name in names:
+            before_specifier = before_entries.get(name)
+            before_floor = stable_manifest_minimum(before_specifier)
+            if before_floor is not None:
+                after_floor = stable_manifest_minimum(after_entries.get(name))
+                if after_floor is None or after_floor < before_floor:
+                    return True
+            before_version = before_locked.get((section, name))
+            if before_version is not None:
+                after_version = after_locked.get((section, name))
+                if after_version is None or after_version < before_version:
+                    return True
+    return False
+
+
 def restore_invalid_state(
     directory: Path,
     snapshot: tuple[bytes, dict[str, bytes], dict, dict],
@@ -115,10 +188,39 @@ def restore_invalid_state(
         and current[1].keys() == snapshot[1].keys()
         and (not frozen or (current[0] == snapshot[0] and current[1] == snapshot[1]))
     ):
+        dependency_sections = {
+            "dependencies",
+            "devDependencies",
+            "optionalDependencies",
+        }
+        if {
+            key: value
+            for key, value in current[2].items()
+            if key not in dependency_sections
+        } != {
+            key: value
+            for key, value in snapshot[2].items()
+            if key not in dependency_sections
+        }:
+            restore_snapshot(directory, snapshot)
+            notes.append(
+                f"{operation} changed package.json fields outside dependencies, "
+                "devDependencies, or optionalDependencies; restored the last "
+                "valid snapshot and did not claim its changes."
+            )
+            return True
         if "pnpm-workspace.yaml" not in current[1]:
             return False
         policy = yaml.safe_load(current[1]["pnpm-workspace.yaml"])
         reference = yaml.safe_load(snapshot[1]["pnpm-workspace.yaml"])
+        if direct_dependency_regressed(snapshot, current):
+            restore_snapshot(directory, snapshot)
+            notes.append(
+                f"{operation} changed protected pnpm policy or lowered a known direct "
+                "pnpm dependency manifest floor or locked version; restored the last "
+                "valid snapshot and did not claim its changes."
+            )
+            return True
         existing = reference.pop("minimumReleaseAgeExclude", [])
         exclusions = policy.pop("minimumReleaseAgeExclude", [])
         preserved_exclusions = exclusions == existing
@@ -382,7 +484,10 @@ def audit(directory: Path, *, deadline: float | None = None) -> dict | str:
         if policy.get("audit", {}).get("ignore") or policy.get("auditConfig", {}).get(
             "ignoreGhsas"
         ):
-            return "Audit unavailable: pnpm advisory-ignore rules would hide dependency findings; manual review required."
+            return (
+                "Audit unavailable: pnpm advisory-ignore rules would hide dependency "
+                "findings; manual review required."
+            )
         flags = ["--audit-level", "info"]
     else:
         flags = ["--audit", "--package-lock-only"]
@@ -561,7 +666,7 @@ def fix_security(
                 else f"Compatible lockfile regeneration failed (exit {resolved.returncode}); "
                 "restored the preceding security-fix proposal."
             )
-        return result
+        return result if failed else resolved
     return run(
         directory,
         "audit",
@@ -581,6 +686,51 @@ def versions(lock: dict, vulnerability: dict) -> str:
         if node in packages and "version" in packages[node]
     }
     return ", ".join(sorted(found)) or "not recorded in lockfile"
+
+
+def package_paths(lock: dict, name: str, package_manager: str) -> dict[str, str]:
+    """Retain package locations and pnpm references lost by version deduplication."""
+    if package_manager == "npm":
+        return {
+            node: package["version"]
+            for node, package in lock.get("packages", {}).items()
+            if "version" in package
+            and (
+                node == f"node_modules/{name}"
+                or node.endswith(f"/node_modules/{name}")
+                or package.get("name") == name
+            )
+        }
+    paths = {}
+    for group in ("packages", "snapshots", "importers"):
+        entries = lock.get(group, {})
+        if not isinstance(entries, dict):
+            continue
+        for node, entry in entries.items():
+            if not isinstance(node, str):
+                continue
+            plain = node.split("(", 1)[0]
+            if group != "importers" and plain.rsplit("@", 1)[0] == name:
+                paths[f"{group}/{node}"] = plain.rsplit("@", 1)[-1]
+            if group == "packages" or not isinstance(entry, dict):
+                continue
+            for section in ("dependencies", "devDependencies", "optionalDependencies"):
+                references = entry.get(section, {})
+                if not isinstance(references, dict):
+                    continue
+                for dependency, reference in references.items():
+                    version = (
+                        reference.get("version")
+                        if isinstance(reference, dict)
+                        else reference
+                    )
+                    if isinstance(version, str) and (
+                        dependency == name or version.startswith(f"{name}@")
+                    ):
+                        paths[f"{group}/{node}/{section}/{dependency}"] = (
+                            version.removeprefix(f"{name}@")
+                        )
+    return paths
 
 
 def describe_pnpm_fixes(
@@ -656,6 +806,7 @@ def describe_pnpm_fixes(
             vulnerability["fixAvailable"] = True
             blocked = []
             unknown = False
+            compatible_patches = None
             for parent, snapshot in lock.get("snapshots", {}).items():
                 edges = {
                     **snapshot.get("dependencies", {}),
@@ -689,19 +840,47 @@ def describe_pnpm_fixes(
                 ]
                 if any(versions is None for versions in intersections):
                     unknown = True
-                elif not any(intersections):
-                    blocked.append(f"`{parent}` requires `{name} {constraint}`")
-                for matches in intersections:
-                    patches.update(matches or ())
-            version = min(patches, key=lambda v: tuple(map(int, v.split("."))))
+                else:
+                    parent_patches = {
+                        version
+                        for matches in intersections
+                        if matches is not None
+                        for version in matches
+                    }
+                    if not parent_patches:
+                        blocked.append(f"`{parent}` requires `{name} {constraint}`")
+                    compatible_patches = (
+                        parent_patches
+                        if compatible_patches is None
+                        else compatible_patches & parent_patches
+                    )
+            if compatible_patches == set():
+                detail["fixStatus"] = (
+                    "Published patches exist, but no single patch satisfies all "
+                    "checked parent constraints. "
+                    + (
+                        "Blocked by existing parent constraints: "
+                        + "; ".join(sorted(set(blocked)))
+                        + "."
+                        if blocked
+                        else "Review patches per affected dependency path."
+                    )
+                    + (
+                        " Parent compatibility could not be fully verified; manual review required."
+                        if unknown
+                        else ""
+                    )
+                )
+                continue
+            version = min(
+                patches if compatible_patches is None else compatible_patches,
+                key=lambda v: tuple(map(int, v.split("."))),
+            )
             detail["fixStatus"] = f"Published patch: `{name}@{version}`. " + (
-                "Blocked by existing parent constraints: "
-                + "; ".join(sorted(set(blocked)))
-                + "."
-                if blocked
-                else "Parent compatibility could not be fully verified; manual review required."
+                "Parent compatibility could not be fully verified; manual review required."
                 if unknown
-                else "No checked parent constraint excludes published patches; review manifest constraints and resolution logs."
+                else "No checked parent constraint excludes published patches; review "
+                "manifest constraints and resolution logs."
             )
 
 
@@ -801,6 +980,40 @@ def format_remaining_audit(data: dict | str, lock: dict) -> str:
     )
 
 
+def eligible_version(directory, name, latest, snapshot, notes, deadline):
+    """Select a stable release within the deployment's publication-age policy."""
+    result = run(directory, "view", name, "time", "--json", deadline=deadline)
+    if restore_invalid_state(
+        directory, snapshot, notes, f"Release-time lookup for {name}", frozen=True
+    ):
+        return None
+    try:
+        age = yaml.safe_load(snapshot[1]["pnpm-workspace.yaml"])["minimumReleaseAge"]
+        releases = json.loads(result.stdout)
+        if (
+            result.returncode
+            or type(age) is not int
+            or age < 0
+            or not isinstance(releases, dict)
+        ):
+            return None
+        cutoff = datetime.now(timezone.utc) - timedelta(minutes=age)
+        limit = tuple(map(int, latest.split(".")))
+        candidates = []
+        for version, published in releases.items():
+            if not re.fullmatch(r"\d+\.\d+\.\d+", version):
+                continue
+            number = tuple(map(int, version.split(".")))
+            if (
+                number <= limit
+                and datetime.fromisoformat(published.replace("Z", "+00:00")) <= cutoff
+            ):
+                candidates.append((number, version))
+        return max(candidates)[1] if candidates else None
+    except (KeyError, ValueError, TypeError, AttributeError, OverflowError):
+        return None
+
+
 def prepare(directory: Path) -> str:
     # Leave time in the 60-minute job to write and upload a partial report.
     deadline = time.monotonic() + 45 * 60
@@ -818,8 +1031,16 @@ def prepare(directory: Path) -> str:
         directory, initial_snapshot, notes, "Initial audit", frozen=True
     ):
         before = f"Audit unavailable: {package_manager} changed package files; restored the initial snapshot."
+    initial_audit_available = isinstance(before, dict)
+    if not initial_audit_available:
+        notes.append(
+            "Initial audit evidence was unavailable; retained security-fix changes "
+            "are unconfirmed."
+        )
     last_valid_snapshot = valid_snapshot(directory) or initial_snapshot
-    affected = before.get("vulnerabilities", {}) if isinstance(before, dict) else {}
+    affected = (
+        set(before.get("vulnerabilities", {})) if isinstance(before, dict) else set()
+    )
     changes = []
 
     # Give compatible security fixes the first use of the shared time budget.
@@ -835,7 +1056,7 @@ def prepare(directory: Path) -> str:
     # Preserve those fixes if the wider stable-version upgrade cannot resolve.
     security_snapshot = valid_snapshot(directory) or last_valid_snapshot
     last_valid_snapshot = security_snapshot
-    manifest = security_snapshot[2]
+    manifest = json.loads(security_snapshot[0])
 
     # Preserve overrides and peer constraints for a maintainer to review.
     for section in ("dependencies", "devDependencies", "optionalDependencies"):
@@ -868,10 +1089,41 @@ def prepare(directory: Path) -> str:
                 latest = json.loads(result.stdout)
             except json.JSONDecodeError:
                 latest = None
-            if result.returncode or not isinstance(latest, str):
+            if (
+                result.returncode
+                or not isinstance(latest, str)
+                or not re.fullmatch(r"\d+\.\d+\.\d+", latest)
+            ):
                 notes.append(f"Could not look up {name}; retained `{current}`.")
                 continue
-            if latest != current.lstrip("~^"):
+            if package_manager == "pnpm" and latest != current.lstrip("~^"):
+                latest = eligible_version(
+                    directory, name, latest, security_snapshot, notes, deadline
+                )
+                if latest is None:
+                    notes.append(
+                        f"No eligible stable release verified for {name}; retained `{current}`."
+                    )
+                    continue
+            resolved = current.lstrip("~^")
+            if package_manager == "pnpm":
+                importer = yaml.safe_load(security_snapshot[1]["pnpm-lock.yaml"])[
+                    "importers"
+                ]["."]
+                resolved = (
+                    importer.get(section, {}).get(name, {}).get("version", resolved)
+                )
+                if not isinstance(resolved, str) or not re.fullmatch(
+                    r"\d+\.\d+\.\d+", resolved.split("(", 1)[0]
+                ):
+                    notes.append(f"Retained {name} resolved version for manual review.")
+                    continue
+                resolved = resolved.split("(", 1)[0]
+            floor = max(
+                tuple(map(int, current.lstrip("~^").split("."))),
+                tuple(map(int, resolved.split("."))),
+            )
+            if tuple(map(int, latest.split("."))) > floor:
                 manifest[section][name] = latest
                 changes.append((name, f"- {name}: `{current}` → `{latest}`"))
 
@@ -901,6 +1153,19 @@ def prepare(directory: Path) -> str:
     else:
         stable_snapshot = valid_snapshot(directory) or security_snapshot
         last_valid_snapshot = stable_snapshot
+        stable_audit = audit(directory, deadline=deadline)
+        if restore_invalid_state(
+            directory, stable_snapshot, notes, "Stable proposal audit", frozen=True
+        ):
+            stable_audit = (
+                "Audit unavailable: stable proposal audit changed package files."
+            )
+        if isinstance(stable_audit, dict):
+            affected.update(stable_audit.get("vulnerabilities", {}))
+        else:
+            notes.append(
+                "Stable proposal audit unavailable; follow-up security attribution is unconfirmed."
+            )
         # Keep fixes within the proposed manifest constraints; never use --force.
         fixed = fix_security(directory, deadline, notes)
         restore_invalid_state(
@@ -929,7 +1194,10 @@ def prepare(directory: Path) -> str:
     )
     last_valid_snapshot = valid_snapshot(directory) or validation_snapshot
     if install.returncode or invalid_install_state:
-        build_status = f"Not run: {package_manager} frozen install failed (exit {install.returncode}); validation failed."
+        build_status = (
+            f"Not run: {package_manager} frozen install failed "
+            f"(exit {install.returncode}); validation failed."
+        )
     else:
         build = run(directory, "run", "build", deadline=deadline)
         invalid_build_state = restore_invalid_state(
@@ -942,7 +1210,8 @@ def prepare(directory: Path) -> str:
         last_valid_snapshot = valid_snapshot(directory) or last_valid_snapshot
         if invalid_build_state:
             build_status = (
-                f"Failed: {package_manager} run build changed package files or left invalid package files; restored the "
+                f"Failed: {package_manager} run build changed package files or left invalid "
+                "package files; restored the "
                 "last valid snapshot; validation failed; manual repair required."
             )
         elif build.returncode == 0:
@@ -956,27 +1225,43 @@ def prepare(directory: Path) -> str:
         after = f"Audit unavailable: {package_manager} changed package files; restored the last valid snapshot."
     after_snapshot = valid_snapshot(directory) or last_valid_snapshot
     after_lock = after_snapshot[3]
+    changes = [
+        (name, f"- {name}: `{current}` → `{final}`")
+        for section in ("dependencies", "devDependencies", "optionalDependencies")
+        for name, current in initial_snapshot[2].get(section, {}).items()
+        if (final := after_snapshot[2].get(section, {}).get(name)) != current
+    ]
     cache: dict = {}
     describe_pnpm_fixes(directory, before, initial_snapshot[1], notes, deadline, cache)
     describe_pnpm_fixes(directory, after, after_snapshot[1], notes, deadline, cache)
-    after_affected = after.get("vulnerabilities", {}) if isinstance(after, dict) else {}
+    native_locks = [
+        yaml.safe_load(snapshot[1]["pnpm-lock.yaml"])
+        if package_manager == "pnpm"
+        else snapshot[3]
+        for snapshot in (initial_snapshot, after_snapshot)
+    ]
     security_changes = []
     reported_changes = set()
-    for name, vulnerability in affected.items():
-        old = versions(before_lock, vulnerability)
-        current = after_affected.get(name)
-        if current is None:
-            current = {
-                "nodes": [
-                    node
-                    for node, package in after_lock.get("packages", {}).items()
-                    if node == f"node_modules/{name}"
-                    or node.endswith(f"/node_modules/{name}")
-                    or package.get("name") == name
-                ]
-            }
-        new = versions(after_lock, current)
-        if old != new:
+    for name in affected:
+        old, new = (
+            versions(
+                lock,
+                {
+                    "nodes": [
+                        node
+                        for node, package in lock.get("packages", {}).items()
+                        if node == f"node_modules/{name}"
+                        or node.endswith(f"/node_modules/{name}")
+                        or package.get("name") == name
+                    ]
+                },
+            )
+            for lock in (before_lock, after_lock)
+        )
+        paths_changed = package_paths(native_locks[0], name, package_manager) != (
+            package_paths(native_locks[1], name, package_manager)
+        )
+        if old != new or paths_changed:
             status = "after audit unavailable; fix unconfirmed"
             if isinstance(after, dict):
                 status = (
@@ -984,7 +1269,12 @@ def prepare(directory: Path) -> str:
                     if name in after.get("vulnerabilities", {})
                     else f"no longer reported by {package_manager}"
                 )
-            security_changes.append(f"- {name}: `{old}` → `{new}`; {status}.")
+            change = (
+                f"`{old}` → `{new}`"
+                if old != new
+                else f"dependency paths changed; installed versions `{new}`"
+            )
+            security_changes.append(f"- {name}: {change}; {status}.")
             reported_changes.add(name)
     security_changes.extend(
         line
@@ -1013,8 +1303,21 @@ def prepare(directory: Path) -> str:
         "## Security findings and fixes\n\n"
         "### Changes to affected dependencies\n\n"
         + (
+            "Initial audit evidence was unavailable; any retained security-fix "
+            "changes are unconfirmed and cannot be attributed to affected "
+            "dependencies. The final audit below describes only the final "
+            "dependency state.\n\n"
+            if not initial_audit_available
+            else ""
+        )
+        + (
             "\n".join(security_changes)
-            or "No upgrades to affected dependencies resolved."
+            or (
+                "Affected dependency changes cannot be confirmed because initial "
+                "audit evidence was unavailable."
+                if not initial_audit_available
+                else "No upgrades to affected dependencies resolved."
+            )
         )
         + "\n\n"
         f"{count_explanation} Fix candidates can require manual migrations.\n\n"
@@ -1053,7 +1356,7 @@ def main() -> None:
     if (
         directory.is_absolute()
         or ".." in directory.parts
-        or not re.fullmatch(r"[A-Za-z0-9_./-]+", args.directory)
+        or DIRECTORY_PATTERN.fullmatch(args.directory) is None
     ):
         parser.error("directory must be a relative npm project path without '..'")
     if valid_snapshot(directory) is None:

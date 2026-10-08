@@ -8,7 +8,7 @@ import pytest
 import yaml
 
 module = runpy.run_path(
-    str(Path(__file__).parents[1] / ".github/docusaurus/templates/dependency_audit.py")
+    str(Path(__file__).parents[1] / "templates/dependency_audit.py")
 )
 
 
@@ -279,7 +279,8 @@ def test_fresh_security_resolution_is_isolated_and_restores_failures(
 
     monkeypatch.setattr(subprocess, "run", invoke)
     notes = []
-    module["fix_security"](project, float("inf"), notes)
+    result = module["fix_security"](project, float("inf"), notes)
+    assert result.returncode == (1 if failure else 0)
     assert len(commands) == 2
     if failure:
         assert (project / "pnpm-lock.yaml").read_bytes() == snapshot[1][
@@ -457,3 +458,42 @@ def test_parent_can_use_an_older_patch_than_the_latest_registry_match(
     )
     assert "Published patch: `child@2.1.0`" in detail["fixStatus"]
     assert "No checked parent constraint excludes" in detail["fixStatus"]
+
+
+@pytest.mark.parametrize("shared_patch", [False, True])
+def test_patch_candidate_must_satisfy_every_affected_parent(
+    project, monkeypatch, shared_patch
+):
+    detail = {"patchedRange": ">=2.0.0", "nodes": ["child@1.0.0"]}
+    data = {"package_manager": "pnpm", "vulnerabilities": {"child": {"via": [detail]}}}
+    files = module["valid_snapshot"](project)[1]
+    lock = yaml.safe_load(files["pnpm-lock.yaml"])
+    lock["snapshots"]["other-parent@1.0.0"] = {"dependencies": {"child": "1.0.0"}}
+    files["pnpm-lock.yaml"] = yaml.safe_dump(lock).encode()
+    responses = {
+        "child@>=2.0.0": ["2.1.0", "3.1.0"],
+        "parent@1.0.0": {"dependencies": {"child": "^2.0.0 || ^3.0.0"}},
+        "other-parent@1.0.0": {"dependencies": {"child": "^3.0.0"}},
+        "child@^2.0.0 >=2.0.0": ["2.1.0"],
+        "child@^3.0.0 >=2.0.0": ["3.1.0"],
+    }
+    if not shared_patch:
+        responses["parent@1.0.0"] = {"dependencies": {"child": "^2.0.0"}}
+    monkeypatch.setattr(
+        subprocess,
+        "run",
+        lambda command, **kwargs: subprocess.CompletedProcess(
+            command, 0, json.dumps(responses[command[6]]), ""
+        ),
+    )
+    module["describe_pnpm_fixes"](project, data, files, [], float("inf"), {})
+    assert data["vulnerabilities"]["child"]["fixAvailable"] is True
+    if shared_patch:
+        assert "Published patch: `child@3.1.0`" in detail["fixStatus"]
+        assert "No checked parent constraint excludes" in detail["fixStatus"]
+    else:
+        assert (
+            "no single patch satisfies all checked parent constraints"
+            in detail["fixStatus"]
+        )
+        assert "Published patch:" not in detail["fixStatus"]

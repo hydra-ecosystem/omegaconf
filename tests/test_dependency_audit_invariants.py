@@ -9,7 +9,7 @@ import pytest
 import yaml
 
 audit_module = runpy.run_path(
-    str(Path(__file__).parents[1] / ".github/scripts/dependency_audit.py")
+    str(Path(__file__).parents[1] / ".github/docusaurus/templates/dependency_audit.py")
 )
 format_remaining_audit = audit_module["format_remaining_audit"]
 format_audit = audit_module["format_audit"]
@@ -521,15 +521,22 @@ def test_nonmutating_commands_preserve_exact_package_files(
         )
     }
     audits = 0
+    built = False
     mutated = False
 
     def invoke(command, *, cwd, **kwargs):
-        nonlocal audits, mutated
+        nonlocal audits, built, mutated
         args = command[5:] if pnpm else command[4:]
         stdout, boundary = "", None
         if args[:2] == ["audit", "--json"]:
             audits += 1
-            boundary = "initial-audit" if audits == 1 else "final-audit"
+            boundary = (
+                "initial-audit"
+                if audits == 1
+                else "final-audit"
+                if built
+                else "stable-audit"
+            )
             stdout = json.dumps(
                 {
                     "metadata": {"vulnerabilities": {"total": 0}},
@@ -541,6 +548,7 @@ def test_nonmutating_commands_preserve_exact_package_files(
         elif args[0] == "ci" or args == ["install", "--frozen-lockfile"]:
             boundary = "frozen"
         elif args == ["run", "build"]:
+            built = True
             boundary = "build"
         if boundary == operation and not mutated:
             if mutated_file == "package.json":

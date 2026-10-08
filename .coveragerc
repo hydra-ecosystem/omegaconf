@@ -1,6 +1,7 @@
 [report]
 show_missing = True
 omit =
+    .github/docusaurus/*
     .nox/*
     */tests/*
     .claude/*

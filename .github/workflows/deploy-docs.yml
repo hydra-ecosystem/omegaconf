@@ -13,7 +13,8 @@ on:
       - tests/conftest.py
       - .github/workflows/deploy-docs.yml
       - .github/workflows/dependency-audit.yml
-      - .github/scripts/dependency_audit.py
+      - .github/docusaurus/**
+      - .github/docusaurus.json
       - tests/test_dependency_audit*.py
   push:
     branches: [main]
@@ -28,7 +29,8 @@ on:
       - tests/conftest.py
       - .github/workflows/deploy-docs.yml
       - .github/workflows/dependency-audit.yml
-      - .github/scripts/dependency_audit.py
+      - .github/docusaurus/**
+      - .github/docusaurus.json
       - tests/test_dependency_audit*.py
   workflow_dispatch:
 
@@ -60,7 +62,7 @@ jobs:
         run: python -m pip install -r website/requirements.txt
       - name: Install current checkout
         if: matrix.docs-version == 'next'
-        run: python -m pip install -e . pytest attrs
+        run: python -m pip install -e . pytest attrs PyYAML==6.0.3
       - name: Prepare frozen 2.3.1 source and runtime
         if: matrix.docs-version == '2.3'
         run: |
@@ -89,6 +91,9 @@ jobs:
       - name: Test example runner
         if: matrix.docs-version == 'next'
         run: python -m pytest tests/test_website_examples.py -q
+      - name: Test shared dependency maintenance
+        if: matrix.docs-version == 'next'
+        run: python -m pytest .github/docusaurus/tests -q
 
   build:
     needs: validate
