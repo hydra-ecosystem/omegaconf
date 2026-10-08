@@ -1,6 +1,6 @@
 {
   "generated_on": "2026-10-08",
-  "generated_at": "2026-10-08T15:59:34Z",
+  "generated_at": "2026-10-08T20:22:29Z",
   "repo": "hydra-ecosystem/omegaconf",
   "summary": {
     "open_total": 26,
@@ -507,6 +507,21 @@
       "url": "https://github.com/hydra-ecosystem/omegaconf/issues/1274"
     },
     {
+      "number": 1282,
+      "title": "Migrate Documentation from Read the docs to a GitHub hosted Docusaurus)",
+      "category": "Documentation",
+      "category_emoji": "📄",
+      "status": "done",
+      "status_emoji": "✅",
+      "prs": [],
+      "created": "2026-04-26",
+      "updated": "2026-09-30",
+      "labels": [
+        "documentation"
+      ],
+      "url": "https://github.com/hydra-ecosystem/omegaconf/issues/1282"
+    },
+    {
       "number": 1302,
       "title": "Support literal `???` values with an escaped spelling",
       "category": "Enhancement",
@@ -639,21 +654,6 @@
       "updated": "2026-10-04",
       "labels": [],
       "url": "https://github.com/hydra-ecosystem/omegaconf/issues/1391"
-    },
-    {
-      "number": 1282,
-      "title": "Migrate Documentation from Read the docs to a GitHub hosted Docusaurus)",
-      "category": "Documentation",
-      "category_emoji": "📄",
-      "status": "done",
-      "status_emoji": "✅",
-      "prs": [],
-      "created": "2026-04-26",
-      "updated": "2026-09-30",
-      "labels": [
-        "documentation"
-      ],
-      "url": "https://github.com/hydra-ecosystem/omegaconf/issues/1282"
     }
   ],
   "updates": [
