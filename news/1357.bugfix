@@ -1,1 +1,0 @@
-Select matching Literal members before broader scalar members in unions, regardless of annotation order.

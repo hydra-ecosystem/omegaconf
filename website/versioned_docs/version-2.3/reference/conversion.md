@@ -74,6 +74,6 @@ Union branch selection avoids implicit conversion because the intended
 branch would be ambiguous: a value must match a declared branch. See
 [supported types](./types).
 
-The [2.4 conversion reference](/docs/next/reference/conversion) explains
+The [2.4 conversion reference](/docs/reference/conversion) explains
 warnings for implicit assignment conversion, typed container interpolation
 validation, and the new `oc.coerce` resolver.

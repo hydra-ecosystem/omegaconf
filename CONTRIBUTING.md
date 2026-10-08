@@ -139,10 +139,18 @@ OmegaConf uses GitHub Actions with PyPI Trusted Publishers for automated release
    - `bump-my-version bump --new-version X.Y.Z`
 2. Update `NEWS.md` with release notes (use `towncrier build --version X.Y.Z`
    to assemble the notes and consume the news fragments)
-3. Commit changes and push to main branch
+   In a Sapling checkout, render with `towncrier build --draft --version X.Y.Z`
+   and prepend the resulting entry to `NEWS.md`, then remove the consumed
+   fragments with `sl remove`. Towncrier's automatic staging and fragment
+   removal do not support Sapling.
+3. Commit the release preparation on `main`, validate it, then merge it into
+   the stable release branch (for example `2.4_branch`). Preserve the existing
+   branch history. While `main` carries only fixes for that stable series,
+   continue merging fixes into the stable branch. Once new features begin on
+   `main`, backport only appropriate fixes.
 4. Create a new release on GitHub:
    - Go to https://github.com/hydra-ecosystem/omegaconf/releases/new
-   - Create a new tag (e.g., `v2.4.0`)
+   - Create a new tag (e.g., `v2.4.0`) from the validated stable release branch
    - Add release notes
    - Publish release
 5. GitHub Actions will automatically build and publish stable GitHub releases

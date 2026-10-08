@@ -1,3 +1,0 @@
-``OmegaConf.update()`` now follows intermediate node interpolations whose
-reference chains end at existing config containers, applying nested updates to
-the referenced container while preserving the interpolation.

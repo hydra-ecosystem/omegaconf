@@ -1,1 +1,0 @@
-Fix `ListConfig` iteration leaking `UnionNode` wrappers for `List[Union[...]]`; iteration now yields the selected concrete values, matching indexing.

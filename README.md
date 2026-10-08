@@ -28,17 +28,19 @@ with its sources under [`legacy/rtd/`](legacy/rtd/).
 
 ## Releases
 
-### Upcoming (2.4.0)
-OmegaConf 2.4.0 is in release candidate testing.
-* [Documentation](https://omegaconf.cli.dev/docs/next/)
-* [Source code](https://github.com/hydra-ecosystem/omegaconf/tree/main)
-
-Install with `pip install --upgrade --pre omegaconf`
-
-### Stable (2.3)
-OmegaConf 2.3 is the current stable version.
-* [What's new](https://github.com/hydra-ecosystem/omegaconf/releases/tag/v2.3.0)
+### Stable (2.4)
+OmegaConf 2.4.0 is the current stable version and requires Python 3.10 or newer.
+* [What's new](https://github.com/hydra-ecosystem/omegaconf/releases/tag/v2.4.0)
 * [Documentation](https://omegaconf.cli.dev/docs/)
-* [Source code](https://github.com/hydra-ecosystem/omegaconf/tree/2.3_branch)
+* [Upgrade guide](https://omegaconf.cli.dev/docs/migration/2.4)
+* [Source code](https://github.com/hydra-ecosystem/omegaconf/tree/2.4_branch)
 
 Install with `pip install --upgrade omegaconf`
+
+### Previous stable (2.3)
+OmegaConf 2.3 is retained for projects that require the earlier release.
+* [What's new](https://github.com/hydra-ecosystem/omegaconf/releases/tag/v2.3.0)
+* [Documentation](https://omegaconf.cli.dev/docs/2.3/)
+* [Source code](https://github.com/hydra-ecosystem/omegaconf/tree/2.3_branch)
+
+Install with `pip install 'omegaconf<2.4'`

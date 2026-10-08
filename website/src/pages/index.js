@@ -70,7 +70,7 @@ export default function Home() {
                 </Link>
               </div>
               <p className="home-release">
-                Documentation for stable 2.3 · <Link to="/docs/next/">2.4 prerelease</Link>
+                Documentation for stable 2.4 · <Link to="/docs/2.3/">2.3 documentation</Link>
               </p>
             </div>
             <div className="home-example" aria-label="OmegaConf example">

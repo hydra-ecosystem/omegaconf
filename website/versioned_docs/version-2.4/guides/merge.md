@@ -63,6 +63,31 @@ This lets a schema declare a required field without erasing a value supplied
 by another source. See [missing values](../concepts/missing-values) for how to
 inspect a mandatory field.
 
+## Dictionary union operators
+
+For a `DictConfig`, `left | right` creates a merged config and leaves both
+operands unchanged. `left |= right` merges into `left`. A plain dictionary can
+appear on either side of `|`; these operators are not supported by
+`ListConfig`.
+
+```python
+>>> base = OmegaConf.create({
+...     "server": {
+...         "host": "localhost",
+...         "port": 80,
+...     },
+... })
+>>> combined = base | {"server": {"port": 8080}, "debug": True}
+>>> OmegaConf.to_container(combined)
+{'server': {'host': 'localhost', 'port': 8080}, 'debug': True}
+>>> base.server.port
+80
+>>> base |= {"server": {"host": "service.internal"}}
+>>> OmegaConf.to_container(base)
+{'server': {'host': 'service.internal', 'port': 80}}
+
+```
+
 ## Faster destructive merging
 
 `OmegaConf.unsafe_merge()` uses the same merge rules and can be faster, but it
@@ -85,6 +110,3 @@ ordinary `merge()` unless this tradeoff matters:
 {'server': {'host': 'localhost', 'port': 8080}}
 
 ```
-
-The `DictConfig` union operators `|` and `|=` are introduced in
-[OmegaConf 2.4](/docs/guides/merge).

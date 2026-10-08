@@ -27,9 +27,28 @@ omegaconf.errors.MissingMandatoryValue: Missing mandatory value: host
 The `MISSING` constant is the Python spelling of the same marker. `None` is
 an ordinary value, not a missing marker.
 
-In OmegaConf 2.3, the string `???` is always interpreted as missing when
-stored in a config, even if it was quoted in YAML. The
-[2.4 documentation](/docs/concepts/missing-values) describes the new
-escape form for literal text.
+## Literal `???` text
+
+In 2.4, prefix `???` with a backslash to store those three characters as
+literal text. YAML quoting alone does not change the missing marker:
+
+```python
+>>> cfg = OmegaConf.create({
+...     "required": "???",
+...     "literal": r"\???",
+... })
+>>> OmegaConf.is_missing(cfg, "required")
+True
+>>> cfg.literal == "???"
+True
+>>> OmegaConf.is_missing(cfg, "literal")
+False
+
+```
+
+The literal value retains a marker internally so it remains literal through
+interpolation and serialization. When checking a detached value, use
+`OmegaConf.is_missing(value)` instead of comparing it with the string `???`.
+For a literal backslash followed by `???`, write `\\???` in the config input.
 
 Next, learn how [merging config sources](../guides/merge) treats missing values.

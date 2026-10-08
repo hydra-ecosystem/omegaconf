@@ -13,10 +13,11 @@ module.exports = {
       {
         docs: {
           sidebarPath: require.resolve('./sidebars.js'),
-          lastVersion: '2.3',
+          lastVersion: '2.4',
           versions: {
-            current: {label: '2.4 (prerelease)', path: 'next'},
-            '2.3': {label: '2.3', path: ''},
+            current: {label: 'Next', path: 'next'},
+            '2.4': {label: '2.4', path: '', banner: 'none'},
+            '2.3': {label: '2.3', path: '2.3'},
           },
         },
         blog: {showReadingTime: true},
@@ -45,7 +46,7 @@ module.exports = {
     footer: {
       style: 'light',
       links: [
-        {title: 'Documentation', items: [{label: 'Stable 2.3', to: '/docs/'}, {label: '2.4 prerelease', to: '/docs/next/'}]},
+        {title: 'Documentation', items: [{label: 'Stable 2.4', to: '/docs/'}, {label: '2.3', to: '/docs/2.3/'}]},
         {title: 'Project', items: [{label: 'Blog', to: '/blog'}, {label: 'GitHub', href: 'https://github.com/hydra-ecosystem/omegaconf'}]},
       ],
     },

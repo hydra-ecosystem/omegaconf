@@ -25,5 +25,14 @@ in `sys.argv[1:]`. Call it without arguments in an application that receives
 OmegaConf overrides directly. An argument parser may collect the strings and
 pass them to `from_dotlist()` instead.
 
-The [2.4 version](/docs/guides/command-line) adds backslash escaping in
-key paths for keys containing literal dots, brackets, or equals signs.
+In 2.4, backslash-escape a literal dot, bracket, or equals sign in a key
+path. For example, `r"a\.b=10"` addresses the key `a.b` rather than nested
+keys `a` and `b`. Interpolation paths and `OmegaConf.select()` use the same
+key-path escaping rules.
+
+When passing an override through a shell, quote it so the backslash reaches
+Python unchanged:
+
+```sh
+python app.py 'a\.b=10'
+```

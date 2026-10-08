@@ -44,7 +44,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        docs-version: ['2.3', next]
+        docs-version: ['2.3', '2.4', next]
     steps:
       - name: Check out repository
         uses: actions/checkout@v7
@@ -53,7 +53,7 @@ jobs:
         with:
           python-version: '3.10'
       - name: Set up Java
-        if: matrix.docs-version == 'next'
+        if: matrix.docs-version == 'next' || matrix.docs-version == '2.4'
         uses: actions/setup-java@v5
         with:
           distribution: temurin
@@ -73,6 +73,20 @@ jobs:
             | sha256sum --check
           tar -xzf "$RUNNER_TEMP/omegaconf-2.3.1.tar.gz" -C "$RUNNER_TEMP"
           python -m pip install 'omegaconf==2.3.1'
+      - name: Prepare frozen 2.4.0 source and runtime
+        if: matrix.docs-version == '2.4'
+        run: |
+          checkout_version=$(sed -n 's/^__version__ = "\(.*\)"/\1/p' omegaconf/version.py)
+          if [ "$checkout_version" = "2.4.0" ]; then
+            echo "OMEGACONF_24_SOURCE=$GITHUB_WORKSPACE" >> "$GITHUB_ENV"
+            python -m pip install -e . pytest attrs PyYAML==6.0.3
+          else
+            python -m pip download --no-deps --no-binary=:all: \
+              'omegaconf==2.4.0' --dest "$RUNNER_TEMP"
+            tar -xzf "$RUNNER_TEMP/omegaconf-2.4.0.tar.gz" -C "$RUNNER_TEMP"
+            python -m pip install 'omegaconf==2.4.0' pytest attrs PyYAML==6.0.3
+            echo "OMEGACONF_24_SOURCE=$RUNNER_TEMP/omegaconf-2.4.0" >> "$GITHUB_ENV"
+          fi
       - name: Test selected page examples
         run: python website/scripts/test_examples.py --docs-version '${{ matrix.docs-version }}'
       - name: Check current API snapshot
@@ -88,6 +102,12 @@ jobs:
           python website/scripts/generate_api.py \
             --source "$RUNNER_TEMP/omegaconf-2.3.1" --version 2.3.1 \
             --output website/versioned_docs/version-2.3/reference/python-api/omegaconf.md --check
+      - name: Check frozen 2.4 API snapshot
+        if: matrix.docs-version == '2.4'
+        run: |
+          python website/scripts/generate_api.py \
+            --source "$OMEGACONF_24_SOURCE" --version 2.4.0 \
+            --output website/versioned_docs/version-2.4/reference/python-api/omegaconf.md --check
       - name: Test example runner
         if: matrix.docs-version == 'next'
         run: python -m pytest tests/test_website_examples.py -q

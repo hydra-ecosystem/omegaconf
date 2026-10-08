@@ -67,7 +67,7 @@ restriction.
 
 ```
 
-Paths accept dot and bracket notation. The [2.4 operations reference](/docs/next/reference/operations)
+Paths accept dot and bracket notation. The [2.4 operations reference](/docs/reference/operations)
 describes new backslash escaping for literal dots, brackets, and equals signs
 in key names.
 

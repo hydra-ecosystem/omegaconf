@@ -10,8 +10,8 @@ The Docusaurus site is configured for
 <https://omegaconf.cli.dev/>. Its navigation starts with
 ordinary configs, then covers interpolation and resolvers before structured
 configs. It includes task pages, an API overview, and generated symbol details
-for two versions: 2.3.1 at `/docs/` and the current 2.4 prerelease at
-`/docs/next/`.
+for stable 2.4 at `/docs/`, the earlier 2.3.1 release at `/docs/2.3/`, and
+development documentation at `/docs/next/`.
 
 Use Node 24 (recorded in `.nvmrc`) and the pnpm version pinned in
 `package.json`. From the repository root, install the Python generator and site
@@ -32,11 +32,11 @@ future versions remain subject to the delay. Security overrides live in
 `pnpm-workspace.yaml`.
 
 The generated API pages are versioned snapshots. To regenerate or check the
-current 2.4 page from this checkout, run from `website/`:
+development page from this checkout, run from `website/`:
 
 ```sh
-../.venv/bin/python scripts/generate_api.py --source .. --version 2.4.0rc1 --output docs/reference/python-api/omegaconf.md
-../.venv/bin/python scripts/generate_api.py --source .. --version 2.4.0rc1 --output docs/reference/python-api/omegaconf.md --check
+../.venv/bin/python scripts/generate_api.py --source .. --version 2.4.0 --output docs/reference/python-api/omegaconf.md
+../.venv/bin/python scripts/generate_api.py --source .. --version 2.4.0 --output docs/reference/python-api/omegaconf.md --check
 ```
 
 The frozen 2.3 page was generated from the PyPI `omegaconf==2.3.1` source
@@ -50,7 +50,7 @@ replace the 2.3 API.
 
 ## Example and API checks
 
-CI runs selected examples directly from the Markdown pages and checks both
+CI runs selected examples directly from the Markdown pages and checks all three
 generated API snapshots before building or deploying the site. It watches
 Python source and validation dependencies as well as website changes.
 
@@ -105,8 +105,30 @@ that later blocks need, or `python doctest-skip` to explicitly exclude a block
 that is not intended to execute. Line-highlighting metadata remains supported.
 Add pages to `PAGES` in `scripts/test_examples.py` to expand coverage.
 
-The local search plugin builds separate indexes for the stable and prerelease
-routes. GitHub Actions builds pull requests and publishes changes from `main`
-to GitHub Pages. Redirects, canonical-link cutover, and final reader review are
-still pending; Read the Docs remains the canonical documentation until those
-steps are complete.
+The local search plugin builds separate indexes for the 2.4, 2.3, and Next routes.
+GitHub Actions builds pull requests and publishes changes from `main` to
+GitHub Pages. Read the Docs is retained as legacy documentation.
+
+All website source lives on `main`. The `website/docs/` directory holds
+development documentation; `website/versioned_docs/version-2.4/` holds the
+stable 2.4 snapshot. The snapshot and versioned sidebar were generated with
+`corepack pnpm exec docusaurus docs:version 2.4`. Stable documentation fixes
+must also be applied to that snapshot. The site does not read release branches.
+
+The example runner's `next` selector refers to `website/docs/`, while `2.4`
+refers to `website/versioned_docs/version-2.4/` and requires OmegaConf 2.4.0.
+During prepublication preparation, the `2.4` check may use this checkout only
+when its package version is exactly 2.4.0. After the checkout advances, CI
+downloads and installs the pinned PyPI 2.4.0 runtime and source distribution
+separately. Run the stable examples locally with:
+
+```sh
+.venv/bin/python website/scripts/test_examples.py --docs-version 2.4
+```
+
+Check the stable API snapshot with
+`scripts/generate_api.py --source <2.4.0-source> --version 2.4.0
+--output website/versioned_docs/version-2.4/reference/python-api/omegaconf.md --check`.
+The stable snapshot's authoritative source links intentionally target
+`2.4_branch`; preserve that series-specific reference when cutting a later
+versioned snapshot instead of leaving it on `main`.

@@ -1,12 +1,12 @@
 ---
 id: intro
 slug: /
-title: OmegaConf 2.3
-description: Start with OmegaConf 2.3 documentation.
+title: OmegaConf 2.4
+description: Start with OmegaConf 2.4 documentation.
 ---
 
-> **Previous release documentation:** these pages describe OmegaConf 2.3.1.
-> See the [current 2.4 documentation](/docs/).
+These pages describe OmegaConf 2.4.0. Documentation for the
+[previous 2.3 release](/docs/2.3/) is also available.
 
 OmegaConf turns Python data, YAML, and overrides into a consistent
 configuration API.
