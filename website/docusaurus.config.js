@@ -1,8 +1,8 @@
 module.exports = {
   title: 'OmegaConf',
   tagline: 'Flexible configuration for Python',
-  url: 'https://hydra-ecosystem.github.io',
-  baseUrl: '/omegaconf/',
+  url: 'https://omegaconf.cli.dev',
+  baseUrl: '/',
   favicon: 'img/omegaconf-mark.svg',
   onBrokenLinks: 'throw',
   onBrokenAnchors: 'throw',

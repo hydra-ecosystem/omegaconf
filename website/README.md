@@ -6,12 +6,12 @@ The directory and audit schedule are configured in
 [`.github/docusaurus.json`](../.github/docusaurus.json); shared implementation
 files under `.github/docusaurus/` are copied unchanged from the producer.
 
-The Docusaurus site is published at
-<https://hydra-ecosystem.github.io/omegaconf/>. Its navigation starts with
+The Docusaurus site is configured for
+<https://omegaconf.cli.dev/>. Its navigation starts with
 ordinary configs, then covers interpolation and resolvers before structured
 configs. It includes task pages, an API overview, and generated symbol details
-for two versions: 2.3.1 at `/omegaconf/docs/` and the current 2.4 prerelease at
-`/omegaconf/docs/next/`.
+for two versions: 2.3.1 at `/docs/` and the current 2.4 prerelease at
+`/docs/next/`.
 
 Use Node 24 (recorded in `.nvmrc`) and the pnpm version pinned in
 `package.json`. From the repository root, install the Python generator and site
