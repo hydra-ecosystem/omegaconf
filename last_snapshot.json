@@ -10,7 +10,7 @@
     "1391": "2026-10-04",
     "459": "2026-09-25"
   },
-  "generated_at": "2026-10-08T05:04:31Z",
+  "generated_at": "2026-10-08T10:12:42Z",
   "issues": {
     "1024": {
       "category": "Enhancement",
@@ -269,6 +269,16 @@
       "status": "not started",
       "title": "Add website example tests and API drift checks to CI",
       "updated_at": "2026-10-02T15:49:25Z"
+    },
+    "1405": {
+      "category": "Documentation",
+      "created_at": "2026-10-08T10:11:21Z",
+      "labels": [],
+      "pr_numbers": [],
+      "state": "OPEN",
+      "status": "not started",
+      "title": "Complete documentation cutover and retain RTD as the pre-2.4 archive",
+      "updated_at": "2026-10-08T10:11:21Z"
     },
     "144": {
       "category": "Enhancement",

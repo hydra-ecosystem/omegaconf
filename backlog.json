@@ -1,9 +1,9 @@
 {
   "generated_on": "2026-10-08",
-  "generated_at": "2026-10-08T05:04:31Z",
+  "generated_at": "2026-10-08T10:12:42Z",
   "repo": "hydra-ecosystem/omegaconf",
   "summary": {
-    "open_total": 26,
+    "open_total": 27,
     "by_category": [
       {
         "category": "Bug",
@@ -15,13 +15,13 @@
         "category": "Enhancement",
         "emoji": "✨",
         "count": 22,
-        "percentage": 84.6
+        "percentage": 81.5
       },
       {
         "category": "Documentation",
         "emoji": "📄",
-        "count": 1,
-        "percentage": 3.8
+        "count": 2,
+        "percentage": 7.4
       },
       {
         "category": "Question",
@@ -33,13 +33,13 @@
         "category": "Refactor",
         "emoji": "🔧",
         "count": 2,
-        "percentage": 7.7
+        "percentage": 7.4
       },
       {
         "category": "Build",
         "emoji": "🏗️",
         "count": 1,
-        "percentage": 3.8
+        "percentage": 3.7
       }
     ],
     "by_status": [
@@ -61,7 +61,7 @@
       {
         "status": "not started",
         "emoji": "⬜",
-        "count": 26
+        "count": 27
       },
       {
         "status": "done",
@@ -473,6 +473,19 @@
       "url": "https://github.com/hydra-ecosystem/omegaconf/issues/1388"
     },
     {
+      "number": 1405,
+      "title": "Complete documentation cutover and retain RTD as the pre-2.4 archive",
+      "category": "Documentation",
+      "category_emoji": "📄",
+      "status": "not started",
+      "status_emoji": "⬜",
+      "prs": [],
+      "created": "2026-10-08",
+      "updated": "2026-10-08",
+      "labels": [],
+      "url": "https://github.com/hydra-ecosystem/omegaconf/issues/1405"
+    },
+    {
       "number": 459,
       "title": "Consider deprecating assignment of strings to non-string nodes like IntegerNode / FloatNode",
       "category": "Enhancement",
@@ -644,6 +657,13 @@
     }
   ],
   "updates": [
+    {
+      "ts": "2026-10-08T10:12:42Z",
+      "kind": "new",
+      "issue": 1405,
+      "issue_url": "https://github.com/hydra-ecosystem/omegaconf/issues/1405",
+      "title": "Complete documentation cutover and retain RTD as the pre-2.4 archive"
+    },
     {
       "ts": "2026-10-04T16:37:21Z",
       "kind": "closed",
@@ -2302,13 +2322,6 @@
       "issue": 1314,
       "issue_url": "https://github.com/omry/omegaconf/issues/1314",
       "title": "OmegaConf exceptions can retain caller frame locals until cyclic GC"
-    },
-    {
-      "ts": "2026-06-10T17:44:00Z",
-      "kind": "closed",
-      "issue": 945,
-      "issue_url": "https://github.com/omry/omegaconf/issues/945",
-      "title": "`get_attr_data` doesn't handle default factory correctly"
     }
   ]
 }
