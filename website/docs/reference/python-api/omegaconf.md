@@ -153,7 +153,7 @@ when ``obj`` is a YAML string. By default, OmegaConf uses the
 ``OMEGACONF_MAX_YAML_EXPANDED_NODES`` environment variable if set,
 otherwise ``10_000``. Explicit arguments override the environment.
 Pass ``None`` only for trusted input. See
-https://omegaconf.readthedocs.io/en/latest/yaml_aliases.html.
+https://omegaconf.cli.dev/docs/next/reference/yaml-alias-limits/.
 
 **Returns:**
 
@@ -430,7 +430,7 @@ By default, OmegaConf uses the
 ``OMEGACONF_MAX_YAML_EXPANDED_NODES`` environment variable if set,
 otherwise ``10_000``. Explicit arguments override the environment.
 Pass ``None`` only for trusted input. See
-https://omegaconf.readthedocs.io/en/latest/yaml_aliases.html.
+https://omegaconf.cli.dev/docs/next/reference/yaml-alias-limits/.
 
 **Returns:**
 
@@ -732,7 +732,7 @@ when ``obj`` is a YAML string. By default, OmegaConf uses the
 ``OMEGACONF_MAX_YAML_EXPANDED_NODES`` environment variable if set,
 otherwise ``10_000``. Explicit arguments override the environment.
 Pass ``None`` only for trusted input. See
-https://omegaconf.readthedocs.io/en/latest/yaml_aliases.html.
+https://omegaconf.cli.dev/docs/next/reference/yaml-alias-limits/.
 
 **Returns:**
 

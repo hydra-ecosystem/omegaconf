@@ -245,7 +245,7 @@ class OmegaConf:
             ``OMEGACONF_MAX_YAML_EXPANDED_NODES`` environment variable if set,
             otherwise ``10_000``. Explicit arguments override the environment.
             Pass ``None`` only for trusted input. See
-            https://omegaconf.readthedocs.io/en/latest/yaml_aliases.html.
+            https://omegaconf.cli.dev/docs/next/reference/yaml-alias-limits/.
         :return: A ``DictConfig``, ``ListConfig``, ``TupleConfig``, or ``None``.
         """
         return OmegaConf.create(
@@ -356,7 +356,7 @@ class OmegaConf:
             ``OMEGACONF_MAX_YAML_EXPANDED_NODES`` environment variable if set,
             otherwise ``10_000``. Explicit arguments override the environment.
             Pass ``None`` only for trusted input. See
-            https://omegaconf.readthedocs.io/en/latest/yaml_aliases.html.
+            https://omegaconf.cli.dev/docs/next/reference/yaml-alias-limits/.
         :return: A ``DictConfig``, ``ListConfig``, ``TupleConfig``, or ``None``.
         """
         return OmegaConf._create_impl(
@@ -434,7 +434,7 @@ class OmegaConf:
             ``OMEGACONF_MAX_YAML_EXPANDED_NODES`` environment variable if set,
             otherwise ``10_000``. Explicit arguments override the environment.
             Pass ``None`` only for trusted input. See
-            https://omegaconf.readthedocs.io/en/latest/yaml_aliases.html.
+            https://omegaconf.cli.dev/docs/next/reference/yaml-alias-limits/.
         :return: A ``DictConfig`` or ``ListConfig`` parsed from the YAML content.
         """
         if isinstance(file_, (str, pathlib.Path)):
