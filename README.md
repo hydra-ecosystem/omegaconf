@@ -12,7 +12,7 @@
 | --- | --- |
 | Project | [![PyPI version](https://badge.fury.io/py/omegaconf.svg)](https://badge.fury.io/py/omegaconf)[![Downloads](https://pepy.tech/badge/omegaconf/month)](https://pepy.tech/project/omegaconf)![Python](https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12%20%7C%203.13%20%7C%203.14-blue) |
 | Code quality| [![CircleCI](https://dl.circleci.com/status-badge/img/gh/hydra-ecosystem/omegaconf/tree/main.svg?style=svg)](https://app.circleci.com/pipelines/github/hydra-ecosystem/omegaconf?branch=main)[![Coverage Status](https://coveralls.io/repos/github/hydra-ecosystem/omegaconf/badge.svg)](https://coveralls.io/github/hydra-ecosystem/omegaconf)|
-| Docs, support, and ecosystem |[![Documentation Status](https://readthedocs.org/projects/omegaconf/badge/?version=2.0_branch)](https://omegaconf.readthedocs.io/en/2.3_branch/)[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/hydra-ecosystem/omegaconf/main?filepath=docs%2Fnotebook%2FTutorial.ipynb)[![Zulip chat](https://img.shields.io/badge/chat-Zulip-2e77d0?logo=zulip)](https://hydra-framework.zulipchat.com/)[![ecosystem: cli.dev](https://cli.dev/img/badges/cli-dev-ecosystem.svg)](https://cli.dev)|
+| Docs, support, and ecosystem |[![Documentation Status](https://github.com/hydra-ecosystem/omegaconf/actions/workflows/deploy-docs.yml/badge.svg?branch=main)](https://omegaconf.cli.dev/)[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/hydra-ecosystem/omegaconf/main?filepath=docs%2Fnotebook%2FTutorial.ipynb)[![Zulip chat](https://img.shields.io/badge/chat-Zulip-2e77d0?logo=zulip)](https://hydra-framework.zulipchat.com/)[![ecosystem: cli.dev](https://cli.dev/img/badges/cli-dev-ecosystem.svg)](https://cli.dev)|
 | Backlog | [![Backlog Atlas dashboard](https://omry.github.io/backlog-atlas/badge.svg)](https://omry.github.io/backlog-atlas/) |
 
 
@@ -27,7 +27,7 @@ providing a consistent API regardless of how the configuration was created.
 
 ### Upcoming (2.4.0)
 OmegaConf 2.4.0 is in release candidate testing.
-* [Documentation](https://omegaconf.readthedocs.io/en/latest/)
+* [Documentation](https://omegaconf.cli.dev/docs/next/)
 * [Source code](https://github.com/hydra-ecosystem/omegaconf/tree/main)
 
 Install with `pip install --upgrade --pre omegaconf`
@@ -35,7 +35,7 @@ Install with `pip install --upgrade --pre omegaconf`
 ### Stable (2.3)
 OmegaConf 2.3 is the current stable version.
 * [What's new](https://github.com/hydra-ecosystem/omegaconf/releases/tag/v2.3.0)
-* [Documentation](https://omegaconf.readthedocs.io/en/2.3_branch/)
+* [Documentation](https://omegaconf.cli.dev/docs/)
 * [Source code](https://github.com/hydra-ecosystem/omegaconf/tree/2.3_branch)
 
 Install with `pip install --upgrade omegaconf`

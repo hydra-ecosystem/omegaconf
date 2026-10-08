@@ -85,7 +85,7 @@ def test_load_yaml_alias_expansion_limit_can_be_configured_by_environment(
     monkeypatch.setenv("OMEGACONF_MAX_YAML_EXPANDED_NODES", "8")
     with raises(
         yaml.constructor.ConstructorError,
-        match="configured limit of 8.*yaml_aliases\\.html",
+        match="configured limit of 8.*yaml-alias-limits/",
     ):
         OmegaConf.load(filename)
 
@@ -109,7 +109,7 @@ def test_load_yaml_alias_expansion_limit_argument_overrides_environment(
     monkeypatch.setenv("OMEGACONF_MAX_YAML_EXPANDED_NODES", "none")
     with raises(
         yaml.constructor.ConstructorError,
-        match="configured limit of 8.*yaml_aliases\\.html",
+        match="configured limit of 8.*yaml-alias-limits/",
     ):
         OmegaConf.load(filename, max_yaml_expanded_nodes=8)
 

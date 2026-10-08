@@ -15,7 +15,7 @@ except ImportError:  # pragma: no cover
 # This URL is also spelled out in public OmegaConf docstrings so IDE/help() views
 # show it; keep those docstrings in sync if the docs move.
 _YAML_ALIAS_EXPANSION_DOCS_URL = (
-    "https://omegaconf.readthedocs.io/en/latest/yaml_aliases.html"
+    "https://omegaconf.cli.dev/docs/next/reference/yaml-alias-limits/"
 )
 _MAX_YAML_ALIAS_EXPANSION_RATIO = 100
 _MIN_YAML_ALIAS_EXPANSION_RATIO_NODES = 1_000

@@ -545,7 +545,7 @@ def test_yaml_alias_amplification_limit() -> None:
         yaml.constructor.ConstructorError,
         match=(
             "YAML aliases expand the document from 6 nodes to 1206 nodes, "
-            "exceeding the supported ratio of 100x.*yaml_aliases\\.html"
+            "exceeding the supported ratio of 100x.*yaml-alias-limits/"
         ),
     ):
         OmegaConf.create(yaml_document)
@@ -581,7 +581,7 @@ def test_yaml_alias_expansion_limit_can_be_configured_by_environment(
     monkeypatch.setenv("OMEGACONF_MAX_YAML_EXPANDED_NODES", "8")
     with raises(
         yaml.constructor.ConstructorError,
-        match="configured limit of 8.*yaml_aliases\\.html",
+        match="configured limit of 8.*yaml-alias-limits/",
     ):
         OmegaConf.create(yaml_document)
 
@@ -611,7 +611,7 @@ def test_yaml_alias_expansion_limit_argument_overrides_environment(
     monkeypatch.setenv("OMEGACONF_MAX_YAML_EXPANDED_NODES", "none")
     with raises(
         yaml.constructor.ConstructorError,
-        match="YAML node expansion.*yaml_aliases\\.html",
+        match="YAML node expansion.*yaml-alias-limits/",
     ):
         OmegaConf.create(yaml_document, max_yaml_expanded_nodes=10_000)
 
