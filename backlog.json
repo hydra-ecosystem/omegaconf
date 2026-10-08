@@ -1,6 +1,6 @@
 {
   "generated_on": "2026-10-08",
-  "generated_at": "2026-10-08T13:52:23Z",
+  "generated_at": "2026-10-08T14:22:43Z",
   "repo": "hydra-ecosystem/omegaconf",
   "summary": {
     "open_total": 27,
@@ -80,8 +80,8 @@
       "status_emoji": "🔄",
       "prs": [
         {
-          "number": 1408,
-          "url": "https://github.com/hydra-ecosystem/omegaconf/pull/1408"
+          "number": 1409,
+          "url": "https://github.com/hydra-ecosystem/omegaconf/pull/1409"
         }
       ],
       "created": "2026-10-08",
@@ -662,6 +662,22 @@
     }
   ],
   "updates": [
+    {
+      "ts": "2026-10-08T14:22:43Z",
+      "kind": "pr",
+      "issue": 1405,
+      "issue_url": "https://github.com/hydra-ecosystem/omegaconf/issues/1405",
+      "title": "Complete documentation cutover and retain RTD as the pre-2.4 archive",
+      "detail": "unlinked #1408"
+    },
+    {
+      "ts": "2026-10-08T14:22:43Z",
+      "kind": "pr",
+      "issue": 1405,
+      "issue_url": "https://github.com/hydra-ecosystem/omegaconf/issues/1405",
+      "title": "Complete documentation cutover and retain RTD as the pre-2.4 archive",
+      "detail": "linked #1409"
+    },
     {
       "ts": "2026-10-08T13:52:23Z",
       "kind": "pr",
@@ -2316,21 +2332,6 @@
       "issue": 1126,
       "issue_url": "https://github.com/omry/omegaconf/issues/1126",
       "title": "Improve error message for relative interpolations"
-    },
-    {
-      "ts": "2026-06-11T12:27:09Z",
-      "kind": "closed",
-      "issue": 1120,
-      "issue_url": "https://github.com/omry/omegaconf/issues/1120",
-      "title": "Escaped resolver modifying `_root_` doesn't work"
-    },
-    {
-      "ts": "2026-06-11T11:59:42Z",
-      "kind": "pr",
-      "issue": 1126,
-      "issue_url": "https://github.com/omry/omegaconf/issues/1126",
-      "title": "Improve error message for relative interpolations",
-      "detail": "linked #1317"
     }
   ]
 }
