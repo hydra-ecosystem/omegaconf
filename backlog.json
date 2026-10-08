@@ -1,9 +1,9 @@
 {
   "generated_on": "2026-10-08",
-  "generated_at": "2026-10-08T14:58:28Z",
+  "generated_at": "2026-10-08T15:59:34Z",
   "repo": "hydra-ecosystem/omegaconf",
   "summary": {
-    "open_total": 27,
+    "open_total": 26,
     "by_category": [
       {
         "category": "Bug",
@@ -15,13 +15,13 @@
         "category": "Enhancement",
         "emoji": "✨",
         "count": 22,
-        "percentage": 81.5
+        "percentage": 84.6
       },
       {
         "category": "Documentation",
         "emoji": "📄",
-        "count": 2,
-        "percentage": 7.4
+        "count": 1,
+        "percentage": 3.8
       },
       {
         "category": "Question",
@@ -33,13 +33,13 @@
         "category": "Refactor",
         "emoji": "🔧",
         "count": 2,
-        "percentage": 7.4
+        "percentage": 7.7
       },
       {
         "category": "Build",
         "emoji": "🏗️",
         "count": 1,
-        "percentage": 3.7
+        "percentage": 3.8
       }
     ],
     "by_status": [
@@ -61,12 +61,12 @@
       {
         "status": "not started",
         "emoji": "⬜",
-        "count": 27
+        "count": 26
       },
       {
         "status": "done",
         "emoji": "✅",
-        "count": 9
+        "count": 10
       }
     ]
   },
@@ -275,21 +275,6 @@
         "RFC"
       ],
       "url": "https://github.com/hydra-ecosystem/omegaconf/issues/1255"
-    },
-    {
-      "number": 1282,
-      "title": "Migrate Documentation from Read the docs to a GitHub hosted Docusaurus)",
-      "category": "Documentation",
-      "category_emoji": "📄",
-      "status": "not started",
-      "status_emoji": "⬜",
-      "prs": [],
-      "created": "2026-04-26",
-      "updated": "2026-09-30",
-      "labels": [
-        "documentation"
-      ],
-      "url": "https://github.com/hydra-ecosystem/omegaconf/issues/1282"
     },
     {
       "number": 1288,
@@ -654,9 +639,31 @@
       "updated": "2026-10-04",
       "labels": [],
       "url": "https://github.com/hydra-ecosystem/omegaconf/issues/1391"
+    },
+    {
+      "number": 1282,
+      "title": "Migrate Documentation from Read the docs to a GitHub hosted Docusaurus)",
+      "category": "Documentation",
+      "category_emoji": "📄",
+      "status": "done",
+      "status_emoji": "✅",
+      "prs": [],
+      "created": "2026-04-26",
+      "updated": "2026-09-30",
+      "labels": [
+        "documentation"
+      ],
+      "url": "https://github.com/hydra-ecosystem/omegaconf/issues/1282"
     }
   ],
   "updates": [
+    {
+      "ts": "2026-10-08T15:59:34Z",
+      "kind": "closed",
+      "issue": 1282,
+      "issue_url": "https://github.com/hydra-ecosystem/omegaconf/issues/1282",
+      "title": "Migrate Documentation from Read the docs to a GitHub hosted Docusaurus)"
+    },
     {
       "ts": "2026-10-08T14:58:28Z",
       "kind": "pr",
@@ -2318,14 +2325,6 @@
       "issue": 1095,
       "issue_url": "https://github.com/omry/omegaconf/issues/1095",
       "title": "Validation error merging structured configs containing enum in a nested list"
-    },
-    {
-      "ts": "2026-06-12T15:01:14Z",
-      "kind": "pr",
-      "issue": 1095,
-      "issue_url": "https://github.com/omry/omegaconf/issues/1095",
-      "title": "Validation error merging structured configs containing enum in a nested list",
-      "detail": "linked #1320"
     }
   ]
 }

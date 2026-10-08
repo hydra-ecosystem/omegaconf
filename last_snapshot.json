@@ -1,6 +1,7 @@
 {
   "closed_at": {
     "1274": "2026-09-25",
+    "1282": "2026-10-08",
     "1302": "2026-09-27",
     "1332": "2026-09-28",
     "1334": "2026-09-28",
@@ -10,7 +11,7 @@
     "1391": "2026-10-04",
     "459": "2026-09-25"
   },
-  "generated_at": "2026-10-08T14:58:28Z",
+  "generated_at": "2026-10-08T15:59:34Z",
   "issues": {
     "1024": {
       "category": "Enhancement",
@@ -99,18 +100,6 @@
       "status": "not started",
       "title": "Evaluate migrating packaging metadata and build config to pyproject.toml",
       "updated_at": "2026-07-21T06:50:46Z"
-    },
-    "1282": {
-      "category": "Documentation",
-      "created_at": "2026-04-26T10:51:21Z",
-      "labels": [
-        "documentation"
-      ],
-      "pr_numbers": [],
-      "state": "OPEN",
-      "status": "not started",
-      "title": "Migrate Documentation from Read the docs to a GitHub hosted Docusaurus)",
-      "updated_at": "2026-09-30T22:34:28Z"
     },
     "1288": {
       "category": "Enhancement",
@@ -360,6 +349,18 @@
       "status": "done",
       "title": "Python 3.10 minimum: remove version guards and modernize type annotations",
       "updated_at": "2026-07-20T14:29:27Z"
+    },
+    "1282": {
+      "category": "Documentation",
+      "created_at": "2026-04-26T10:51:21Z",
+      "labels": [
+        "documentation"
+      ],
+      "pr_numbers": [],
+      "state": "CLOSED",
+      "status": "done",
+      "title": "Migrate Documentation from Read the docs to a GitHub hosted Docusaurus)",
+      "updated_at": "2026-09-30T22:34:28Z"
     },
     "1302": {
       "category": "Enhancement",

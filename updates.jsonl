@@ -227,3 +227,4 @@
 {"ts": "2026-10-08T14:52:11Z", "kind": "pr", "issue": 1405, "issue_url": "https://github.com/hydra-ecosystem/omegaconf/issues/1405", "title": "Complete documentation cutover and retain RTD as the pre-2.4 archive", "detail": "linked #1410"}
 {"ts": "2026-10-08T14:58:28Z", "kind": "status", "issue": 1405, "issue_url": "https://github.com/hydra-ecosystem/omegaconf/issues/1405", "title": "Complete documentation cutover and retain RTD as the pre-2.4 archive", "detail": "in progress → not started"}
 {"ts": "2026-10-08T14:58:28Z", "kind": "pr", "issue": 1405, "issue_url": "https://github.com/hydra-ecosystem/omegaconf/issues/1405", "title": "Complete documentation cutover and retain RTD as the pre-2.4 archive", "detail": "unlinked #1410"}
+{"ts": "2026-10-08T15:59:34Z", "kind": "closed", "issue": 1282, "issue_url": "https://github.com/hydra-ecosystem/omegaconf/issues/1282", "title": "Migrate Documentation from Read the docs to a GitHub hosted Docusaurus)"}
