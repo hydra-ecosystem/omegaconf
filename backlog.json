@@ -1,6 +1,6 @@
 {
   "generated_on": "2026-10-08",
-  "generated_at": "2026-10-08T10:12:42Z",
+  "generated_at": "2026-10-08T11:31:28Z",
   "repo": "hydra-ecosystem/omegaconf",
   "summary": {
     "open_total": 27,
@@ -46,7 +46,7 @@
       {
         "status": "in progress",
         "emoji": "🔄",
-        "count": 0
+        "count": 1
       },
       {
         "status": "community PR",
@@ -61,7 +61,7 @@
       {
         "status": "not started",
         "emoji": "⬜",
-        "count": 27
+        "count": 26
       },
       {
         "status": "done",
@@ -71,6 +71,24 @@
     ]
   },
   "issues": [
+    {
+      "number": 1405,
+      "title": "Complete documentation cutover and retain RTD as the pre-2.4 archive",
+      "category": "Documentation",
+      "category_emoji": "📄",
+      "status": "in progress",
+      "status_emoji": "🔄",
+      "prs": [
+        {
+          "number": 1406,
+          "url": "https://github.com/hydra-ecosystem/omegaconf/pull/1406"
+        }
+      ],
+      "created": "2026-10-08",
+      "updated": "2026-10-08",
+      "labels": [],
+      "url": "https://github.com/hydra-ecosystem/omegaconf/issues/1405"
+    },
     {
       "number": 91,
       "title": "Consider supporting basic operators in interpolations of numbers",
@@ -473,19 +491,6 @@
       "url": "https://github.com/hydra-ecosystem/omegaconf/issues/1388"
     },
     {
-      "number": 1405,
-      "title": "Complete documentation cutover and retain RTD as the pre-2.4 archive",
-      "category": "Documentation",
-      "category_emoji": "📄",
-      "status": "not started",
-      "status_emoji": "⬜",
-      "prs": [],
-      "created": "2026-10-08",
-      "updated": "2026-10-08",
-      "labels": [],
-      "url": "https://github.com/hydra-ecosystem/omegaconf/issues/1405"
-    },
-    {
       "number": 459,
       "title": "Consider deprecating assignment of strings to non-string nodes like IntegerNode / FloatNode",
       "category": "Enhancement",
@@ -657,6 +662,26 @@
     }
   ],
   "updates": [
+    {
+      "ts": "2026-10-08T11:31:28Z",
+      "kind": "pr",
+      "issue": 1405,
+      "issue_url": "https://github.com/hydra-ecosystem/omegaconf/issues/1405",
+      "title": "Complete documentation cutover and retain RTD as the pre-2.4 archive",
+      "detail": "linked #1406"
+    },
+    {
+      "ts": "2026-10-08T11:31:28Z",
+      "kind": "status",
+      "issue": 1405,
+      "issue_url": "https://github.com/hydra-ecosystem/omegaconf/issues/1405",
+      "title": "Complete documentation cutover and retain RTD as the pre-2.4 archive",
+      "detail": "not started → in progress",
+      "pr": {
+        "number": 1406,
+        "url": "https://github.com/hydra-ecosystem/omegaconf/pull/1406"
+      }
+    },
     {
       "ts": "2026-10-08T10:12:42Z",
       "kind": "new",
@@ -2308,20 +2333,6 @@
         "number": 1316,
         "url": "https://github.com/omry/omegaconf/pull/1316"
       }
-    },
-    {
-      "ts": "2026-06-11T02:53:14Z",
-      "kind": "new",
-      "issue": 1315,
-      "issue_url": "https://github.com/omry/omegaconf/issues/1315",
-      "title": "Released sdist (2.3.0) fails to install from source under setuptools >= 82 — fix exists at HEAD, please cut a release"
-    },
-    {
-      "ts": "2026-06-10T21:11:21Z",
-      "kind": "new",
-      "issue": 1314,
-      "issue_url": "https://github.com/omry/omegaconf/issues/1314",
-      "title": "OmegaConf exceptions can retain caller frame locals until cyclic GC"
     }
   ]
 }
