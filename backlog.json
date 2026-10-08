@@ -1,6 +1,6 @@
 {
   "generated_on": "2026-10-08",
-  "generated_at": "2026-10-08T14:30:05Z",
+  "generated_at": "2026-10-08T14:52:11Z",
   "repo": "hydra-ecosystem/omegaconf",
   "summary": {
     "open_total": 27,
@@ -46,7 +46,7 @@
       {
         "status": "in progress",
         "emoji": "🔄",
-        "count": 0
+        "count": 1
       },
       {
         "status": "community PR",
@@ -61,7 +61,7 @@
       {
         "status": "not started",
         "emoji": "⬜",
-        "count": 27
+        "count": 26
       },
       {
         "status": "done",
@@ -71,6 +71,24 @@
     ]
   },
   "issues": [
+    {
+      "number": 1405,
+      "title": "Complete documentation cutover and retain RTD as the pre-2.4 archive",
+      "category": "Documentation",
+      "category_emoji": "📄",
+      "status": "in progress",
+      "status_emoji": "🔄",
+      "prs": [
+        {
+          "number": 1410,
+          "url": "https://github.com/hydra-ecosystem/omegaconf/pull/1410"
+        }
+      ],
+      "created": "2026-10-08",
+      "updated": "2026-10-08",
+      "labels": [],
+      "url": "https://github.com/hydra-ecosystem/omegaconf/issues/1405"
+    },
     {
       "number": 91,
       "title": "Consider supporting basic operators in interpolations of numbers",
@@ -473,19 +491,6 @@
       "url": "https://github.com/hydra-ecosystem/omegaconf/issues/1388"
     },
     {
-      "number": 1405,
-      "title": "Complete documentation cutover and retain RTD as the pre-2.4 archive",
-      "category": "Documentation",
-      "category_emoji": "📄",
-      "status": "not started",
-      "status_emoji": "⬜",
-      "prs": [],
-      "created": "2026-10-08",
-      "updated": "2026-10-08",
-      "labels": [],
-      "url": "https://github.com/hydra-ecosystem/omegaconf/issues/1405"
-    },
-    {
       "number": 459,
       "title": "Consider deprecating assignment of strings to non-string nodes like IntegerNode / FloatNode",
       "category": "Enhancement",
@@ -657,6 +662,26 @@
     }
   ],
   "updates": [
+    {
+      "ts": "2026-10-08T14:52:11Z",
+      "kind": "pr",
+      "issue": 1405,
+      "issue_url": "https://github.com/hydra-ecosystem/omegaconf/issues/1405",
+      "title": "Complete documentation cutover and retain RTD as the pre-2.4 archive",
+      "detail": "linked #1410"
+    },
+    {
+      "ts": "2026-10-08T14:52:11Z",
+      "kind": "status",
+      "issue": 1405,
+      "issue_url": "https://github.com/hydra-ecosystem/omegaconf/issues/1405",
+      "title": "Complete documentation cutover and retain RTD as the pre-2.4 archive",
+      "detail": "not started → in progress",
+      "pr": {
+        "number": 1410,
+        "url": "https://github.com/hydra-ecosystem/omegaconf/pull/1410"
+      }
+    },
     {
       "ts": "2026-10-08T14:25:15Z",
       "kind": "pr",
@@ -2309,21 +2334,6 @@
       "issue": 771,
       "issue_url": "https://github.com/omry/omegaconf/issues/771",
       "title": "Document special treatment of \"???\" by OmegaConf.merge"
-    },
-    {
-      "ts": "2026-06-11T17:11:55Z",
-      "kind": "closed",
-      "issue": 1102,
-      "issue_url": "https://github.com/omry/omegaconf/issues/1102",
-      "title": "Merging nested readonly structured configs doesn't work."
-    },
-    {
-      "ts": "2026-06-11T15:41:53Z",
-      "kind": "pr",
-      "issue": 1102,
-      "issue_url": "https://github.com/omry/omegaconf/issues/1102",
-      "title": "Merging nested readonly structured configs doesn't work.",
-      "detail": "linked #1318"
     }
   ]
 }
