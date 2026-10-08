@@ -75,7 +75,7 @@ def run_page(page: Path, docs_version: str) -> doctest.TestResults:
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--docs-version", choices=("2.3", "next"), required=True)
+    parser.add_argument("--docs-version", choices=("2.3", "2.4", "next"), required=True)
     parser.add_argument("--page", type=Path, help="Run only this Markdown page")
     args = parser.parse_args()
 
@@ -84,6 +84,9 @@ def main() -> int:
     if args.docs_version == "2.3":
         expected = "2.3.1"
         root = WEBSITE / "versioned_docs" / "version-2.3"
+    elif args.docs_version == "2.4":
+        expected = "2.4.0"
+        root = WEBSITE / "versioned_docs" / "version-2.4"
     else:
         version_source = (WEBSITE.parent / "omegaconf" / "version.py").read_text()
         match = re.search(r'__version__\s*=\s*"([^"]+)"', version_source)
@@ -100,7 +103,7 @@ def main() -> int:
         return int(run_page(args.page, args.docs_version).failed != 0)
 
     pages = list(PAGES)
-    if args.docs_version == "next":
+    if args.docs_version in ("2.4", "next"):
         pages.append("migration/2.4.md")
     failed = False
     for page in pages:

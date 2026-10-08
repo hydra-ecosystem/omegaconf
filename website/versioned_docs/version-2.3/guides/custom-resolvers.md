@@ -102,7 +102,7 @@ True
 
 ```
 
-The [2.4 resolver guide](/docs/next/guides/custom-resolvers) describes the
+The [2.4 resolver guide](/docs/guides/custom-resolvers) describes the
 new `OmegaConf.register_resolver()` API and annotation validation.
 See [built-in resolvers](../reference/built-in-resolvers) for `oc.env`,
 `oc.select`, and other resolvers provided by OmegaConf.

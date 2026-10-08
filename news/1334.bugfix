@@ -1,1 +1,0 @@
-``OmegaConf.resolve()`` now resolves nested interpolations in resolver-returned containers in one call, including when another field refers to the container before its field is visited.

@@ -1,1 +1,0 @@
-Fixed validation for union-typed values nested in structured config containers during merges and interpolation resolution.

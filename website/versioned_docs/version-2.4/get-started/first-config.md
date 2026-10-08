@@ -5,7 +5,7 @@ description: Create a config, use string interpolation, and merge configs.
 
 Create a config from a Python dictionary, use string interpolation, and merge
 configs.
-You can run each example in a Python interpreter with OmegaConf 2.3 installed.
+You can run each example in a Python interpreter with OmegaConf installed.
 
 > **By the end:** you'll have a merged config that preserves a default, changes
 > another value, and adds a new setting while the original stays unchanged.
@@ -60,9 +60,10 @@ The merged config keeps `host` from the original, replaces `port`, and adds
 `debug`. The interpolated `url` automatically uses the new port, while the
 original config remains unchanged.
 
-OmegaConf 2.4 adds `|` to create a merged dictionary config and `|=` to merge
-into an existing one. These operators are unavailable in 2.3; see
-[Merge configs in 2.4](/docs/guides/merge#dictionary-union-operators).
+Dictionary configs also support `|` and `|=`. Use
+`config | {"port": 8080, "debug": True}` to create a merged config, or
+`config |= {"port": 8080, "debug": True}` to merge into the existing config.
+See [Merge configs](../guides/merge#dictionary-union-operators) for details.
 
 Continue with
 [config containers](../concepts/configs-and-values) to learn how to change

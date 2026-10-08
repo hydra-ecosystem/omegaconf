@@ -43,12 +43,18 @@ to code expecting plain Python containers, use
 [`OmegaConf.to_container()`](../reference/operations#convert-or-resolve).
 
 Dictionary keys may be `str`, `int`, `bool`, `float`, `bytes`, or Enum members.
+An integer path element can refer to either the integer key `1` or the string
+key `"1"`; a `DictConfig` cannot contain both because the path would be
+ambiguous. This fallback does not infer other non-string key types from path
+text.
 
 ## Sequence containers
 
-Lists become mutable `ListConfig` values. In 2.3, native tuples also become
-mutable `ListConfig` values. This changes in
-[OmegaConf 2.4](/docs/migration/2.4#tuple-inputs-no-longer-become-mutable-lists).
+Lists become mutable `ListConfig` values. In 2.4, tuples become structurally
+immutable `TupleConfig` values. Use a list when you need to change individual elements;
+replace the whole tuple when you need different tuple contents. The
+[upgrade guide](../migration/2.4#tuple-inputs-no-longer-become-mutable-lists) explains the change from
+earlier releases.
 
 Next, learn how to [mark a value as missing](./missing-values) when it must be
 provided later.

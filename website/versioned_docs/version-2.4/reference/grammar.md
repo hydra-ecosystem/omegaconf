@@ -4,9 +4,10 @@ description: Syntax for node and resolver interpolation, arguments, and escaping
 ---
 
 OmegaConf parses interpolation strings with an ANTLR grammar. The
-[lexer](https://github.com/hydra-ecosystem/omegaconf/blob/v2.3.1/omegaconf/grammar/OmegaConfGrammarLexer.g4)
-and [parser](https://github.com/hydra-ecosystem/omegaconf/blob/v2.3.1/omegaconf/grammar/OmegaConfGrammarParser.g4)
-for 2.3 are the authoritative definitions.
+[lexer](https://github.com/hydra-ecosystem/omegaconf/blob/2.4_branch/omegaconf/grammar/OmegaConfGrammarLexer.g4)
+and [parser](https://github.com/hydra-ecosystem/omegaconf/blob/2.4_branch/omegaconf/grammar/OmegaConfGrammarParser.g4)
+are the authoritative definitions. This page summarizes the forms readers
+write in configs.
 
 ## Interpolation strings
 
@@ -18,10 +19,27 @@ type; string interpolation produces a string.
 
 ## Node references
 
-Paths accept dots and brackets: `${host}` and `${servers[0].port}` are
-examples. A leading dot makes the path relative to the current container;
-additional leading dots move up the tree. Nested interpolations can select
-a path dynamically, as in `${plans[${selected_plan}]}`.
+Paths accept dots and brackets: `${host}`, `${servers[0].port}`, and
+`${[some.key]}` are examples. A leading dot makes the path relative to the
+current container; additional leading dots move up the tree. Nested
+interpolations can select a path dynamically, as in
+`${plans[${selected_plan}]}`.
+
+In 2.4, escape a literal dot, bracket, or colon within a key name with a
+backslash. `${a\.b}` addresses the key `a.b`; `${a.b}` addresses `b` under
+`a`. Use two backslashes for a literal backslash in the key. Escapes are
+interpreted once when resolving the path.
+
+Key-path escaping is separate from escaping an interpolation. Here the
+backslash makes the dot part of one key name:
+
+```python
+>>> from omegaconf import OmegaConf
+>>> cfg = OmegaConf.create({"a.b": 10, "ref": r"${a\.b}"})
+>>> cfg.ref
+10
+
+```
 
 ## Resolver arguments
 
@@ -58,7 +76,7 @@ This table covers the cases where quoting or escaping changes the parse:
 | Unquoted string | Slash, hyphen, backslash, plus, dot, dollar, percent, asterisk, at sign, question mark, pipe, colon, and interior spaces | `, [ ] { } ( ) =`, leading/trailing spaces, and tabs |
 | Quoted string | All punctuation except the matching quote | The matching quote and `\${` when `${` must remain text |
 | Dictionary key in a resolver argument | Unquoted text; escape punctuation as needed | Quotes and interpolations are not allowed as keys |
-| Node key path | Dots and brackets separate path components; `=` may be literal | Backslash key-path escaping is unavailable; `oc.select` can handle a colon-containing key |
+| Node key path | Dots and brackets separate path components; `=` may be literal | In 2.4, escape `.`, `[`, `]`, `:`, or `\` when it belongs to the key; `=` may also be escaped |
 
 For unquoted arguments, quoting and backslash escaping are two ways to keep a
 delimiter as text. Backslash escaping is also available for parentheses and
@@ -66,7 +84,7 @@ equals signs, which otherwise are not valid unquoted characters:
 
 ```python
 >>> from omegaconf import OmegaConf
->>> OmegaConf.register_new_resolver("capture_grammar_docs", lambda *args: args)
+>>> OmegaConf.register_resolver("capture_grammar_docs", lambda *args: args)
 >>> cfg = OmegaConf.create({
 ...     "bare": r"${capture_grammar_docs:/-+.$%*@?|:}",
 ...     "escaped": r"${capture_grammar_docs:a\,b,\[x\],left\=right,\(group\)}",
@@ -83,6 +101,11 @@ equals signs, which otherwise are not valid unquoted characters:
 ({'a:b': 1, 'x,y': 2},)
 
 ```
+
+Quoted and unquoted `???` both produce missing values when stored in a
+config. For compatibility, a direct `???` resolver argument still reaches
+the resolver as text. In 2.4, use `\???` for literal text `???`; a missing
+node interpolated into an argument raises before the resolver is called.
 
 ## Escaping
 
@@ -139,6 +162,4 @@ those do not need another level of escaping.
 ```
 
 For the behavior of resolved values, see [node interpolation](../concepts/interpolation)
-and [resolver interpolation](../concepts/resolvers). The
-[2.4 grammar reference](/docs/reference/grammar) covers new key-path
-escaping.
+and [resolver interpolation](../concepts/resolvers).

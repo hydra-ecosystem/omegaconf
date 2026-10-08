@@ -1,1 +1,0 @@
-Undeprecated ``OmegaConf.register_resolver()`` as the canonical custom resolver API, and deprecated ``OmegaConf.register_new_resolver()`` and ``OmegaConf.legacy_register_resolver()``.

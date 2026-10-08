@@ -30,7 +30,7 @@ norecursedirs = ["subprojects", ".git", ".sl", ".venv"]
 # `bump-my-version bump pre_n` advances the current dev or rc series.
 # `bump-my-version bump --new-version 2.4.0rc1` starts the rc series.
 # `bump-my-version bump --new-version 2.4.0` sets the final release version.
-current_version = "2.4.0rc1"
+current_version = "2.4.0"
 parse = '''(?x)
     (?P<major>\d+)
     \.(?P<minor>\d+)

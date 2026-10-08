@@ -1,20 +1,20 @@
 ---
 id: intro
 slug: /
-title: OmegaConf 2.4 prerelease
-description: Start with OmegaConf 2.4 documentation.
+title: OmegaConf Next
+description: Start with OmegaConf development documentation.
 ---
 
-> **Prerelease documentation:** these pages describe OmegaConf 2.4. The
-> [stable 2.3 documentation](/docs/) remains the default.
+These are the development documentation, currently based on OmegaConf 2.4.0.
+Use the [stable 2.4 documentation](/docs/) for the released version, or the
+[previous 2.3 documentation](/docs/2.3/).
 
 OmegaConf turns Python data, YAML, and overrides into a consistent
-configuration API. The 2.4 documentation is being rebuilt here as a small
-prototype.
+configuration API.
 
 ## Start here
 
-- [Install OmegaConf](./get-started/install) gets the release candidate into
+- [Install OmegaConf](./get-started/install) gets the stable release into
   your Python environment.
 - [Your first config](./get-started/first-config) walks through creation,
   string interpolation, and merging.

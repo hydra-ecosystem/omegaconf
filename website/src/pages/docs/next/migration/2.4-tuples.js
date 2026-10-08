@@ -5,7 +5,7 @@ import useBaseUrl from '@docusaurus/useBaseUrl';
 
 export default function TupleMigrationRedirect() {
   const destination = useBaseUrl(
-    '/docs/next/migration/2.4#tuple-inputs-no-longer-become-mutable-lists',
+    '/docs/migration/2.4#tuple-inputs-no-longer-become-mutable-lists',
   );
 
   return (
