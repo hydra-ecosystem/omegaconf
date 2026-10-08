@@ -1,0 +1,10 @@
+{% extends "!layout.html" %}
+
+{% block header %}
+  {{ super() }}
+  <aside class="docs-moved-banner" role="note" aria-label="Documentation has moved">
+    <strong>Documentation has moved</strong>
+    <a href="https://omegaconf.cli.dev/">Read the OmegaConf documentation at omegaconf.cli.dev</a>.
+    These pages are retained as legacy documentation.
+  </aside>
+{% endblock %}
