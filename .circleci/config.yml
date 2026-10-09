@@ -49,6 +49,21 @@ jobs:
       - run:
           name: "Running coverage"
           command: nox --add-timestamp -s coverage
+      - run:
+          name: "Uploading coverage to Coveralls"
+          command: |
+            # Local 100% coverage is mandatory; uploads remain best effort.
+            (
+              reporter_dir=$(mktemp -d) || exit 1
+              trap 'rm -rf "$reporter_dir"' EXIT
+              export CI_PULL_REQUEST="${CIRCLE_PULL_REQUEST:-}"
+              curl --fail --silent --show-error --location \
+                https://github.com/coverallsapp/coverage-reporter/releases/download/v0.6.22/coveralls-linux-x86_64.tar.gz \
+                --output "$reporter_dir/coveralls.tar.gz" &&
+              printf '%s  %s\n' cd042b63bcb2c03fd0fd3372c040507331f5013a997828071e2ab7f9584fc7d6 "$reporter_dir/coveralls.tar.gz" | sha256sum --check --status &&
+              tar -xzf "$reporter_dir/coveralls.tar.gz" -C "$reporter_dir" &&
+              "$reporter_dir/coveralls" report coverage.xml --format=cobertura --no-fail
+            ) || echo "Coveralls upload failed; local 100% coverage passed."
 
   lint:
     docker:

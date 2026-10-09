@@ -5,7 +5,7 @@ title: OmegaConf Next
 description: Start with OmegaConf development documentation.
 ---
 
-These are the development documentation, currently based on OmegaConf 2.4.0.
+These are the development documentation for the unreleased version on `main`.
 Use the [stable 2.4 documentation](/docs/) for the released version, or the
 [previous 2.3 documentation](/docs/2.3/).
 

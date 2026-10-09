@@ -1,10 +1,10 @@
 ---
 title: OmegaConf symbols
-description: OmegaConf 2.4.0 generated Python API
+description: OmegaConf 2.4.1.dev0 generated Python API
 toc_max_heading_level: 2
 ---
 
-API snapshot from OmegaConf 2.4.0 source. For task-based entry points, see the [Python API overview](../python-api).
+API snapshot from OmegaConf 2.4.1.dev0 source. For task-based entry points, see the [Python API overview](../python-api).
 
 OmegaConf module
 
