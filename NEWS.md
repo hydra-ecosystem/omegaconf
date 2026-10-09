@@ -2,16 +2,9 @@
 
 ### Introduction
 
-OmegaConf 2.4.0 is the first feature release since 2.3.0 in 2022. Highlights
-include richer structured config typing with `Literal`, container unions,
-and experimental tuples, alongside improvements to interpolation, resolvers,
-merging, and validation.
+OmegaConf 2.4.0 is the first feature release since 2.3.0 in 2022. Highlights include richer structured config typing with `Literal`, container unions, and experimental tuples, alongside improvements to interpolation, resolvers, merging, and validation.
 
-Python 3.10 or newer is required. Native tuples now become immutable
-`TupleConfig` values, and some implicit conversions during assignment now
-warn. Review the [2.4 upgrade guide](https://omegaconf.cli.dev/docs/migration/2.4)
-before upgrading. The current documentation is at
-[omegaconf.cli.dev](https://omegaconf.cli.dev/).
+Python 3.10 or newer is required. Native tuples now become immutable `TupleConfig` values, and some implicit conversions during assignment now warn. Review the [2.4 upgrade guide](https://omegaconf.cli.dev/docs/migration/2.4) before upgrading. The current documentation is at [omegaconf.cli.dev](https://omegaconf.cli.dev/).
 
 ### Features
 
@@ -46,8 +39,7 @@ before upgrading. The current documentation is at
 - ``OmegaConf.create()`` now supports ``collections.OrderedDict`` as both a top-level input and a nested value. ([#1156](https://github.com/hydra-ecosystem/omegaconf/issues/1156))
 - Fixed ``OmegaConf.resolve()`` raising ``UnsupportedValueType`` when a custom resolver returns a ``dict`` or ``list``. ([#1165](https://github.com/hydra-ecosystem/omegaconf/issues/1165))
 - Fixed validation for union-typed values nested in structured config containers during merges and interpolation resolution. ([#1166](https://github.com/hydra-ecosystem/omegaconf/issues/1166))
-- Fixed structured config support for forward references inside container
-  annotations on Python 3.10 and older. ([#1174](https://github.com/hydra-ecosystem/omegaconf/issues/1174))
+- Fixed structured config support for forward references inside container annotations on Python 3.10 and older. ([#1174](https://github.com/hydra-ecosystem/omegaconf/issues/1174))
 - Preserve container identity when assigning a config node to itself. ([#1177](https://github.com/hydra-ecosystem/omegaconf/issues/1177))
 - Fix duplicate key handling during YAML anchor merge operations ([#1194](https://github.com/hydra-ecosystem/omegaconf/issues/1194))
 - Changed `OmegaConf.create(None)` to return literal `None` instead of a `DictConfig(None)` wrapper. This is a breaking change for code that relied on getting a config object back from `create(None)`. ([#1196](https://github.com/hydra-ecosystem/omegaconf/issues/1196))
@@ -56,9 +48,7 @@ before upgrading. The current documentation is at
 - ``OmegaConf.update()`` now raises a ``ConfigTypeError`` with a clear message when navigating through a structured ``Optional`` node that is ``None``, instead of an ``AssertionError``. ([#1280](https://github.com/hydra-ecosystem/omegaconf/issues/1280))
 - Fix OmegaConf exceptions retaining caller frame locals through traceback reference cycles. ([#1295](https://github.com/hydra-ecosystem/omegaconf/issues/1295), [#1314](https://github.com/hydra-ecosystem/omegaconf/issues/1314))
 - Fix `ListConfig` iteration leaking `UnionNode` wrappers for `List[Union[...]]`; iteration now yields the selected concrete values, matching indexing. ([#1310](https://github.com/hydra-ecosystem/omegaconf/issues/1310))
-- ``OmegaConf.update()`` now follows intermediate node interpolations whose
-  reference chains end at existing config containers, applying nested updates to
-  the referenced container while preserving the interpolation. ([#1329](https://github.com/hydra-ecosystem/omegaconf/issues/1329))
+- ``OmegaConf.update()`` now follows intermediate node interpolations whose reference chains end at existing config containers, applying nested updates to the referenced container while preserving the interpolation. ([#1329](https://github.com/hydra-ecosystem/omegaconf/issues/1329))
 - Keep the failing key and object type on interpolation errors raised through `OmegaConf.resolve()`, so they match the errors raised by direct node access. ([#1330](https://github.com/hydra-ecosystem/omegaconf/issues/1330))
 - ``OmegaConf.resolve()`` now resolves nested interpolations in resolver-returned containers in one call, including when another field refers to the container before its field is visited. ([#1334](https://github.com/hydra-ecosystem/omegaconf/issues/1334))
 - Inherited flags are now updated correctly for containers selected by a union type. ([#1340](https://github.com/hydra-ecosystem/omegaconf/issues/1340))
