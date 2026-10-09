@@ -54,8 +54,7 @@ def coverage(session: Session) -> None:
     session.run("coverage", "erase")
     session.run("coverage", "run", "--append", "-m", "pytest", silent=True)
     session.run("coverage", "report", "--fail-under=100")
-    # report to coveralls
-    session.run("coveralls", success_codes=[0, 1])
+    session.run("coverage", "xml", "-o", "coverage.xml")
 
     session.run("coverage", "erase")
 

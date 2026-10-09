@@ -70,7 +70,9 @@ export default function Home() {
                 </Link>
               </div>
               <p className="home-release">
-                Documentation for stable 2.4 · <Link to="/docs/2.3/">2.3 documentation</Link>
+                <Link to="/blog/omegaconf-2-4-0">OmegaConf 2.4.0 is released</Link>
+                {' · '}<Link to="/docs/migration/2.4">Upgrade guide</Link>
+                {' · '}<Link to="/docs/2.3/">2.3 documentation</Link>
               </p>
             </div>
             <div className="home-example" aria-label="OmegaConf example">

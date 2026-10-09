@@ -3,7 +3,7 @@
 attrs
 build
 bump-my-version
-coveralls
+coverage
 nox[pbs]
 pre-commit
 pyrefly==1.2.0
