@@ -35,8 +35,8 @@ The generated API pages are versioned snapshots. To regenerate or check the
 development page from this checkout, run from `website/`:
 
 ```sh
-../.venv/bin/python scripts/generate_api.py --source .. --version 2.4.0 --output docs/reference/python-api/omegaconf.md
-../.venv/bin/python scripts/generate_api.py --source .. --version 2.4.0 --output docs/reference/python-api/omegaconf.md --check
+../.venv/bin/python scripts/generate_api.py --source .. --version 2.4.1.dev0 --output docs/reference/python-api/omegaconf.md
+../.venv/bin/python scripts/generate_api.py --source .. --version 2.4.1.dev0 --output docs/reference/python-api/omegaconf.md --check
 ```
 
 The frozen 2.3 page was generated from the PyPI `omegaconf==2.3.1` source

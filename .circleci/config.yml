@@ -1,5 +1,8 @@
 version: 2.1
 
+orbs:
+  coveralls: coveralls/coveralls@2.2.5
+
 commands:
   linux:
     description: "Commands run on Linux"
@@ -49,6 +52,12 @@ jobs:
       - run:
           name: "Running coverage"
           command: nox --add-timestamp -s coverage
+      - coveralls/upload:
+          coverage_file: coverage.xml
+          coverage_format: cobertura
+          coverage_reporter_version: v0.6.22
+          # Local 100% coverage is mandatory; uploads remain best effort.
+          fail_on_error: false
 
   lint:
     docker:

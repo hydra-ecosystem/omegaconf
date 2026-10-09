@@ -17,6 +17,7 @@ TODO
 .ipynb_checkpoints
 .coveralls.yml
 .coverage
+coverage.xml
 .eggs
 /omegaconf/grammar/gen
 /pip-wheel-metadata
