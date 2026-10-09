@@ -11,7 +11,7 @@
     "1391": "2026-10-04",
     "459": "2026-09-25"
   },
-  "generated_at": "2026-10-09T15:28:20Z",
+  "generated_at": "2026-10-09T19:10:49Z",
   "issues": {
     "1024": {
       "category": "Enhancement",
@@ -268,6 +268,16 @@
       "status": "not started",
       "title": "Complete documentation cutover and retain RTD as the pre-2.4 archive",
       "updated_at": "2026-10-08T10:11:21Z"
+    },
+    "1414": {
+      "category": "Enhancement",
+      "created_at": "2026-10-09T19:09:29Z",
+      "labels": [],
+      "pr_numbers": [],
+      "state": "OPEN",
+      "status": "not started",
+      "title": "Optimization pass: access and merge performance",
+      "updated_at": "2026-10-09T19:09:29Z"
     },
     "144": {
       "category": "Enhancement",

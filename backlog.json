@@ -1,9 +1,9 @@
 {
   "generated_on": "2026-10-09",
-  "generated_at": "2026-10-09T15:28:20Z",
+  "generated_at": "2026-10-09T19:10:49Z",
   "repo": "hydra-ecosystem/omegaconf",
   "summary": {
-    "open_total": 26,
+    "open_total": 27,
     "by_category": [
       {
         "category": "Bug",
@@ -14,14 +14,14 @@
       {
         "category": "Enhancement",
         "emoji": "✨",
-        "count": 22,
-        "percentage": 84.6
+        "count": 23,
+        "percentage": 85.2
       },
       {
         "category": "Documentation",
         "emoji": "📄",
         "count": 1,
-        "percentage": 3.8
+        "percentage": 3.7
       },
       {
         "category": "Question",
@@ -33,13 +33,13 @@
         "category": "Refactor",
         "emoji": "🔧",
         "count": 2,
-        "percentage": 7.7
+        "percentage": 7.4
       },
       {
         "category": "Build",
         "emoji": "🏗️",
         "count": 1,
-        "percentage": 3.8
+        "percentage": 3.7
       }
     ],
     "by_status": [
@@ -61,7 +61,7 @@
       {
         "status": "not started",
         "emoji": "⬜",
-        "count": 26
+        "count": 27
       },
       {
         "status": "done",
@@ -471,6 +471,19 @@
       "url": "https://github.com/hydra-ecosystem/omegaconf/issues/1405"
     },
     {
+      "number": 1414,
+      "title": "Optimization pass: access and merge performance",
+      "category": "Enhancement",
+      "category_emoji": "✨",
+      "status": "not started",
+      "status_emoji": "⬜",
+      "prs": [],
+      "created": "2026-10-09",
+      "updated": "2026-10-09",
+      "labels": [],
+      "url": "https://github.com/hydra-ecosystem/omegaconf/issues/1414"
+    },
+    {
       "number": 459,
       "title": "Consider deprecating assignment of strings to non-string nodes like IntegerNode / FloatNode",
       "category": "Enhancement",
@@ -657,6 +670,13 @@
     }
   ],
   "updates": [
+    {
+      "ts": "2026-10-09T19:10:49Z",
+      "kind": "new",
+      "issue": 1414,
+      "issue_url": "https://github.com/hydra-ecosystem/omegaconf/issues/1414",
+      "title": "Optimization pass: access and merge performance"
+    },
     {
       "ts": "2026-10-08T15:59:34Z",
       "kind": "closed",
@@ -2318,13 +2338,6 @@
       "issue": 1061,
       "issue_url": "https://github.com/omry/omegaconf/issues/1061",
       "title": "Enum inheritance Support"
-    },
-    {
-      "ts": "2026-06-12T15:11:58Z",
-      "kind": "closed",
-      "issue": 1095,
-      "issue_url": "https://github.com/omry/omegaconf/issues/1095",
-      "title": "Validation error merging structured configs containing enum in a nested list"
     }
   ]
 }
