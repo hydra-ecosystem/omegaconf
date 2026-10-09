@@ -121,7 +121,8 @@ jobs:
     outputs:
       upload-outcome: ${{ steps.upload.outcome }}
     permissions:
-      contents: read
+      # Reading an unpublished GitHub Release requires push access.
+      contents: write
       id-token: write
     steps:
       - uses: actions/checkout@v5

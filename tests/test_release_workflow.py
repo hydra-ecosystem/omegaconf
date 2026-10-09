@@ -804,7 +804,7 @@ def test_workflow_approval_and_retry_boundaries() -> None:
     assert "environment" not in jobs["prepare"]
     assert jobs["pypi-publish"]["environment"] == "pypi-publish"
     assert jobs["pypi-publish"]["permissions"] == {
-        "contents": "read",
+        "contents": "write",
         "id-token": "write",
     }
     assert jobs["pypi-publish"]["outputs"] == {
