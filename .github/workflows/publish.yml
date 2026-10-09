@@ -1,137 +1,180 @@
-# This workflow uploads OmegaConf to PyPI using Trusted Publishers
-# Basics: https://docs.pypi.org/trusted-publishers/adding-a-publisher/
-# Security model: https://docs.pypi.org/trusted-publishers/security-model/
 name: Publish to PyPI
+run-name: Release OmegaConf ${{ inputs.version }}
 
 on:
-  release:
-    types: [published]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Prepared stable package version, for example 2.4.0"
+        required: true
+        type: string
 
-# Use separate jobs for building and publishing so that write 
-# permissions are only accessible minimally.
-#
-# Both jobs require are run under the pypi-publish environment,
-# which is configured to require review and approval from authorized
-# maintainers.
+permissions:
+  contents: read
+
+concurrency:
+  group: stable-release-${{ inputs.version }}
+  cancel-in-progress: false
+
 jobs:
-  build-artifacts:
-    name: Build distribution artifacts
-    if: ${{ !github.event.release.prerelease }}
+  prepare:
+    name: Prepare artifacts and draft GitHub Release
     runs-on: ubuntu-latest
-    environment: pypi-publish 
+    permissions:
+      contents: write
     steps:
-    - uses: actions/checkout@v5
+      - uses: actions/checkout@v5
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
 
-    - name: Set up Python
-      uses: actions/setup-python@v6
-      with:
-        python-version: '3.11'
+      - name: Resolve the release branch to an exact commit
+        env:
+          VERSION: ${{ inputs.version }}
+          REF_NAME: ${{ github.ref_name }}
+        run: |
+          if [[ ! "$VERSION" =~ ^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$ ]]; then
+            echo "::error::Stable releases require an X.Y.Z version"
+            exit 1
+          fi
+          branch="${VERSION%.*}_branch"
+          if [[ "$REF_NAME" != "$branch" || "$GITHUB_REF_TYPE" != "branch" ]]; then
+            echo "::error::Run this workflow from the prepared $branch branch"
+            exit 1
+          fi
+          echo "Release branch: $branch ($GITHUB_SHA)" >> "$GITHUB_STEP_SUMMARY"
 
-    - name: Set up Java
-      uses: actions/setup-java@v5
-      with:
-        distribution: 'temurin'
-        java-version: '11'
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.11'
 
-    - name: Install build dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install build
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '11'
 
-    - name: Build distribution
-      run: |
-        python -m build
-        python -m build subprojects/omegaconf-pydevd
+      - name: Install build dependencies
+        run: python -m pip install build packaging twine
 
-    - name: Verify build artifacts
-      run: |
-        ls -lah dist/
-        ls -lah subprojects/omegaconf-pydevd/dist/
-        python -m pip install twine
-        twine check dist/* subprojects/omegaconf-pydevd/dist/*
-        python build_helpers/verify_distribution_licenses.py dist/omegaconf-*
+      - name: Check prepared versions, PyPI, and release notes
+        env:
+          VERSION: ${{ inputs.version }}
+          COMMIT: ${{ github.sha }}
+        run: >-
+          python build_helpers/release_workflow.py plan
+          --state release-bundle/state.json
+          --version "$VERSION" --commit "$COMMIT"
 
-    - name: Stage publish artifacts
-      run: |
-        mkdir -p publish-dist
-        cp dist/* publish-dist/
-        cp subprojects/omegaconf-pydevd/dist/* publish-dist/
-        ls -lah publish-dist/
+      - name: Build both packages
+        run: |
+          python -m build
+          python -m build subprojects/omegaconf-pydevd
+          python -m twine check dist/* subprojects/omegaconf-pydevd/dist/*
+          python build_helpers/verify_distribution_licenses.py dist/omegaconf-*
+          mkdir -p release-bundle/dist
+          cp dist/* subprojects/omegaconf-pydevd/dist/* release-bundle/dist/
 
-    - name: Summarize publish artifacts
-      run: |
-        python - <<'PY' >> "$GITHUB_STEP_SUMMARY"
-        import pathlib
-        import tarfile
-        import zipfile
+      - name: Smoke install the wheels
+        env:
+          VERSION: ${{ inputs.version }}
+        run: |
+          python -m venv smoke-venv
+          smoke-venv/bin/python -m pip install release-bundle/dist/*.whl
+          smoke-venv/bin/python -I -c 'import os; from importlib.metadata import version; from omegaconf import OmegaConf; assert all(version(p) == os.environ["VERSION"] for p in ("omegaconf", "omegaconf-pydevd")); assert OmegaConf.create({"ready": True}).ready'
 
-        paths = [pathlib.Path("publish-dist")]
+      - name: Create draft GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: >-
+          python build_helpers/release_workflow.py draft
+          --state release-bundle/state.json --dist release-bundle/dist
 
-        def metadata_from_artifact(path: pathlib.Path) -> tuple[str, str]:
-            if path.suffix == ".whl":
-                with zipfile.ZipFile(path) as zf:
-                    metadata_name = next(
-                        name for name in zf.namelist() if name.endswith(".dist-info/METADATA")
-                    )
-                    metadata = zf.read(metadata_name).decode()
-            else:
-                with tarfile.open(path, "r:gz") as tf:
-                    member = next(
-                        member for member in tf.getmembers() if member.name.endswith("/PKG-INFO")
-                    )
-                    extracted = tf.extractfile(member)
-                    assert extracted is not None
-                    metadata = extracted.read().decode()
-
-            name = ""
-            version = ""
-            for line in metadata.splitlines():
-                if line.startswith("Name: "):
-                    name = line.removeprefix("Name: ")
-                elif line.startswith("Version: "):
-                    version = line.removeprefix("Version: ")
-                if name and version:
-                    break
-            return name, version
-
-        seen = {}
-        for directory in paths:
-            for artifact in sorted(directory.glob("*")):
-                if artifact.is_file():
-                    name, version = metadata_from_artifact(artifact)
-                    seen.setdefault((name, version), set()).add(artifact.name)
-
-        print("## Packages prepared for PyPI")
-        print()
-        print("| Package | Version |")
-        print("| --- | --- |")
-        for name, version in sorted(seen):
-            print(f"| {name} | {version} |")
-        PY
-
-    - name: Upload artifacts
-      uses: actions/upload-artifact@v4
-      with:
-        name: dist
-        path: publish-dist/*
-        retention-days: 0
+      - name: Retain artifacts and release recovery state
+        if: ${{ always() && hashFiles('release-bundle/state.json') != '' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-bundle
+          path: release-bundle/
+          if-no-files-found: error
+          retention-days: 7
 
   pypi-publish:
-    needs: build-artifacts
-    name: Upload release to PyPI
+    name: Approve and publish both packages to PyPI
+    needs: prepare
     runs-on: ubuntu-latest
     environment: pypi-publish
+    outputs:
+      upload-outcome: ${{ steps.upload.outcome }}
     permissions:
-      id-token: write  # IMPORTANT: mandatory for trusted publishing
+      contents: read
+      id-token: write
     steps:
-    - name: Download artifacts
-      uses: actions/download-artifact@v5
-      with:
-        name: dist
-        path: dist/
+      - uses: actions/checkout@v5
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
 
-    - name: Show downloaded artifacts
-      run: ls -lah dist/
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.11'
 
-    - name: Publish package distributions to PyPI
-      uses: pypa/gh-action-pypi-publish@release/v1
+      - run: python -m pip install packaging
+
+      - uses: actions/download-artifact@v5
+        with:
+          name: release-bundle
+          path: release-bundle
+
+      - name: Verify retained artifacts and draft before uploading
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: >-
+          python build_helpers/release_workflow.py verify
+          --state release-bundle/state.json --dist release-bundle/dist
+
+      - name: Upload verified distributions
+        id: upload
+        continue-on-error: true
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          packages-dir: release-bundle/dist/
+
+  github-release:
+    name: Publish the prepared GitHub Release
+    needs: pypi-publish
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.11'
+
+      - run: python -m pip install packaging
+
+      - uses: actions/download-artifact@v5
+        with:
+          name: release-bundle
+          path: release-bundle
+
+      - name: Reconcile actual PyPI publication and clean up only if nothing uploaded
+        if: ${{ !cancelled() }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+          UPLOAD_OUTCOME: ${{ needs.pypi-publish.outputs.upload-outcome }}
+        run: >-
+          python build_helpers/release_workflow.py reconcile
+          --state release-bundle/state.json
+          --upload-outcome "$UPLOAD_OUTCOME"
+
+      - name: Verify publication and publish the draft
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: >-
+          python build_helpers/release_workflow.py finalize
+          --state release-bundle/state.json
