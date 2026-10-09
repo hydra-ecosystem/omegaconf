@@ -123,8 +123,11 @@ OmegaConf uses GitHub Actions with PyPI Trusted Publishers for automated release
    - Repeat for the `omegaconf-pydevd` PyPI project; the workflow publishes
      both packages.
 
-3. Create the `pypi-publish` environment in GitHub repository settings (optional but recommended):
-   - Add protection rules (e.g., require manual approval)
+3. Configure the `pypi-publish` environment in GitHub repository settings:
+   - Require maintainer approval before publishing.
+   - Allow the stable release branches, such as `2.4_branch`.
+   - If self-review is disabled, a different authorized maintainer must approve
+     the run, or an administrator must explicitly bypass the protection.
 
 4. Create the `pypi-publish-dev` environment in GitHub repository settings:
    - Allow publishing from the development branch you use for dev releases
@@ -148,13 +151,60 @@ OmegaConf uses GitHub Actions with PyPI Trusted Publishers for automated release
    branch history. While `main` carries only fixes for that stable series,
    continue merging fixes into the stable branch. Once new features begin on
    `main`, backport only appropriate fixes.
-4. Create a new release on GitHub:
-   - Go to https://github.com/hydra-ecosystem/omegaconf/releases/new
-   - Create a new tag (e.g., `v2.4.0`) from the validated stable release branch
-   - Add release notes
-   - Publish release
-5. GitHub Actions will automatically build and publish stable GitHub releases
-   to PyPI. For a pre-release, follow the development release process below.
+4. Ensure the release branch includes the current `publish.yml` workflow and
+   its `build_helpers/release_workflow.py` helper. Start **Publish to PyPI** in
+   GitHub Actions, choosing the prepared stable branch and expected version:
+
+   ```bash
+   gh workflow run publish.yml --ref 2.4_branch -f version=2.4.0
+   ```
+
+   Every job uses the exact commit selected at dispatch. Preparation verifies
+   both source versions and checks that neither target version is already on
+   PyPI. The run summary shows the latest published version on the selected
+   release line for each package, including dev and release-candidate versions.
+   It builds, verifies, and smoke-installs the artifacts, then creates a draft
+   GitHub Release and tag. The draft notes come from the matching `NEWS.md`
+   entry; older release entries are excluded.
+5. Review the run summary, artifacts, and draft GitHub Release, then approve
+   the `pypi-publish` environment. This uploads both packages. The workflow
+   checks their filenames and SHA-256 digests on PyPI before publishing the
+   draft GitHub Release. Publishing a GitHub Release manually does not start
+   another PyPI upload.
+
+Preparation runs before approval. Do not approve until the artifacts and draft
+are ready. Artifacts and recovery state are retained for seven days; approve or
+recover within that period. For a pre-release, follow the separate development
+release process below.
+
+GitHub Release operations use the built-in `GITHUB_TOKEN`. The release commit's
+entire `.github/workflows/` tree must match the default branch; preparation and
+the approved upload job check this. If they differ before any PyPI upload,
+synchronize all workflow files onto the release branch and restart preparation
+from that new commit. The default branch can still change after the last check.
+If anything already reached PyPI, preserve the release commit/tag and finish
+GitHub publication manually rather than retagging or uploading the version again.
+
+**Failure recovery:**
+
+- If upload fails and repeated PyPI checks confirm no artifacts were published,
+  the workflow removes its draft and any tag it created. A pre-existing tag is
+  preserved. Start a fresh workflow run after addressing the failure.
+- Partial publication, digest mismatches, or an unavailable PyPI API preserve
+  the draft, tag, and retained artifacts for manual recovery. No PyPI files are
+  deleted. Do not start a fresh prepare run for an already-published version.
+- If both packages reached PyPI but publishing the GitHub Release fails, use
+  **Re-run failed jobs**. GitHub publication is a separate job; it verifies the
+  existing uploads and publishes the existing draft without uploading again.
+  This step is also safe to retry if the first API response was lost.
+- Preparation failures or cancellations may leave a tag or draft. Inspect the
+  retained `release-bundle/state.json` and external state before manual cleanup.
+  Automated cleanup refuses to delete a published release or a draft/tag changed
+  since preparation, including changes to the draft name, target commit, notes,
+  prerelease state, or added assets. These checks reject edits observed before
+  deletion. GitHub provides no atomic conditional DELETE, so avoid editing or
+  publishing the draft or changing the tag while a run is active; an intervening
+  maintainer change can still be deleted.
 
 The release workflows handle:
 - Installing Java (required for ANTLR parser generation)
@@ -171,7 +221,7 @@ GitHub pre-release is published.
 For a release candidate such as `2.4.0rc1`, assemble `NEWS.md` with
 `towncrier build --version X.Y.ZrcN --keep` to retain the news fragments until
 the final stable release. Use that release entry for the GitHub pre-release
-notes. The stable `publish.yml` workflow skips GitHub pre-releases.
+notes. The stable `publish.yml` workflow accepts only final `X.Y.Z` versions.
 
 1. Commit and push the version and release notes.
 2. Create a GitHub pre-release tagged from that commit (for example,
