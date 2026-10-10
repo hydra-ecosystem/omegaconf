@@ -18,6 +18,7 @@ from typing import (
     IO,
     Annotated,
     Any,
+    ClassVar,
     ForwardRef,
     Literal,
     Tuple,
@@ -30,6 +31,7 @@ from typing import (
 import yaml
 
 from . import DictConfig, DictKeyType, ListConfig
+from ._control import _Control
 from ._conversion_warnings import _suppress_conversion_warnings
 from ._key_path import split_key
 from ._missing import _decode_missing_escape
@@ -220,6 +222,13 @@ def register_default_resolvers() -> None:
 
 class OmegaConf:
     """OmegaConf primary class"""
+
+    control: ClassVar[_Control] = _Control()
+    """Global runtime controls. Use ``OmegaConf.control.set_syntax_cache_max_bytes``
+    and ``OmegaConf.control.get_syntax_cache_max_bytes`` to configure the
+    per-thread syntax-cache memory budget. See the
+    [syntax-cache guide](../syntax-cache).
+    """
 
     def __init__(self) -> None:
         raise NotImplementedError("Use one of the static construction functions")
@@ -1986,10 +1995,6 @@ def _maybe_wrap(
 def _select_one(
     c: Container, key: str, throw_on_missing: bool, throw_on_type_error: bool = True
 ) -> tuple[Node | None, str | int]:
-    from .dictconfig import DictConfig
-    from .listconfig import ListConfig
-    from .tupleconfig import TupleConfig
-
     ret_key: str | int = key
     assert isinstance(c, Container), f"Unexpected type: {c}"
     if c._is_none():

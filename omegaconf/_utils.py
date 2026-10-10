@@ -900,10 +900,17 @@ def get_value_kind(
         this parsing step is skipped: this is more efficient, but will not detect errors.
     """
 
-    if _is_missing_value(value):
+    from omegaconf import Node
+
+    if isinstance(value, Node):
+        value = value._value()
+
+    if _is_missing_literal(value):
         return ValueKind.MANDATORY_MISSING
 
-    if _is_interpolation(value, strict_interpolation_validation):
+    if isinstance(value, str) and _is_interpolation_string(
+        value, strict_interpolation_validation
+    ):
         return ValueKind.INTERPOLATION
 
     return ValueKind.VALUE
