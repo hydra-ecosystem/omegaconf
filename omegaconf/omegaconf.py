@@ -1986,10 +1986,6 @@ def _maybe_wrap(
 def _select_one(
     c: Container, key: str, throw_on_missing: bool, throw_on_type_error: bool = True
 ) -> tuple[Node | None, str | int]:
-    from .dictconfig import DictConfig
-    from .listconfig import ListConfig
-    from .tupleconfig import TupleConfig
-
     ret_key: str | int = key
     assert isinstance(c, Container), f"Unexpected type: {c}"
     if c._is_none():
