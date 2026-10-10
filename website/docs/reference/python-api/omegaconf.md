@@ -111,6 +111,17 @@ clear_resolvers() -> None
 
 Clear(remove) all OmegaConf resolvers, then re-register OmegaConf's default resolvers.
 
+### `control`
+
+```python
+control: _Control = _Control()
+```
+
+Global runtime controls. Use ``OmegaConf.control.set_syntax_cache_max_bytes``
+and ``OmegaConf.control.get_syntax_cache_max_bytes`` to configure the
+per-thread syntax-cache memory budget. See the
+[syntax-cache guide](../syntax-cache).
+
 ### `copy_cache`
 
 ```python

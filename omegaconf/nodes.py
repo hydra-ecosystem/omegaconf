@@ -175,7 +175,8 @@ class AnyNode(ValueNode):
         return value
 
     def __deepcopy__(self, memo: dict[int, Any]) -> "AnyNode":
-        res = AnyNode()
+        res = object.__new__(AnyNode)
+        res.__dict__["_flags_cache"] = None
         self._deepcopy_impl(res, memo)
         return res
 

@@ -39,7 +39,7 @@ from ._utils import (
     type_hint_contains_none_literal,
     type_str,
 )
-from .base import Box, Container, ContainerMetadata, DictKeyType, Node
+from .base import Box, Container, ContainerMetadata, DictKeyType, Node, UnionNode
 from .basecontainer import BaseContainer
 from .errors import (
     ConfigAttributeError,
@@ -490,6 +490,21 @@ class DictConfig(BaseContainer, MutableMapping[Any, Any]):
     def _get_impl(
         self, key: DictKeyType, default_value: Any, validate_key: bool = True
     ) -> Any:
+        content = self.__dict__["_content"]
+        if (
+            type(self) is DictConfig
+            and type(key) is str
+            and self._metadata.key_type in (Any, str)
+            and type(content) is dict
+        ):
+            # Retain flag lookup, including detection of cycles in parent links.
+            self._get_flag("struct")
+            node = content.get(key)
+            if node is not None and not isinstance(node, UnionNode):
+                return self._resolve_with_default(key, node, default_value)
+            if node is None and default_value is not _DEFAULT_MARKER_:
+                return default_value
+
         try:
             node = self._get_child(
                 key=key, throw_on_missing_key=True, validate_key=validate_key
@@ -512,6 +527,25 @@ class DictConfig(BaseContainer, MutableMapping[Any, Any]):
         throw_on_missing_value: bool = False,
         throw_on_missing_key: bool = False,
     ) -> Node | None:
+        content = self.__dict__["_content"]
+        if (
+            type(self) is DictConfig
+            and type(key) is str
+            and self._metadata.key_type in (Any, str)
+            and type(content) is dict
+        ):
+            if validate_access:
+                self._get_flag("struct")
+            node = content.get(key)
+            if (
+                (node is not None or not validate_access)
+                and not (throw_on_missing_key and node is None)
+                and not (
+                    throw_on_missing_value and node is not None and node._is_missing()
+                )
+            ):
+                return node
+
         try:
             key = self._validate_and_normalize_key(key)
         except KeyValidationError:

@@ -1,7 +1,11 @@
+import gc
 import re
+import sys
 import threading
+from collections import OrderedDict
 from typing import Any
 
+from . import _control
 from .errors import GrammarParseError
 
 # Import from visitor in order to check the presence of generated grammar files
@@ -13,10 +17,111 @@ from .grammar_visitor import (  # type: ignore
 from .typing import Antlr4ParserRuleContext
 from .vendor.antlr4 import CommonTokenStream, InputStream  # type: ignore[attr-defined]
 from .vendor.antlr4.error.ErrorListener import ErrorListener
+from .vendor.antlr4.Lexer import Lexer
+from .vendor.antlr4.Parser import Parser
+from .vendor.antlr4.RuleContext import RuleContext
+from .vendor.antlr4.Token import Token
+from .vendor.antlr4.tree.Tree import TerminalNodeImpl
 
 # Used to cache grammar objects to avoid re-creating them on each call to `parse()`.
 # We use a per-thread cache to make it thread-safe.
 _grammar_cache = threading.local()
+
+
+def _tree_cache_weight(tree: Antlr4ParserRuleContext, limit: int) -> int | None:
+    # Count tree-owned allocations, excluding the parser/lexer already retained
+    # by this thread's grammar cache. Shared objects are counted once per entry.
+    pending: list[Any] = [tree]
+    seen: set[int] = set()
+    weight = 256  # Cache key and entry bookkeeping allowance.
+    while pending:
+        obj = pending.pop()
+        if id(obj) in seen or isinstance(obj, (type, Parser, Lexer)):
+            continue
+        seen.add(id(obj))
+        if not isinstance(
+            obj,
+            (
+                RuleContext,
+                TerminalNodeImpl,
+                Token,
+                InputStream,
+                list,
+                tuple,
+                dict,
+                str,
+                bytes,
+                int,
+                float,
+                type(None),
+            ),
+        ):
+            return None
+        size = sys.getsizeof(obj, 0)
+        if size == 0:
+            return None
+        weight += size
+        if isinstance(obj, (RuleContext, TerminalNodeImpl, Token)):
+            # Avoid materializing instance dictionaries just to measure them.
+            weight += 64
+        if weight > limit:
+            return None
+        pending.extend(gc.get_referents(obj))
+    return weight
+
+
+class _SyntaxCache:
+    def __init__(self, max_bytes: int, generation: int) -> None:
+        self.entries: OrderedDict[
+            tuple[str, str, str], tuple[Antlr4ParserRuleContext, int]
+        ] = OrderedDict()
+        self.weight = 0
+        self.max_bytes = max_bytes
+        self.generation = generation
+
+    def trim(self, max_bytes: int) -> None:
+        while self.weight > max_bytes:
+            _, (_, weight) = self.entries.popitem(last=False)
+            self.weight -= weight
+
+    def parse(
+        self, value: str, parser_rule: str, lexer_mode: str
+    ) -> Antlr4ParserRuleContext:
+        key = (value, parser_rule, lexer_mode)
+        cached = self.entries.get(key)
+        if cached is not None:
+            self.entries.move_to_end(key)
+            return cached[0]
+        tree = parse(value, parser_rule, lexer_mode)
+        weight = _tree_cache_weight(tree, min(self.max_bytes, 256 * 1024))
+        if weight is not None:
+            self.trim(self.max_bytes - weight)
+            # Keep the entry count secondary to the memory budget.
+            if len(self.entries) == 256:
+                _, (_, old_weight) = self.entries.popitem(last=False)
+                self.weight -= old_weight
+            self.entries[key] = (tree, weight)
+            self.weight += weight
+        return tree
+
+
+def _parse_cached(
+    value: str, parser_rule: str = "configValue", lexer_mode: str = "DEFAULT_MODE"
+) -> Antlr4ParserRuleContext:
+    # One immutable snapshot; an in-progress operation may finish under the old
+    # policy. Each thread owns its parser, LRU and accounting, including updates.
+    max_bytes, generation = _control._syntax_cache_policy
+    cache = getattr(_grammar_cache, "parse_trees", None)
+    if cache is not None and cache.generation != generation:
+        cache.max_bytes = max_bytes
+        cache.generation = generation
+        cache.trim(max_bytes)
+    if max_bytes == 0 or type(value) is not str:
+        return parse(value, parser_rule, lexer_mode)
+    if cache is None:
+        cache = _grammar_cache.parse_trees = _SyntaxCache(max_bytes, generation)
+    return cache.parse(value, parser_rule, lexer_mode)
+
 
 # Build regex pattern to efficiently identify typical interpolations.
 # See test `test_match_simple_interpolation_pattern` for examples.
