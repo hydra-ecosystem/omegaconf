@@ -492,6 +492,8 @@ class Dataclass:
         (ListConfig([]), _utils.ValueKind.VALUE),
         (AnyNode(123), _utils.ValueKind.VALUE),
         (UnionNode(123, Union[int, str]), _utils.ValueKind.VALUE),
+        (AnyNode(r"\???"), _utils.ValueKind.VALUE),
+        (UnionNode(r"\???", Union[int, str]), _utils.ValueKind.VALUE),
         ("???", _utils.ValueKind.MANDATORY_MISSING),
         (IntegerNode("???"), _utils.ValueKind.MANDATORY_MISSING),
         (DictConfig("???"), _utils.ValueKind.MANDATORY_MISSING),

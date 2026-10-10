@@ -5,7 +5,7 @@ from collections import defaultdict
 from collections.abc import Iterator
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Any, NoReturn, Optional
+from typing import Any, NoReturn, Optional, cast
 
 from ._conversion_warnings import _conversion_warning_mode, _conversion_warnings
 from ._key_path import NodeInterpolationKey, split_key
@@ -17,7 +17,7 @@ from ._utils import (
     _get_value,
     _is_full_backtrace_enabled,
     _is_interpolation,
-    _is_missing_value,
+    _is_missing_literal,
     _is_special,
     format_and_raise,
     get_value_kind,
@@ -44,7 +44,7 @@ from .errors import (
     UnsupportedInterpolationType,
     ValidationError,
 )
-from .grammar_parser import parse
+from .grammar_parser import _parse_cached as parse
 from .grammar_visitor import GrammarVisitor
 from .typing import Antlr4ParserRuleContext
 
@@ -76,6 +76,32 @@ class Metadata:
     def __post_init__(self) -> None:
         if self.flags is None:
             self.flags = {}
+
+    def __deepcopy__(self, memo: dict[int, Any]) -> "Metadata":
+        result = object.__new__(type(self))
+        memo[id(self)] = result
+        for key, value in self.__dict__.items():
+            if type(value) in (str, int, float, bool, bytes, type(None)) or isinstance(
+                value, type
+            ):
+                result.__dict__[key] = value
+            else:
+                result.__dict__[key] = copy.deepcopy(value, memo)
+
+        if type(self) in (Metadata, ContainerMetadata) or not hasattr(
+            type(self), "__slots__"
+        ):
+            return result
+
+        state = object.__reduce_ex__(self, 4)[2]
+        slotstate = (
+            cast(tuple[dict[str, Any] | None, dict[str, Any]], state)[1]
+            if isinstance(state, tuple)
+            else {}
+        )
+        for key, value in slotstate.items():
+            setattr(result, key, copy.deepcopy(value, memo))
+        return result
 
     @property
     def type_hint(self) -> type[Any] | Any:
@@ -322,7 +348,7 @@ class Node(ABC):
         """
         Check if the node's value is `???` (does *not* resolve interpolations).
         """
-        return _is_missing_value(self)
+        return _is_missing_literal(self._value())
 
     def _is_none(self) -> bool:
         """

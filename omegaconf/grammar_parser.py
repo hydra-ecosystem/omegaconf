@@ -1,5 +1,6 @@
 import re
 import threading
+from functools import lru_cache
 from typing import Any
 
 from .errors import GrammarParseError
@@ -17,6 +18,20 @@ from .vendor.antlr4.error.ErrorListener import ErrorListener
 # Used to cache grammar objects to avoid re-creating them on each call to `parse()`.
 # We use a per-thread cache to make it thread-safe.
 _grammar_cache = threading.local()
+
+
+def _parse_cached(
+    value: str, parser_rule: str = "configValue", lexer_mode: str = "DEFAULT_MODE"
+) -> Antlr4ParserRuleContext:
+    # Cache syntax, never resolution results. Keep large expressions out of the
+    # per-thread cache so a few unusually large trees do not dominate memory.
+    if type(value) is not str or len(value) > 4096:
+        return parse(value, parser_rule, lexer_mode)
+    cached_parse = getattr(_grammar_cache, "parse_trees", None)
+    if cached_parse is None:
+        cached_parse = _grammar_cache.parse_trees = lru_cache(maxsize=256)(parse)
+    return cached_parse(value, parser_rule, lexer_mode)
+
 
 # Build regex pattern to efficiently identify typical interpolations.
 # See test `test_match_simple_interpolation_pattern` for examples.
