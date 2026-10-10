@@ -1,6 +1,6 @@
 {
   "generated_on": "2026-10-10",
-  "generated_at": "2026-10-10T08:18:29Z",
+  "generated_at": "2026-10-10T12:11:23Z",
   "repo": "hydra-ecosystem/omegaconf",
   "summary": {
     "open_total": 27,
@@ -479,7 +479,7 @@
       "status_emoji": "⬜",
       "prs": [],
       "created": "2026-10-09",
-      "updated": "2026-10-09",
+      "updated": "2026-10-10",
       "labels": [],
       "url": "https://github.com/hydra-ecosystem/omegaconf/issues/1414"
     },
