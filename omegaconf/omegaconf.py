@@ -40,6 +40,7 @@ from ._utils import (
     _EscapedMissing,
     _get_value,
     _is_missing_literal,
+    _schema_validation,
     format_and_raise,
     get_dict_key_value_types,
     get_list_element_type,
@@ -1894,6 +1895,25 @@ def _node_wrap(
         )
     elif is_structured_config(ref_type) or is_structured_config(value):
         key_type, element_type = get_dict_key_value_types(value)
+        if (
+            _schema_validation.get() is not None
+            and is_structured_config(ref_type)
+            and (
+                is_primitive_dict(value)
+                or isinstance(value, DictConfig)
+                and value._metadata.object_type is dict
+            )
+        ):
+            node = DictConfig(
+                content=ref_type,
+                parent=parent,
+                key=key,
+                ref_type=ref_type,
+                is_optional=is_optional,
+            )
+            node._set_flag("readonly", False)
+            node._merge_with(value, _allow_readonly_target=True)
+            return node
         node = DictConfig(
             ref_type=ref_type,
             is_optional=is_optional,
@@ -1957,6 +1977,8 @@ def _node_wrap(
                 node = AnyNode(value=value, key=key, parent=parent)
         else:
             raise ValidationError(f"Unexpected type annotation: {type_str(ref_type)}")
+    if _schema_validation.get() is not None:
+        node._set_flag("readonly", False)
     return node
 
 

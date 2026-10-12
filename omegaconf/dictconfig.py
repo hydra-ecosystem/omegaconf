@@ -295,6 +295,17 @@ class DictConfig(BaseContainer, MutableMapping[Any, Any]):
         raise ValidationError(msg)
 
     def _validate_and_normalize_key(self, key: Any) -> DictKeyType:
+        from ._utils import _schema_validation
+
+        key_type = self._metadata.key_type
+        if (
+            _schema_validation.get() is not None
+            and key_type is not Any
+            and type(key) is not key_type
+        ):
+            raise KeyValidationError(
+                f"Key {key!r} ({type(key).__name__}) is incompatible with key type '{type_str(key_type)}'"
+            )
         return self._s_validate_and_normalize_key(self._metadata.key_type, key)
 
     def _s_validate_and_normalize_key(self, key_type: Any, key: Any) -> DictKeyType:
