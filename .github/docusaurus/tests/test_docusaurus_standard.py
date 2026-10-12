@@ -660,6 +660,7 @@ def test_summary_uses_final_manifest_and_stable_phase_security_findings(
     monkeypatch.setattr(subprocess, "run", invoke)
     summary = prepare(project).split("<details>")[0]
     security, other = summary.split("## Other stable dependency upgrades")
+    other = other.split("## Locked dependency changes")[0]
     final = "3.0.0" if patched else "2.0.0"
     assert f"- renderer: `1.0.0` → `{final}`;" in security
     assert "- renderer:" not in other
@@ -759,7 +760,7 @@ def test_summary_precedes_collapsed_full_audit(npm_project, monkeypatch):
     fake_npm(monkeypatch)
 
     report = prepare(npm_project)
-    summary, details = report.split("<details>")
+    summary, details = report.split("<details>", 1)
 
     assert "renderer: `1.0.0` → `2.0.0`" in summary
     assert "## Remaining advisories" in summary

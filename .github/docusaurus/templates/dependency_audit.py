@@ -1,6 +1,7 @@
 """Prepare a best-effort npm or pnpm upgrade report for one documentation project."""
 
 import argparse
+import hashlib
 import json
 import re
 import subprocess
@@ -382,9 +383,10 @@ def run(
             command, 124, result.stdout, result.stderr + "\nCommand timed out."
         )
     print(f"{' '.join(command)}: exit {result.returncode}")
-    if result.returncode:
-        print(result.stdout)
-        print(result.stderr)
+    print(f"::group::{' '.join(command)} output")
+    print(result.stdout)
+    print(result.stderr)
+    print("::endgroup::")
     return result
 
 
@@ -1014,7 +1016,30 @@ def eligible_version(directory, name, latest, snapshot, notes, deadline):
         return None
 
 
-def prepare(directory: Path) -> str:
+def locked_changes(before: dict, after: dict) -> list[str]:
+    """Compare all locked version sets, independent of advisory attribution."""
+
+    def version_sets(lock: dict) -> dict[str, set[str]]:
+        result: dict[str, set[str]] = {}
+        for path, package in lock.get("packages", {}).items():
+            version = package.get("version")
+            name = package.get("name") or (
+                path.rsplit("node_modules/", 1)[-1] if "node_modules/" in path else None
+            )
+            if name and version:
+                result.setdefault(name, set()).add(version)
+        return result
+
+    old, new = version_sets(before), version_sets(after)
+    return [
+        f"- {name}: `{', '.join(sorted(old.get(name, set()))) or 'not installed'}` → "
+        f"`{', '.join(sorted(new.get(name, set()))) or 'not installed'}`"
+        for name in sorted(old.keys() | new.keys())
+        if old.get(name, set()) != new.get(name, set())
+    ]
+
+
+def prepare(directory: Path, *, validation: dict | None = None) -> str:
     # Leave time in the 60-minute job to write and upload a partial report.
     deadline = time.monotonic() + 45 * 60
     manifest_path = directory / "package.json"
@@ -1225,6 +1250,16 @@ def prepare(directory: Path) -> str:
         after = f"Audit unavailable: {package_manager} changed package files; restored the last valid snapshot."
     after_snapshot = valid_snapshot(directory) or last_valid_snapshot
     after_lock = after_snapshot[3]
+    if validation is not None:
+        validation["passed"] = build_status == "Passed."
+    fingerprints = "\n".join(
+        f"- `{name}`: `{hashlib.sha256(content).hexdigest()}`"
+        for name, content in {
+            "package.json": after_snapshot[0],
+            **after_snapshot[1],
+        }.items()
+    )
+    locked_updates = locked_changes(before_lock, after_lock)
     changes = [
         (name, f"- {name}: `{current}` → `{final}`")
         for section in ("dependencies", "devDependencies", "optionalDependencies")
@@ -1327,6 +1362,9 @@ def prepare(directory: Path) -> str:
             or "No other direct dependency upgrades resolved."
         )
         + "\n\n"
+        "## Locked dependency changes\n\n"
+        + ("\n".join(locked_updates) or "No locked dependency version changes.")
+        + "\n\n"
         f"## Remaining advisories\n\n{format_remaining_audit(after, after_lock)}\n\n"
         f"## Production build\n\n{build_status}\n\n"
         "## Remaining work\n\n"
@@ -1342,6 +1380,7 @@ def prepare(directory: Path) -> str:
         f"### Before\n\n{format_audit(before, before_lock)}\n\n"
         f"### After\n\n{format_audit(after, after_lock)}\n\n"
         "</details>\n"
+        f"\n<details>\n<summary>Candidate dependency files (SHA-256)</summary>\n\n{fingerprints}\n\n</details>\n"
     )
 
 
@@ -1350,6 +1389,11 @@ def main() -> None:
     parser.add_argument("--directory", default="website")
     parser.add_argument(
         "--report", type=Path, required=True, help="Temporary output for the PR body"
+    )
+    parser.add_argument(
+        "--github-output",
+        type=Path,
+        help="Write machine-readable validation status for the publisher",
     )
     args = parser.parse_args()
     directory = Path(args.directory)
@@ -1363,8 +1407,12 @@ def main() -> None:
         parser.error(
             "directory must contain valid package files for one npm or pnpm deployment"
         )
-    report = prepare(directory)
+    validation: dict = {}
+    report = prepare(directory, validation=validation)
     args.report.write_text(report)
+    if args.github_output is not None:
+        with args.github_output.open("a") as output:
+            output.write(f"validation_passed={str(validation['passed']).lower()}\n")
     print(report)
 
 

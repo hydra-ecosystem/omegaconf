@@ -301,9 +301,13 @@ def test_security_report_lists_affected_direct_upgrade_once(npm_project, monkeyp
 
     monkeypatch.setattr(subprocess, "run", upgrade)
     report = prepare(npm_project)
-    changes = report.split("### Before")[0]
+    changes = report.split("## Locked dependency changes")[0]
     assert changes.count("- renderer:") == 1
     assert "renderer: `1.0.0` → `2.0.0`; still reported by npm." in changes
+    locked = report.split("## Locked dependency changes")[1].split(
+        "## Remaining advisories"
+    )[0]
+    assert "- renderer: `1.0.0` → `2.0.0`" in locked
 
 
 @pytest.mark.parametrize("install,build", [(1, 0), (0, 1)])
