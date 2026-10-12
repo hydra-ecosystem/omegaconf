@@ -93,6 +93,8 @@ class ListConfig(BaseContainer, MutableSequence[Any]):
     def _validate_set(self, key: Any, value: Any) -> None:
         from omegaconf import OmegaConf
 
+        from ._utils import _schema_validation
+
         self._validate_get(key, value)
 
         if self._get_flag("readonly"):
@@ -122,6 +124,13 @@ class ListConfig(BaseContainer, MutableSequence[Any]):
                 isinstance(value, BaseContainer) and _is_none(value)
             )
             value_type = OmegaConf.get_type(value)
+            if (
+                _schema_validation.get() is not None
+                and is_structured_config(target_type)
+                and value_type is dict
+            ):
+                # The shared schema-only wrapping/merge path validates partial mappings.
+                return
 
             if (
                 value_is_none
@@ -626,6 +635,7 @@ class ListConfig(BaseContainer, MutableSequence[Any]):
 
     def _set_value_impl(self, value: Any, flags: dict[str, bool] | None = None) -> None:
         from omegaconf import MISSING, flag_override
+        from omegaconf._utils import _is_special, _schema_validation
         from omegaconf.tupleconfig import TupleConfig
 
         if flags is None:
@@ -646,6 +656,14 @@ class ListConfig(BaseContainer, MutableSequence[Any]):
             self.__dict__["_content"] = value
             self._metadata.object_type = None
         else:
+            if (
+                _schema_validation.get() is not None
+                and isinstance(value, (tuple, TupleConfig))
+                and not _is_special(value)
+            ):
+                raise ValidationError(
+                    "Cannot validate a tuple as a list without conversion"
+                )
             if not (
                 is_primitive_list(value) or isinstance(value, (ListConfig, TupleConfig))
             ):
