@@ -14,15 +14,18 @@ from ._utils import (
     _DEFAULT_MARKER_,
     NoneType,
     ValueKind,
+    _copy_with_parent,
     _get_value,
     _is_full_backtrace_enabled,
     _is_interpolation,
     _is_missing_value,
     _is_special,
+    _schema_validation,
     format_and_raise,
     get_value_kind,
     is_dict_annotation,
     is_list_annotation,
+    is_primitive_container,
     is_structured_config,
     is_tuple_annotation,
     is_union_annotation,
@@ -196,6 +199,9 @@ class Node(ABC):
         return self._metadata.flags.get(flag)
 
     def _get_flag(self, flag: str) -> bool | None:
+        if _schema_validation.get() is not None:
+            if flag == "convert":
+                return False
         cache = self.__dict__["_flags_cache"]
         if cache is None:
             cache = self.__dict__["_flags_cache"] = {}
@@ -717,6 +723,26 @@ class Container(Box):
         from ._utils import _is_missing_literal
         from .nodes import AnyNode, InterpolationResultNode, ValueNode
 
+        if (
+            _schema_validation.get() is not None
+            and isinstance(resolved, Node)
+            and not isinstance(resolved, InterpolationResultNode)
+        ):
+            while isinstance(resolved, Node) and resolved._is_interpolation():
+                if resolved._get_root() is not self._get_root():
+                    resolved = _copy_with_parent(resolved)
+                resolved = resolved._dereference_node()
+            if (
+                isinstance(resolved, Node)
+                and not isinstance(resolved, InterpolationResultNode)
+                and resolved._get_root() is not self._get_root()
+            ):
+                resolved = _copy_with_parent(resolved)
+            if isinstance(resolved, Container):
+                from .omegaconf import OmegaConf
+
+                OmegaConf.resolve(resolved)
+
         if not isinstance(resolved, Node):
             resolved = _decode_missing_escape(resolved)
             if _is_missing_literal(resolved):
@@ -729,6 +755,22 @@ class Container(Box):
         # If the output is not a Node already (e.g., because it is the output of a
         # custom resolver), then we will need to wrap it within a Node.
         must_wrap = not isinstance(resolved, Node)
+
+        if (
+            _schema_validation.get() is not None
+            and isinstance(value, AnyNode)
+            and is_primitive_container(resolved)
+        ):
+            from .omegaconf import OmegaConf
+
+            # Materialize primitive resolver containers permissively first. The
+            # validation graph applies the destination Any node's policy after
+            # materialization, so the root flag cannot mask a child-local flag.
+            assert isinstance(resolved, (dict, list, tuple))
+            resolved = OmegaConf.create(resolved, flags={"allow_objects": True})
+            resolved._set_parent(parent)
+            resolved._set_key(key)
+            must_wrap = False
 
         # If the node is typed, validate (and possibly convert) the result.
         if isinstance(value, ValueNode) and not isinstance(value, AnyNode):
@@ -753,7 +795,7 @@ class Container(Box):
                 must_wrap = True
                 resolved = conv_value
         elif isinstance(value, Container) and value._has_ref_type():
-            from ._utils import _convert_opaque_missing, is_primitive_container
+            from ._utils import _convert_opaque_missing
             from .omegaconf import _node_wrap
 
             if not (
@@ -936,13 +978,23 @@ class Container(Box):
         resolver = OmegaConf._get_resolver(inter_type)
         if resolver is not None:
             root_node = self._get_root()
-            result = resolver(
-                root_node,
-                self,
-                node,
-                inter_args,
-                inter_args_str,
+            # A resolver's own OmegaConf calls keep their ordinary semantics.
+            token = (
+                _schema_validation.set(None)
+                if _schema_validation.get() is not None
+                else None
             )
+            try:
+                result = resolver(
+                    root_node,
+                    self,
+                    node,
+                    inter_args,
+                    inter_args_str,
+                )
+            finally:
+                if token is not None:
+                    _schema_validation.reset(token)
             if not isinstance(result, Node):
                 if not is_primitive_container(result):
                     result = _decode_missing_escape(result)

@@ -469,7 +469,9 @@ class TupleConfig(BaseContainer, Sequence[Any]):
     def _set_value_impl(self, value: Any, flags: dict[str, bool] | None = None) -> None:
         from omegaconf import MISSING
         from omegaconf.listconfig import ListConfig
-        from omegaconf.omegaconf import _maybe_wrap
+        from omegaconf.omegaconf import _maybe_wrap, _node_wrap
+
+        from ._utils import _schema_validation
 
         source_is_list = isinstance(value, (list, ListConfig))
         value = _get_value(value)
@@ -490,6 +492,10 @@ class TupleConfig(BaseContainer, Sequence[Any]):
             self.__dict__["_content"] = value
             self._metadata.object_type = None
             return
+        if _schema_validation.get() is not None and source_is_list:
+            raise ValidationError(
+                "Cannot validate a list as a tuple without conversion"
+            )
         if not isinstance(value, (list, tuple, ListConfig, TupleConfig)):
             raise ValidationError(
                 f"Invalid value assigned: {type(value).__name__} is not a "
@@ -517,13 +523,35 @@ class TupleConfig(BaseContainer, Sequence[Any]):
             if isinstance(item, Node):
                 item = copy.deepcopy(item)
             optional, item_type = _resolve_optional(self._item_type(index))
-            node = _maybe_wrap(
-                ref_type=item_type,
-                key=index,
-                value=item,
-                is_optional=optional,
-                parent=self,
-            )
+            if _schema_validation.get() is not None and isinstance(item, Node):
+                # Source nodes carry their own container annotations. Rebuild
+                # them with the tuple item's destination annotation so shared
+                # validators check keys, values, and structured fields against
+                # the destination schema.
+                if item_type is Any:
+                    node = _maybe_wrap(
+                        ref_type=item_type,
+                        key=index,
+                        value=item,
+                        is_optional=optional,
+                        parent=self,
+                    )
+                else:
+                    node = _node_wrap(
+                        ref_type=item_type,
+                        key=index,
+                        value=_get_value(item),
+                        is_optional=optional,
+                        parent=self,
+                    )
+            else:
+                node = _maybe_wrap(
+                    ref_type=item_type,
+                    key=index,
+                    value=item,
+                    is_optional=optional,
+                    parent=self,
+                )
             content.append(node)
         self._metadata.object_type = tuple
         if _conversion_warning_mode.get() is True and source_is_list:

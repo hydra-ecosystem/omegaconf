@@ -6,6 +6,7 @@ import string
 import sys
 import types
 import warnings
+from contextvars import ContextVar
 from enum import Enum
 from textwrap import dedent
 from typing import (
@@ -57,10 +58,60 @@ if TYPE_CHECKING:
     import attr
     from attr import Attribute as AttrAttribute
 
+    from .base import Node
     from .basecontainer import BaseContainer
 
 
 NoneType: type[None] = type(None)
+
+# Scoped to the private validation graph; never stored in node flags or metadata.
+# None disables validation; a bool marks strict, schema-only validation.
+_schema_validation: ContextVar[bool | None] = ContextVar(
+    "schema_validation", default=None
+)
+
+
+def _copy_with_parent(node: "Node") -> "Node":
+    """Copy a writable private graph, retaining only copied ancestor context."""
+    from .base import Box, Node
+
+    chain = [node]
+    while (parent := chain[-1]._get_parent()) is not None:
+        chain.append(parent)
+    memo: dict[int, Any] = {}
+    visited: set[int] = set()
+
+    def preserve_opaque(value: Any) -> None:
+        if id(value) in visited:
+            return
+        visited.add(id(value))
+        if isinstance(value, Node):
+            preserve_opaque(value._metadata.resolver_cache)
+            preserve_opaque(value.__dict__.get("_content"))
+        elif isinstance(value, dict):
+            for key, child in value.items():
+                preserve_opaque(key)
+                preserve_opaque(child)
+        elif isinstance(value, (list, tuple)):
+            for child in value:
+                preserve_opaque(child)
+        else:
+            # Copy cache tables and container/node results, retaining opaque
+            # runtime values by identity just as AnyNode deepcopy already does.
+            memo[id(value)] = value
+
+    preserve_opaque(chain[-1])
+    result = copy.deepcopy(chain.pop(), memo)
+    for original in reversed(chain):
+        child = copy.deepcopy(original, memo)
+        assert isinstance(result, Box)
+        child._set_parent(result)
+        result = child
+    for cloned in memo.values():
+        if isinstance(cloned, Node):
+            cloned._set_flag("readonly", False)
+    return result
+
 
 # (module, qualname) pairs for dict types that are treated as primitive dicts,
 # enabling whitelisting of other dict types without pulling in extra dependencies.
@@ -552,7 +603,9 @@ def get_attr_data(
         name = attrib.name
         is_optional, type_ = _resolve_optional(resolved_hints[name])
         type_ = _resolve_forward(type_, obj.__module__)
-        if not is_type:
+        if _schema_validation.get() is not None and is_type:
+            value = MISSING
+        elif not is_type:
             value = getattr(obj, name)
         else:
             default = attrib.default
@@ -625,13 +678,15 @@ def get_dataclass_data(
         name = field.name
         is_optional, type_ = _resolve_optional(resolved_hints[field.name])
         type_ = _resolve_forward(type_, obj.__module__)
-        has_default = field.default != dataclasses.MISSING
-        has_default_factory = field.default_factory != dataclasses.MISSING
 
-        if not is_type:
-            value = getattr(obj, name)
+        if _schema_validation.get() is not None:
+            value = MISSING if is_type else getattr(obj, name)
         else:
-            if has_default:
+            has_default = field.default != dataclasses.MISSING
+            has_default_factory = field.default_factory != dataclasses.MISSING
+            if not is_type:
+                value = getattr(obj, name)
+            elif has_default:
                 value = field.default
             elif has_default_factory:
                 value = field.default_factory()  # type: ignore
