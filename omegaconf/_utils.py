@@ -6,6 +6,7 @@ import string
 import sys
 import types
 import warnings
+from contextvars import ContextVar
 from enum import Enum
 from textwrap import dedent
 from typing import (
@@ -53,6 +54,13 @@ try:
 except ImportError:  # pragma: no cover
     BaseDumper = yaml.Dumper
 
+# Scoped to the private validation graph; never stored in node flags or metadata.
+# None disables validation; a bool marks strict, schema-only validation.
+_schema_validation: ContextVar[bool | None] = ContextVar(
+    "schema_validation", default=None
+)
+
+
 if TYPE_CHECKING:
     import attr
     from attr import Attribute as AttrAttribute
@@ -61,6 +69,7 @@ if TYPE_CHECKING:
 
 
 NoneType: type[None] = type(None)
+
 
 # (module, qualname) pairs for dict types that are treated as primitive dicts,
 # enabling whitelisting of other dict types without pulling in extra dependencies.
@@ -552,7 +561,9 @@ def get_attr_data(
         name = attrib.name
         is_optional, type_ = _resolve_optional(resolved_hints[name])
         type_ = _resolve_forward(type_, obj.__module__)
-        if not is_type:
+        if _schema_validation.get() is not None and is_type:
+            value = MISSING
+        elif not is_type:
             value = getattr(obj, name)
         else:
             default = attrib.default
@@ -625,13 +636,15 @@ def get_dataclass_data(
         name = field.name
         is_optional, type_ = _resolve_optional(resolved_hints[field.name])
         type_ = _resolve_forward(type_, obj.__module__)
-        has_default = field.default != dataclasses.MISSING
-        has_default_factory = field.default_factory != dataclasses.MISSING
 
-        if not is_type:
-            value = getattr(obj, name)
+        if _schema_validation.get() is not None:
+            value = MISSING if is_type else getattr(obj, name)
         else:
-            if has_default:
+            has_default = field.default != dataclasses.MISSING
+            has_default_factory = field.default_factory != dataclasses.MISSING
+            if not is_type:
+                value = getattr(obj, name)
+            elif has_default:
                 value = field.default
             elif has_default_factory:
                 value = field.default_factory()  # type: ignore
