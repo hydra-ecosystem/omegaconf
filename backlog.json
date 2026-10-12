@@ -1,9 +1,9 @@
 {
   "generated_on": "2026-10-12",
-  "generated_at": "2026-10-12T19:55:12Z",
+  "generated_at": "2026-10-12T19:58:41Z",
   "repo": "hydra-ecosystem/omegaconf",
   "summary": {
-    "open_total": 27,
+    "open_total": 28,
     "by_category": [
       {
         "category": "Bug",
@@ -14,14 +14,14 @@
       {
         "category": "Enhancement",
         "emoji": "✨",
-        "count": 23,
-        "percentage": 85.2
+        "count": 24,
+        "percentage": 85.7
       },
       {
         "category": "Documentation",
         "emoji": "📄",
         "count": 1,
-        "percentage": 3.7
+        "percentage": 3.6
       },
       {
         "category": "Question",
@@ -33,13 +33,13 @@
         "category": "Refactor",
         "emoji": "🔧",
         "count": 2,
-        "percentage": 7.4
+        "percentage": 7.1
       },
       {
         "category": "Build",
         "emoji": "🏗️",
         "count": 1,
-        "percentage": 3.7
+        "percentage": 3.6
       }
     ],
     "by_status": [
@@ -61,7 +61,7 @@
       {
         "status": "not started",
         "emoji": "⬜",
-        "count": 27
+        "count": 28
       },
       {
         "status": "done",
@@ -484,6 +484,21 @@
       "url": "https://github.com/hydra-ecosystem/omegaconf/issues/1414"
     },
     {
+      "number": 1419,
+      "title": "Consider promoting private schema validation to a public API",
+      "category": "Enhancement",
+      "category_emoji": "✨",
+      "status": "not started",
+      "status_emoji": "⬜",
+      "prs": [],
+      "created": "2026-10-12",
+      "updated": "2026-10-12",
+      "labels": [
+        "enhancement"
+      ],
+      "url": "https://github.com/hydra-ecosystem/omegaconf/issues/1419"
+    },
+    {
       "number": 459,
       "title": "Consider deprecating assignment of strings to non-string nodes like IntegerNode / FloatNode",
       "category": "Enhancement",
@@ -670,6 +685,13 @@
     }
   ],
   "updates": [
+    {
+      "ts": "2026-10-12T19:58:41Z",
+      "kind": "new",
+      "issue": 1419,
+      "issue_url": "https://github.com/hydra-ecosystem/omegaconf/issues/1419",
+      "title": "Consider promoting private schema validation to a public API"
+    },
     {
       "ts": "2026-10-09T19:10:49Z",
       "kind": "new",
@@ -2331,13 +2353,6 @@
       "issue_url": "https://github.com/omry/omegaconf/issues/1058",
       "title": "structured config types are discarded on list merge",
       "detail": "removed \"needs triage\""
-    },
-    {
-      "ts": "2026-06-12T17:19:51Z",
-      "kind": "closed",
-      "issue": 1061,
-      "issue_url": "https://github.com/omry/omegaconf/issues/1061",
-      "title": "Enum inheritance Support"
     }
   ]
 }
