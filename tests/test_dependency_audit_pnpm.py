@@ -461,7 +461,16 @@ def test_workflow_limits_credentials_artifacts_and_publication():
     ]
     shell = publisher["steps"][-1]["run"]
     assert "--body-file" in shell and "--force-with-lease=" in shell
-    assert "--draft" not in shell
+    assert "--draft" in shell and 'gh pr ready "$pr_number" --undo' in shell
+    assert "[skip ci]" not in shell
+    assert (
+        audit["outputs"]["validation_passed"]
+        == "${{ steps.proposal.outputs.validation_passed }}"
+    )
+    assert (
+        publisher["steps"][-1]["env"]["VALIDATION_PASSED"]
+        == "${{ needs.audit.outputs.validation_passed }}"
+    )
     assert "git add ." not in shell
     deploy = yaml.safe_load((root / ".github/workflows/deploy-docs.yml").read_text())
     # PyYAML's YAML 1.1 loader reads the GitHub 'on' key as True.

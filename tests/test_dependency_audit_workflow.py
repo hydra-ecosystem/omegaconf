@@ -98,6 +98,7 @@ elif args[:2] == ['pr', 'list']:
             "HAS_CHANGES": "1",
             "PUSH_STATUS": "0",
             "PR_NUMBER": "",
+            "VALIDATION_PASSED": "true",
             "PR_LIST_JSON": json.dumps(
                 [{"number": int(number), "isCrossRepository": False}] if number else []
             ),
@@ -162,7 +163,7 @@ def test_publisher_creates_or_updates_one_regular_pr(publisher, tmp_path, existi
         "git",
         "commit",
         "-m",
-        "Documentation dependency audit and upgrades [skip ci]",
+        "Documentation dependency audit and upgrades",
     ] in commands
     push = next(command for command in commands if command[:2] == ["git", "push"])
     expected_head = "previous-head" if existing else ""
@@ -206,19 +207,16 @@ def test_publisher_does_not_open_pr_without_successful_push(
     )
 
 
-def test_no_dependency_changes_updates_existing_report_without_commit(
+def test_no_dependency_changes_preserves_existing_report_without_commit(
     publisher, tmp_path
 ):
     result, commands = publisher.publish(HAS_CHANGES="0", PR_NUMBER="42")
     assert result.returncode == 0, result.stderr
-    assert any(command[:4] == ["gh", "pr", "edit", "42"] for command in commands)
+    assert not any(command[:4] == ["gh", "pr", "edit", "42"] for command in commands)
     assert not any(
         command[:2] in (["git", "commit"], ["git", "push"]) for command in commands
     )
-    assert (
-        "existing PR branch was left unchanged"
-        in (tmp_path / "dependency-audit-pr.md").read_text()
-    )
+    assert "existing PR branch and report retained" in result.stdout
 
 
 def test_publisher_stops_before_publication_when_dependency_state_is_stale(publisher):
