@@ -27,6 +27,7 @@ from ._missing import (
     _EscapedMissing,
     _has_missing_spelling,
 )
+from ._validation_context import _schema_validation
 from .errors import (
     ConfigIndexError,
     ConfigTypeError,
@@ -61,6 +62,7 @@ if TYPE_CHECKING:
 
 
 NoneType: type[None] = type(None)
+
 
 # (module, qualname) pairs for dict types that are treated as primitive dicts,
 # enabling whitelisting of other dict types without pulling in extra dependencies.
@@ -552,7 +554,9 @@ def get_attr_data(
         name = attrib.name
         is_optional, type_ = _resolve_optional(resolved_hints[name])
         type_ = _resolve_forward(type_, obj.__module__)
-        if not is_type:
+        if _schema_validation.get() is not None and is_type:
+            value = MISSING
+        elif not is_type:
             value = getattr(obj, name)
         else:
             default = attrib.default
@@ -625,13 +629,15 @@ def get_dataclass_data(
         name = field.name
         is_optional, type_ = _resolve_optional(resolved_hints[field.name])
         type_ = _resolve_forward(type_, obj.__module__)
-        has_default = field.default != dataclasses.MISSING
-        has_default_factory = field.default_factory != dataclasses.MISSING
 
-        if not is_type:
-            value = getattr(obj, name)
+        if _schema_validation.get() is not None:
+            value = MISSING if is_type else getattr(obj, name)
         else:
-            if has_default:
+            has_default = field.default != dataclasses.MISSING
+            has_default_factory = field.default_factory != dataclasses.MISSING
+            if not is_type:
+                value = getattr(obj, name)
+            elif has_default:
                 value = field.default
             elif has_default_factory:
                 value = field.default_factory()  # type: ignore
