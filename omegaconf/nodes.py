@@ -15,6 +15,7 @@ from omegaconf._utils import (
     NoneType,
     ValueKind,
     _is_interpolation,
+    _schema_validation,
     get_type_of,
     get_value_kind,
     is_literal_annotation,
@@ -62,6 +63,9 @@ class ValueNode(Node):
 
     def _strict_validate_type(self, value: Any) -> None:
         ref_type = self._metadata.ref_type
+        if ref_type is Any and _schema_validation.get() is not None:
+            self._validate_and_convert_impl(value)
+            return
         if (
             isinstance(ref_type, type)
             and type(value) is not ref_type

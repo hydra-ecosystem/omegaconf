@@ -752,6 +752,14 @@ class BaseContainer(Container, ABC):
                     other, (ListConfig, TupleConfig)
                 ):
                     if isinstance(other, TupleConfig):
+                        from ._utils import _is_special, _schema_validation
+
+                        if _schema_validation.get() is not None and not _is_special(
+                            other
+                        ):
+                            raise ValidationError(
+                                "Cannot validate a tuple as a list without conversion"
+                            )
                         other = ListConfig(content=other)
                     BaseContainer._list_merge(self, other)
                 elif isinstance(self, TupleConfig) and isinstance(
@@ -1191,6 +1199,9 @@ def _shallow_validate_type_hint(node: Node, type_hint: Any) -> None:
     """Error if node's type, content and metadata are not compatible with type_hint."""
     from omegaconf import DictConfig, ListConfig, TupleConfig, UnionNode, ValueNode
 
+    from ._utils import _schema_validation
+    from .omegaconf import _node_wrap
+
     is_optional, ref_type = _resolve_optional(type_hint)
 
     vk = get_value_kind(node)
@@ -1208,6 +1219,16 @@ def _shallow_validate_type_hint(node: Node, type_hint: Any) -> None:
     elif vk == ValueKind.VALUE:
         if is_primitive_type_annotation(ref_type) and isinstance(node, ValueNode):
             value = node._value()
+            if _schema_validation.get() is not None:
+                # Source node subclasses must not weaken the destination's validator.
+                _node_wrap(
+                    value=value,
+                    parent=None,
+                    key=node._key(),
+                    ref_type=ref_type,
+                    is_optional=is_optional,
+                )
+                return
             if not isinstance(value, ref_type):
                 raise ValidationError(
                     f"Value {value!r} ({type(value).__name__})"

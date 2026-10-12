@@ -17,8 +17,9 @@ PUBLISH = WORKFLOW["jobs"]["pull-request"]["steps"][-1]
 
 @pytest.mark.parametrize("existing", [False, True])
 @pytest.mark.parametrize("changes", [False, True])
-def test_generated_dependency_commit_skips_ci_and_preserves_build_report(
-    tmp_path, existing, changes
+@pytest.mark.parametrize("passed", [False, True])
+def test_publication_preserves_reports_and_signals_failed_validation(
+    tmp_path, existing, changes, passed
 ):
     cli = tmp_path / "mock-cli"
     cli.write_text(
@@ -58,11 +59,12 @@ def test_generated_dependency_commit_skips_ci_and_preserves_build_report(
             "COMMAND_LOG": str(command_log),
             "HAS_CHANGES": str(int(changes)),
             "PR_NUMBER": "42" if existing else "",
+            "VALIDATION_PASSED": str(passed).lower(),
         },
         capture_output=True,
         text=True,
     )
-    assert result.returncode == 0, result.stderr
+    assert result.returncode == (0 if passed else 1), result.stderr
     commands = [json.loads(line) for line in command_log.read_text().splitlines()]
     commits = [command for command in commands if command[:2] == ["git", "commit"]]
     assert commits == (
@@ -71,7 +73,7 @@ def test_generated_dependency_commit_skips_ci_and_preserves_build_report(
                 "git",
                 "commit",
                 "-m",
-                "Documentation dependency audit and upgrades [skip ci]",
+                "Documentation dependency audit and upgrades",
             ]
         ]
         if changes
@@ -82,11 +84,21 @@ def test_generated_dependency_commit_skips_ci_and_preserves_build_report(
         for command in commands
         if command[:2] == ["gh", "pr"] and command[2] in ("create", "edit")
     ]
-    assert len(writes) == int(existing or changes)
+    assert len(writes) == int(changes)
     if writes:
         assert writes[0][2] == ("edit" if existing else "create")
-        assert "--draft" not in writes[0]
+        assert ("--draft" in writes[0]) == (not existing and not passed)
         assert writes[0][writes[0].index("--title") + 1] == (
             "Docusaurus maintenance: security audit and dependency upgrades"
         )
     assert (tmp_path / "dependency-audit-pr.md").read_text().startswith(report)
+    draft_commands = [
+        command for command in commands if command[:3] == ["gh", "pr", "ready"]
+    ]
+    assert draft_commands == (
+        [["gh", "pr", "ready", "42", "--undo"]]
+        if existing and changes and not passed
+        else []
+    )
+    if not changes:
+        assert not any(command[:2] == ["git", "push"] for command in commands)
