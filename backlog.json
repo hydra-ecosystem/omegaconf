@@ -1,6 +1,6 @@
 {
   "generated_on": "2026-10-13",
-  "generated_at": "2026-10-13T08:53:03Z",
+  "generated_at": "2026-10-13T09:49:08Z",
   "repo": "hydra-ecosystem/omegaconf",
   "summary": {
     "open_total": 28,
@@ -46,7 +46,7 @@
       {
         "status": "in progress",
         "emoji": "🔄",
-        "count": 1
+        "count": 0
       },
       {
         "status": "community PR",
@@ -61,7 +61,7 @@
       {
         "status": "not started",
         "emoji": "⬜",
-        "count": 27
+        "count": 28
       },
       {
         "status": "done",
@@ -71,26 +71,6 @@
     ]
   },
   "issues": [
-    {
-      "number": 1419,
-      "title": "Consider promoting private schema validation to a public API",
-      "category": "Enhancement",
-      "category_emoji": "✨",
-      "status": "in progress",
-      "status_emoji": "🔄",
-      "prs": [
-        {
-          "number": 1420,
-          "url": "https://github.com/hydra-ecosystem/omegaconf/pull/1420"
-        }
-      ],
-      "created": "2026-10-12",
-      "updated": "2026-10-12",
-      "labels": [
-        "enhancement"
-      ],
-      "url": "https://github.com/hydra-ecosystem/omegaconf/issues/1419"
-    },
     {
       "number": 91,
       "title": "Consider supporting basic operators in interpolations of numbers",
@@ -504,6 +484,21 @@
       "url": "https://github.com/hydra-ecosystem/omegaconf/issues/1414"
     },
     {
+      "number": 1419,
+      "title": "Consider promoting private schema validation to a public API",
+      "category": "Enhancement",
+      "category_emoji": "✨",
+      "status": "not started",
+      "status_emoji": "⬜",
+      "prs": [],
+      "created": "2026-10-12",
+      "updated": "2026-10-12",
+      "labels": [
+        "enhancement"
+      ],
+      "url": "https://github.com/hydra-ecosystem/omegaconf/issues/1419"
+    },
+    {
       "number": 459,
       "title": "Consider deprecating assignment of strings to non-string nodes like IntegerNode / FloatNode",
       "category": "Enhancement",
@@ -690,6 +685,22 @@
     }
   ],
   "updates": [
+    {
+      "ts": "2026-10-13T09:49:08Z",
+      "kind": "pr",
+      "issue": 1419,
+      "issue_url": "https://github.com/hydra-ecosystem/omegaconf/issues/1419",
+      "title": "Consider promoting private schema validation to a public API",
+      "detail": "unlinked #1420"
+    },
+    {
+      "ts": "2026-10-13T09:49:08Z",
+      "kind": "status",
+      "issue": 1419,
+      "issue_url": "https://github.com/hydra-ecosystem/omegaconf/issues/1419",
+      "title": "Consider promoting private schema validation to a public API",
+      "detail": "in progress → not started"
+    },
     {
       "ts": "2026-10-13T08:33:33Z",
       "kind": "pr",
@@ -2348,21 +2359,6 @@
       "issue_url": "https://github.com/omry/omegaconf/issues/1037",
       "title": "Structured config type coercion not working correctly for DictConfig keys",
       "detail": "removed \"needs triage\""
-    },
-    {
-      "ts": "2026-06-12T18:43:02Z",
-      "kind": "label",
-      "issue": 1048,
-      "issue_url": "https://github.com/omry/omegaconf/issues/1048",
-      "title": "[Feature Request] Use SimpleNamespace for to_container() and to_object()",
-      "detail": "added \"enhancement\"; removed \"needs triage\""
-    },
-    {
-      "ts": "2026-06-12T18:32:53Z",
-      "kind": "closed",
-      "issue": 1052,
-      "issue_url": "https://github.com/omry/omegaconf/issues/1052",
-      "title": "How can I get the data type of an attribute at a depth>1?"
     }
   ]
 }

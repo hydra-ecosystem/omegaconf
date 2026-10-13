@@ -11,7 +11,7 @@
     "1391": "2026-10-04",
     "459": "2026-09-25"
   },
-  "generated_at": "2026-10-13T08:53:03Z",
+  "generated_at": "2026-10-13T09:49:08Z",
   "issues": {
     "1024": {
       "category": "Enhancement",
@@ -285,11 +285,9 @@
       "labels": [
         "enhancement"
       ],
-      "pr_numbers": [
-        "1420"
-      ],
+      "pr_numbers": [],
       "state": "OPEN",
-      "status": "in progress",
+      "status": "not started",
       "title": "Consider promoting private schema validation to a public API",
       "updated_at": "2026-10-12T19:57:25Z"
     },
