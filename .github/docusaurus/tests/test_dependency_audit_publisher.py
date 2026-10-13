@@ -15,11 +15,48 @@ WORKFLOW = yaml.safe_load(WORKFLOW_PATH.read_text())
 PUBLISH = WORKFLOW["jobs"]["pull-request"]["steps"][-1]
 
 
+def test_app_credentials_are_scoped_to_trusted_repository_publishing():
+    audit = WORKFLOW["jobs"]["audit"]
+    assert "secrets." not in json.dumps(audit)
+    assert "app-token" not in json.dumps(audit)
+    assert WORKFLOW["permissions"] == {"contents": "read"}
+    assert set(audit.get("needs", [])) == set()
+
+    steps = WORKFLOW["jobs"]["pull-request"]["steps"]
+    app = next(step for step in steps if step.get("id") == "app-token")
+    checkout = next(
+        step for step in steps if step.get("uses", "").startswith("actions/checkout@")
+    )
+    assert steps.index(app) < steps.index(checkout)
+    assert app["if"] == "${{ vars.DOCUSAURUS_APP_CLIENT_ID != '' }}"
+    assert "continue-on-error" not in app
+    assert app["with"]["owner"] == "${{ github.repository_owner }}"
+    assert app["with"]["repositories"] == "${{ github.event.repository.name }}"
+    permissions = {
+        key: value
+        for key, value in app["with"].items()
+        if key.startswith("permission-")
+    }
+    assert permissions == {
+        "permission-contents": "write",
+        "permission-pull-requests": "write",
+    }
+    assert app["with"].get("skip-token-revoke", False) is False
+    assert checkout["with"]["token"] == PUBLISH["env"]["GH_TOKEN"]
+    assert checkout["with"]["token"] == (
+        "${{ steps.app-token.outputs.token || github.token }}"
+    )
+    assert checkout["with"].get("persist-credentials", True) is True
+    assert "if" not in checkout and "if" not in PUBLISH
+
+
 @pytest.mark.parametrize("existing", [False, True])
 @pytest.mark.parametrize("changes", [False, True])
 @pytest.mark.parametrize("passed", [False, True])
+@pytest.mark.parametrize("draft", [False, True])
+@pytest.mark.parametrize("failure", [None, "view", "draft", "edit"])
 def test_publication_preserves_reports_and_signals_failed_validation(
-    tmp_path, existing, changes, passed
+    tmp_path, existing, changes, passed, draft, failure
 ):
     cli = tmp_path / "mock-cli"
     cli.write_text(
@@ -35,6 +72,13 @@ def test_publication_preserves_reports_and_signals_failed_validation(
         "    sys.exit(int(os.environ['HAS_CHANGES']))\n"
         "if tool == 'gh' and args[:2] == ['pr', 'list']:\n"
         "    print(os.environ['PR_NUMBER'])\n"
+        "if tool == 'gh' and args[:2] == ['pr', 'view']:\n"
+        "    if os.environ['API_FAILURE'] == 'view': sys.exit(1)\n"
+        "    print(os.environ['IS_DRAFT'])\n"
+        "if tool == 'gh' and args[:2] == ['pr', 'ready']:\n"
+        "    if os.environ['API_FAILURE'] == 'draft': sys.exit(1)\n"
+        "if tool == 'gh' and args[:2] == ['pr', 'edit']:\n"
+        "    if os.environ['API_FAILURE'] == 'edit': sys.exit(1)\n"
     )
     cli.chmod(0o755)
     for tool in ("git", "gh"):
@@ -60,11 +104,21 @@ def test_publication_preserves_reports_and_signals_failed_validation(
             "HAS_CHANGES": str(int(changes)),
             "PR_NUMBER": "42" if existing else "",
             "VALIDATION_PASSED": str(passed).lower(),
+            "IS_DRAFT": str(draft).lower(),
+            "API_FAILURE": failure or "",
         },
         capture_output=True,
         text=True,
     )
-    assert result.returncode == (0 if passed else 1), result.stderr
+    inspect_draft = existing and changes and not passed
+    view_failed = inspect_draft and failure == "view"
+    convert_draft = inspect_draft and not draft and not view_failed
+    draft_failed = convert_draft and failure == "draft"
+    blocked = view_failed or draft_failed
+    edit_failed = existing and changes and not blocked and failure == "edit"
+    assert result.returncode == (1 if not passed or blocked or edit_failed else 0), (
+        result.stderr
+    )
     commands = [json.loads(line) for line in command_log.read_text().splitlines()]
     commits = [command for command in commands if command[:2] == ["git", "commit"]]
     assert commits == (
@@ -76,7 +130,7 @@ def test_publication_preserves_reports_and_signals_failed_validation(
                 "Documentation dependency audit and upgrades",
             ]
         ]
-        if changes
+        if changes and not blocked
         else []
     )
     writes = [
@@ -84,7 +138,7 @@ def test_publication_preserves_reports_and_signals_failed_validation(
         for command in commands
         if command[:2] == ["gh", "pr"] and command[2] in ("create", "edit")
     ]
-    assert len(writes) == int(changes)
+    assert len(writes) == int(changes and not blocked)
     if writes:
         assert writes[0][2] == ("edit" if existing else "create")
         assert ("--draft" in writes[0]) == (not existing and not passed)
@@ -96,9 +150,13 @@ def test_publication_preserves_reports_and_signals_failed_validation(
         command for command in commands if command[:3] == ["gh", "pr", "ready"]
     ]
     assert draft_commands == (
-        [["gh", "pr", "ready", "42", "--undo"]]
-        if existing and changes and not passed
-        else []
+        [["gh", "pr", "ready", "42", "--undo"]] if convert_draft else []
     )
-    if not changes:
-        assert not any(command[:2] == ["git", "push"] for command in commands)
+    inspections = [
+        command for command in commands if command[:3] == ["gh", "pr", "view"]
+    ]
+    assert len(inspections) == int(inspect_draft)
+    pushes = [command for command in commands if command[:2] == ["git", "push"]]
+    assert len(pushes) == int(changes and not blocked)
+    if pushes and draft_commands:
+        assert commands.index(draft_commands[0]) < commands.index(pushes[0])

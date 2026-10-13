@@ -108,7 +108,7 @@ def test_invalid_reconstructed_policy_restores_snapshot(project, monkeypatch):
         nonlocal calls
         calls += 1
         candidate = original_valid_snapshot(directory)
-        return None if calls > 1 else candidate
+        return None if calls == 2 else candidate
 
     monkeypatch.setitem(
         module["restore_invalid_state"].__globals__,
