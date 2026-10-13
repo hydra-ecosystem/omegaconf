@@ -76,8 +76,20 @@ jobs:
       contents: write
       pull-requests: write
     steps:
+      - name: Create repository-scoped publisher token
+        if: ${{ vars.DOCUSAURUS_APP_CLIENT_ID != '' }}
+        id: app-token
+        uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510  # v3.3.0
+        with:
+          client-id: ${{ vars.DOCUSAURUS_APP_CLIENT_ID }}
+          private-key: ${{ secrets.DOCUSAURUS_APP_PRIVATE_KEY }}
+          owner: ${{ github.repository_owner }}
+          repositories: ${{ github.event.repository.name }}
+          permission-contents: write
+          permission-pull-requests: write
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
         with:
+          token: ${{ steps.app-token.outputs.token || github.token }}
           ref: ${{ github.sha }}
           fetch-depth: 0
       - name: Verify audit dependency state
@@ -122,7 +134,7 @@ jobs:
           path: ${{ runner.temp }}
       - name: Open or update the umbrella PR
         env:
-          GH_TOKEN: ${{ github.token }}
+          GH_TOKEN: ${{ steps.app-token.outputs.token || github.token }}
           GH_REPO: ${{ github.repository }}
           BASE_BRANCH: ${{ github.event.repository.default_branch }}
           PR_BRANCH: maintenance/dependency-audit
@@ -132,8 +144,7 @@ jobs:
             The audit workflow performs the frozen install and production build;
             review their results above before merging. Failed candidates are drafts
             and fail this workflow. Successful reruns leave existing draft status
-            for human review. Normal PR checks remain enabled; GitHub may require
-            approval to run checks on token-created PRs. Post-merge CI and deployment
+            for human review. Normal PR checks remain enabled. Post-merge CI and deployment
             use the normal workflows. Nothing is merged automatically.
 
             Run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
@@ -163,14 +174,17 @@ jobs:
             validation_status
             exit 0
           else
+            if [ -n "$pr_number" ] && [ "$VALIDATION_PASSED" != true ]; then
+              is_draft=$(gh pr view "$pr_number" --json isDraft --jq .isDraft)
+              if [ "$is_draft" != true ]; then
+                gh pr ready "$pr_number" --undo
+              fi
+            fi
             git commit -m 'Documentation dependency audit and upgrades'
             git push --force-with-lease="refs/heads/$PR_BRANCH:$expected_head" origin "HEAD:refs/heads/$PR_BRANCH"
           fi
           if [ -n "$pr_number" ]; then
             gh pr edit "$pr_number" --title "$PR_TITLE" --body-file "$body_file"
-            if [ "$VALIDATION_PASSED" != true ]; then
-              gh pr ready "$pr_number" --undo
-            fi
           else
             draft_args=()
             if [ "$VALIDATION_PASSED" != true ]; then

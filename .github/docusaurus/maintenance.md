@@ -37,6 +37,23 @@ Generated commits use ordinary messages, so normal PR checks and post-merge
 CI/deployment remain enabled. GitHub may require approval to run checks on a PR
 created with the workflow token. Nothing is merged automatically.
 
+To let generated PR checks start without GitHub's workflow-token approval prompt,
+publish with a GitHub App installed on this repository. The App needs repository
+Contents and Pull requests read/write permissions; Metadata read access is
+implicit. It does not need webhooks or user authorization. Limit its installation
+to the repositories it maintains.
+
+Set the repository Actions variable `DOCUSAURUS_APP_CLIENT_ID` to the App's Client
+ID and the Actions secret `DOCUSAURUS_APP_PRIVATE_KEY` to its PEM private key.
+The publisher mints a short-lived token for this repository, explicitly granting
+only Contents and Pull requests write permissions. Both Git pushes and PR API
+calls use that token, which is revoked at job completion. The key and token are
+never supplied to the dependency installation or build job. A configured App that
+cannot authenticate fails publication; it does not retry with the workflow token.
+Without the Client ID variable, publishing retains the built-in workflow token
+and its possible CI approval prompt. Neither mode waits for full CI before the
+audit starts or merges automatically.
+
 Files under `.github/docusaurus/` are copied unchanged from the producer. The
 single audit workflow is generated from its shared template, rendering only
 the schedule from `.github/docusaurus.json`. Put project customization in that
