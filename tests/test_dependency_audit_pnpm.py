@@ -447,7 +447,12 @@ def test_workflow_limits_credentials_artifacts_and_publication():
     assert checkout["with"]["persist-credentials"] is False
     publisher = workflow["jobs"]["pull-request"]
     assert publisher["permissions"] == {"contents": "write", "pull-requests": "write"}
-    assert publisher["steps"][0]["with"]["ref"] == "${{ github.sha }}"
+    publisher_checkout = next(
+        step
+        for step in publisher["steps"]
+        if step.get("uses", "").startswith("actions/checkout@")
+    )
+    assert publisher_checkout["with"]["ref"] == "${{ github.sha }}"
     files = next(
         step["with"]["path"]
         for step in audit["steps"]
