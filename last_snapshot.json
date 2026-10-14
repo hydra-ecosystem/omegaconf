@@ -11,7 +11,7 @@
     "1391": "2026-10-04",
     "459": "2026-09-25"
   },
-  "generated_at": "2026-10-14T02:05:14Z",
+  "generated_at": "2026-10-14T12:47:26Z",
   "issues": {
     "1024": {
       "category": "Enhancement",
@@ -299,7 +299,7 @@
       "state": "OPEN",
       "status": "not started",
       "title": "OmegaConf.missing_keys() returns unescaped paths for keys containing \".\", \"[\", \"]\" or \"=\"",
-      "updated_at": "2026-10-14T02:03:57Z"
+      "updated_at": "2026-10-14T10:28:51Z"
     },
     "144": {
       "category": "Enhancement",
