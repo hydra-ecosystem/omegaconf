@@ -8,6 +8,7 @@ OmegaConf setup
     # Upload:
     twine upload dist/*
 """
+
 import pathlib
 
 import setuptools
@@ -46,7 +47,7 @@ with open("README.md", "r") as fh:
         description="A flexible configuration library",
         long_description=LONG_DESC,
         long_description_content_type="text/markdown",
-        url="https://github.com/omry/omegaconf",
+        url="https://github.com/hydra-ecosystem/omegaconf",
         keywords="yaml configuration config",
         packages=[
             "omegaconf",
