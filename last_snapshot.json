@@ -12,7 +12,7 @@
     "1391": "2026-10-04",
     "459": "2026-09-25"
   },
-  "generated_at": "2026-10-14T19:28:05Z",
+  "generated_at": "2026-10-14T21:43:27Z",
   "issues": {
     "1024": {
       "category": "Enhancement",
@@ -280,17 +280,70 @@
       "state": "OPEN",
       "status": "not started",
       "title": "Consider promoting private schema validation to a public API",
-      "updated_at": "2026-10-12T19:57:25Z"
+      "updated_at": "2026-10-14T20:25:54Z"
     },
     "1423": {
-      "category": "Enhancement",
+      "category": "Bug",
       "created_at": "2026-10-14T02:03:57Z",
-      "labels": [],
+      "labels": [
+        "bug"
+      ],
       "pr_numbers": [],
       "state": "OPEN",
       "status": "not started",
       "title": "OmegaConf.missing_keys() returns unescaped paths for keys containing \".\", \"[\", \"]\" or \"=\"",
-      "updated_at": "2026-10-14T10:28:51Z"
+      "updated_at": "2026-10-14T21:42:29Z"
+    },
+    "1424": {
+      "category": "Bug",
+      "created_at": "2026-10-14T21:42:24Z",
+      "labels": [
+        "bug",
+        "interpolation"
+      ],
+      "pr_numbers": [],
+      "state": "OPEN",
+      "status": "not started",
+      "title": "oc.dict.values interprets literal dictionary keys as interpolation expressions",
+      "updated_at": "2026-10-14T21:42:24Z"
+    },
+    "1425": {
+      "category": "Bug",
+      "created_at": "2026-10-14T21:42:25Z",
+      "labels": [
+        "bug",
+        "interpolation"
+      ],
+      "pr_numbers": [],
+      "state": "OPEN",
+      "status": "not started",
+      "title": "Nested interpolation in bracketed key access can select the wrong key",
+      "updated_at": "2026-10-14T21:42:25Z"
+    },
+    "1426": {
+      "category": "Bug",
+      "created_at": "2026-10-14T21:42:26Z",
+      "labels": [
+        "bug"
+      ],
+      "pr_numbers": [],
+      "state": "OPEN",
+      "status": "not started",
+      "title": "Malformed paths can silently mutate a valid prefix",
+      "updated_at": "2026-10-14T21:42:26Z"
+    },
+    "1427": {
+      "category": "Bug",
+      "created_at": "2026-10-14T21:42:27Z",
+      "labels": [
+        "RFC",
+        "bug"
+      ],
+      "pr_numbers": [],
+      "state": "OPEN",
+      "status": "not started",
+      "title": "Define compatible escaping and addressability guarantees for generated key paths",
+      "updated_at": "2026-10-14T21:42:28Z"
     },
     "144": {
       "category": "Enhancement",
