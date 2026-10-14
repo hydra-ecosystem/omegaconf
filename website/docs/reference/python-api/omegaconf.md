@@ -488,6 +488,11 @@ missing_keys(cfg: Any, *, resolve_custom_resolvers: bool = False) -> set[str]
 
 Returns a set of missing keys in a dotlist style.
 
+Dictionary key segments escape ``.``, ``[``, ``]`` and ``=`` using
+backslashes. Empty string keys use ``[]``. Paths remain rooted at the
+config root when called on a subtree. Escaping follows the existing key
+path rules; it does not extend the supported key types or path syntax.
+
 Node interpolations that dereference missing values are reported as missing
 keys, whether they are the full value or part of a string.
 

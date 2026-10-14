@@ -64,6 +64,7 @@ from ._yaml import _DEFAULT_MAX_YAML_EXPANDED_NODES, get_yaml_loader
 from .base import Box, Container, Node, SCMode, UnionNode
 from .basecontainer import BaseContainer
 from .errors import (
+    ConfigCycleDetectedException,
     ConfigKeyError,
     ConfigTypeError,
     InterpolationKeyError,
@@ -1529,6 +1530,11 @@ class OmegaConf:
         """
         Returns a set of missing keys in a dotlist style.
 
+        Dictionary key segments escape ``.``, ``[``, ``]`` and ``=`` using
+        backslashes. Empty string keys use ``[]``. Paths remain rooted at the
+        config root when called on a subtree. Escaping follows the existing key
+        path rules; it does not extend the supported key types or path syntax.
+
         Node interpolations that dereference missing values are reported as missing
         keys, whether they are the full value or part of a string.
 
@@ -1580,6 +1586,30 @@ class OmegaConf:
                 )
             return False
 
+        def missing_key(node: Node) -> str:
+            # Build a machine path from raw metadata, rather than the diagnostic
+            # full-key formatter, which deliberately leaves key names unescaped.
+            parts: list[str] = []
+            seen: set[int] = set()
+            while (parent := node._get_parent()) is not None:
+                if id(node) in seen:
+                    raise ConfigCycleDetectedException(
+                        "Cycle when building missing key"
+                    )
+                seen.add(id(node))
+                key = node._key()
+                if isinstance(parent, UnionNode):
+                    # UnionNode is a transparent wrapper around its concrete child.
+                    pass
+                elif isinstance(parent, (ListConfig, TupleConfig)):
+                    parts.append(f"[{key}]")
+                else:
+                    key = key.name if isinstance(key, Enum) else str(key)
+                    escaped = re.sub(r"([.\[\]=])", r"\\\1", key)
+                    parts.append(f".{escaped}" if key else "[]")
+                node = parent
+            return "".join(reversed(parts)).removeprefix(".")
+
         def gather(_cfg: Container) -> None:
             itr: Iterable[Any]
             if isinstance(_cfg, (ListConfig, TupleConfig)):
@@ -1591,7 +1621,7 @@ class OmegaConf:
                 node = _cfg._get_child(key)
                 assert isinstance(node, Node)
                 if node._is_missing():
-                    missings.add(_cfg._get_full_key(key))
+                    missings.add(missing_key(node))
                 elif (
                     not resolve_custom_resolvers
                     and node._is_interpolation()
@@ -1603,7 +1633,7 @@ class OmegaConf:
                         value = _cfg[key]
                     except InterpolationResolutionError as exc:
                         if is_missing_value_error(exc):
-                            missings.add(_cfg._get_full_key(key))
+                            missings.add(missing_key(node))
                         else:
                             raise
                     else:
