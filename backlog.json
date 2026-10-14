@@ -1,9 +1,9 @@
 {
   "generated_on": "2026-10-14",
-  "generated_at": "2026-10-14T12:47:26Z",
+  "generated_at": "2026-10-14T19:28:05Z",
   "repo": "hydra-ecosystem/omegaconf",
   "summary": {
-    "open_total": 29,
+    "open_total": 28,
     "by_category": [
       {
         "category": "Bug",
@@ -14,14 +14,14 @@
       {
         "category": "Enhancement",
         "emoji": "✨",
-        "count": 25,
-        "percentage": 86.2
+        "count": 24,
+        "percentage": 85.7
       },
       {
         "category": "Documentation",
         "emoji": "📄",
         "count": 1,
-        "percentage": 3.4
+        "percentage": 3.6
       },
       {
         "category": "Question",
@@ -33,13 +33,13 @@
         "category": "Refactor",
         "emoji": "🔧",
         "count": 2,
-        "percentage": 6.9
+        "percentage": 7.1
       },
       {
         "category": "Build",
         "emoji": "🏗️",
         "count": 1,
-        "percentage": 3.4
+        "percentage": 3.6
       }
     ],
     "by_status": [
@@ -61,12 +61,12 @@
       {
         "status": "not started",
         "emoji": "⬜",
-        "count": 29
+        "count": 28
       },
       {
         "status": "done",
         "emoji": "✅",
-        "count": 10
+        "count": 11
       }
     ]
   },
@@ -445,19 +445,6 @@
       "url": "https://github.com/hydra-ecosystem/omegaconf/issues/1372"
     },
     {
-      "number": 1388,
-      "title": "Add website example tests and API drift checks to CI",
-      "category": "Enhancement",
-      "category_emoji": "✨",
-      "status": "not started",
-      "status_emoji": "⬜",
-      "prs": [],
-      "created": "2026-10-02",
-      "updated": "2026-10-02",
-      "labels": [],
-      "url": "https://github.com/hydra-ecosystem/omegaconf/issues/1388"
-    },
-    {
       "number": 1405,
       "title": "Complete documentation cutover and retain RTD as the pre-2.4 archive",
       "category": "Documentation",
@@ -695,9 +682,29 @@
       "updated": "2026-10-04",
       "labels": [],
       "url": "https://github.com/hydra-ecosystem/omegaconf/issues/1391"
+    },
+    {
+      "number": 1388,
+      "title": "Add website example tests and API drift checks to CI",
+      "category": "Enhancement",
+      "category_emoji": "✨",
+      "status": "done",
+      "status_emoji": "✅",
+      "prs": [],
+      "created": "2026-10-02",
+      "updated": "2026-10-02",
+      "labels": [],
+      "url": "https://github.com/hydra-ecosystem/omegaconf/issues/1388"
     }
   ],
   "updates": [
+    {
+      "ts": "2026-10-14T19:28:05Z",
+      "kind": "closed",
+      "issue": 1388,
+      "issue_url": "https://github.com/hydra-ecosystem/omegaconf/issues/1388",
+      "title": "Add website example tests and API drift checks to CI"
+    },
     {
       "ts": "2026-10-14T02:05:14Z",
       "kind": "new",
@@ -2363,14 +2370,6 @@
       "issue_url": "https://github.com/omry/omegaconf/issues/1024",
       "title": "Interpolations in dictionary keys",
       "detail": "removed \"needs triage\""
-    },
-    {
-      "ts": "2026-06-12T18:56:35Z",
-      "kind": "label",
-      "issue": 1028,
-      "issue_url": "https://github.com/omry/omegaconf/issues/1028",
-      "title": "Add support for equals sign and other symbols in resolver arguments",
-      "detail": "added \"enhancement\"; removed \"needs triage\""
     }
   ]
 }

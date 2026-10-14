@@ -8,10 +8,11 @@
     "1335": "2026-09-25",
     "1338": "2026-09-25",
     "1357": "2026-09-25",
+    "1388": "2026-10-14",
     "1391": "2026-10-04",
     "459": "2026-09-25"
   },
-  "generated_at": "2026-10-14T12:47:26Z",
+  "generated_at": "2026-10-14T19:28:05Z",
   "issues": {
     "1024": {
       "category": "Enhancement",
@@ -249,16 +250,6 @@
       "title": "OmegaConf 3.0: drop Python 3.10",
       "updated_at": "2026-09-25T07:45:19Z"
     },
-    "1388": {
-      "category": "Enhancement",
-      "created_at": "2026-10-02T15:49:25Z",
-      "labels": [],
-      "pr_numbers": [],
-      "state": "OPEN",
-      "status": "not started",
-      "title": "Add website example tests and API drift checks to CI",
-      "updated_at": "2026-10-02T15:49:25Z"
-    },
     "1405": {
       "category": "Documentation",
       "created_at": "2026-10-08T10:11:21Z",
@@ -476,6 +467,16 @@
       "status": "done",
       "title": "Consider order-independent handling of overlapping scalar union members",
       "updated_at": "2026-09-10T20:49:56Z"
+    },
+    "1388": {
+      "category": "Enhancement",
+      "created_at": "2026-10-02T15:49:25Z",
+      "labels": [],
+      "pr_numbers": [],
+      "state": "CLOSED",
+      "status": "done",
+      "title": "Add website example tests and API drift checks to CI",
+      "updated_at": "2026-10-02T15:49:25Z"
     },
     "1391": {
       "category": "Documentation",
