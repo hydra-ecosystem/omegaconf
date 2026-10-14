@@ -11,7 +11,7 @@
     "1391": "2026-10-04",
     "459": "2026-09-25"
   },
-  "generated_at": "2026-10-13T16:27:09Z",
+  "generated_at": "2026-10-14T02:05:14Z",
   "issues": {
     "1024": {
       "category": "Enhancement",
@@ -290,6 +290,16 @@
       "status": "not started",
       "title": "Consider promoting private schema validation to a public API",
       "updated_at": "2026-10-12T19:57:25Z"
+    },
+    "1423": {
+      "category": "Enhancement",
+      "created_at": "2026-10-14T02:03:57Z",
+      "labels": [],
+      "pr_numbers": [],
+      "state": "OPEN",
+      "status": "not started",
+      "title": "OmegaConf.missing_keys() returns unescaped paths for keys containing \".\", \"[\", \"]\" or \"=\"",
+      "updated_at": "2026-10-14T02:03:57Z"
     },
     "144": {
       "category": "Enhancement",

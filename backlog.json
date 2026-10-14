@@ -1,9 +1,9 @@
 {
-  "generated_on": "2026-10-13",
-  "generated_at": "2026-10-13T16:27:09Z",
+  "generated_on": "2026-10-14",
+  "generated_at": "2026-10-14T02:05:14Z",
   "repo": "hydra-ecosystem/omegaconf",
   "summary": {
-    "open_total": 28,
+    "open_total": 29,
     "by_category": [
       {
         "category": "Bug",
@@ -14,14 +14,14 @@
       {
         "category": "Enhancement",
         "emoji": "✨",
-        "count": 24,
-        "percentage": 85.7
+        "count": 25,
+        "percentage": 86.2
       },
       {
         "category": "Documentation",
         "emoji": "📄",
         "count": 1,
-        "percentage": 3.6
+        "percentage": 3.4
       },
       {
         "category": "Question",
@@ -33,13 +33,13 @@
         "category": "Refactor",
         "emoji": "🔧",
         "count": 2,
-        "percentage": 7.1
+        "percentage": 6.9
       },
       {
         "category": "Build",
         "emoji": "🏗️",
         "count": 1,
-        "percentage": 3.6
+        "percentage": 3.4
       }
     ],
     "by_status": [
@@ -61,7 +61,7 @@
       {
         "status": "not started",
         "emoji": "⬜",
-        "count": 28
+        "count": 29
       },
       {
         "status": "done",
@@ -499,6 +499,19 @@
       "url": "https://github.com/hydra-ecosystem/omegaconf/issues/1419"
     },
     {
+      "number": 1423,
+      "title": "OmegaConf.missing_keys() returns unescaped paths for keys containing \".\", \"[\", \"]\" or \"=\"",
+      "category": "Enhancement",
+      "category_emoji": "✨",
+      "status": "not started",
+      "status_emoji": "⬜",
+      "prs": [],
+      "created": "2026-10-14",
+      "updated": "2026-10-14",
+      "labels": [],
+      "url": "https://github.com/hydra-ecosystem/omegaconf/issues/1423"
+    },
+    {
       "number": 459,
       "title": "Consider deprecating assignment of strings to non-string nodes like IntegerNode / FloatNode",
       "category": "Enhancement",
@@ -685,6 +698,13 @@
     }
   ],
   "updates": [
+    {
+      "ts": "2026-10-14T02:05:14Z",
+      "kind": "new",
+      "issue": 1423,
+      "issue_url": "https://github.com/hydra-ecosystem/omegaconf/issues/1423",
+      "title": "OmegaConf.missing_keys() returns unescaped paths for keys containing \".\", \"[\", \"]\" or \"=\""
+    },
     {
       "ts": "2026-10-13T09:49:08Z",
       "kind": "pr",
@@ -2351,14 +2371,6 @@
       "issue_url": "https://github.com/omry/omegaconf/issues/1028",
       "title": "Add support for equals sign and other symbols in resolver arguments",
       "detail": "added \"enhancement\"; removed \"needs triage\""
-    },
-    {
-      "ts": "2026-06-12T18:48:00Z",
-      "kind": "label",
-      "issue": 1037,
-      "issue_url": "https://github.com/omry/omegaconf/issues/1037",
-      "title": "Structured config type coercion not working correctly for DictConfig keys",
-      "detail": "removed \"needs triage\""
     }
   ]
 }

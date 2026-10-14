@@ -234,3 +234,4 @@
 {"ts": "2026-10-13T08:33:33Z", "kind": "pr", "issue": 1419, "issue_url": "https://github.com/hydra-ecosystem/omegaconf/issues/1419", "title": "Consider promoting private schema validation to a public API", "detail": "linked #1420"}
 {"ts": "2026-10-13T09:49:08Z", "kind": "status", "issue": 1419, "issue_url": "https://github.com/hydra-ecosystem/omegaconf/issues/1419", "title": "Consider promoting private schema validation to a public API", "detail": "in progress → not started"}
 {"ts": "2026-10-13T09:49:08Z", "kind": "pr", "issue": 1419, "issue_url": "https://github.com/hydra-ecosystem/omegaconf/issues/1419", "title": "Consider promoting private schema validation to a public API", "detail": "unlinked #1420"}
+{"ts": "2026-10-14T02:05:14Z", "kind": "new", "issue": 1423, "issue_url": "https://github.com/hydra-ecosystem/omegaconf/issues/1423", "title": "OmegaConf.missing_keys() returns unescaped paths for keys containing \".\", \"[\", \"]\" or \"=\""}
