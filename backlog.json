@@ -1,6 +1,6 @@
 {
   "generated_on": "2026-10-14",
-  "generated_at": "2026-10-14T21:44:44Z",
+  "generated_at": "2026-10-14T22:16:04Z",
   "repo": "hydra-ecosystem/omegaconf",
   "summary": {
     "open_total": 32,
@@ -46,7 +46,7 @@
       {
         "status": "in progress",
         "emoji": "🔄",
-        "count": 0
+        "count": 4
       },
       {
         "status": "community PR",
@@ -61,7 +61,7 @@
       {
         "status": "not started",
         "emoji": "⬜",
-        "count": 32
+        "count": 28
       },
       {
         "status": "done",
@@ -71,6 +71,89 @@
     ]
   },
   "issues": [
+    {
+      "number": 1423,
+      "title": "OmegaConf.missing_keys() returns unescaped paths for keys containing \".\", \"[\", \"]\" or \"=\"",
+      "category": "Bug",
+      "category_emoji": "🐛",
+      "status": "in progress",
+      "status_emoji": "🔄",
+      "prs": [
+        {
+          "number": 1428,
+          "url": "https://github.com/hydra-ecosystem/omegaconf/pull/1428"
+        }
+      ],
+      "created": "2026-10-14",
+      "updated": "2026-10-14",
+      "labels": [
+        "bug"
+      ],
+      "url": "https://github.com/hydra-ecosystem/omegaconf/issues/1423"
+    },
+    {
+      "number": 1424,
+      "title": "oc.dict.values interprets literal dictionary keys as interpolation expressions",
+      "category": "Bug",
+      "category_emoji": "🐛",
+      "status": "in progress",
+      "status_emoji": "🔄",
+      "prs": [
+        {
+          "number": 1428,
+          "url": "https://github.com/hydra-ecosystem/omegaconf/pull/1428"
+        }
+      ],
+      "created": "2026-10-14",
+      "updated": "2026-10-14",
+      "labels": [
+        "bug",
+        "interpolation"
+      ],
+      "url": "https://github.com/hydra-ecosystem/omegaconf/issues/1424"
+    },
+    {
+      "number": 1425,
+      "title": "Nested interpolation in bracketed key access can select the wrong key",
+      "category": "Bug",
+      "category_emoji": "🐛",
+      "status": "in progress",
+      "status_emoji": "🔄",
+      "prs": [
+        {
+          "number": 1428,
+          "url": "https://github.com/hydra-ecosystem/omegaconf/pull/1428"
+        }
+      ],
+      "created": "2026-10-14",
+      "updated": "2026-10-14",
+      "labels": [
+        "bug",
+        "interpolation"
+      ],
+      "url": "https://github.com/hydra-ecosystem/omegaconf/issues/1425"
+    },
+    {
+      "number": 1427,
+      "title": "Define compatible escaping and addressability guarantees for generated key paths",
+      "category": "Bug",
+      "category_emoji": "🐛",
+      "status": "in progress",
+      "status_emoji": "🔄",
+      "prs": [
+        {
+          "number": 1428,
+          "url": "https://github.com/hydra-ecosystem/omegaconf/pull/1428"
+        }
+      ],
+      "created": "2026-10-14",
+      "updated": "2026-10-14",
+      "labels": [
+        "bug",
+        "RFC"
+      ],
+      "url": "https://github.com/hydra-ecosystem/omegaconf/issues/1427"
+    },
     {
       "number": 91,
       "title": "Consider supporting basic operators in interpolations of numbers",
@@ -486,53 +569,6 @@
       "url": "https://github.com/hydra-ecosystem/omegaconf/issues/1419"
     },
     {
-      "number": 1423,
-      "title": "OmegaConf.missing_keys() returns unescaped paths for keys containing \".\", \"[\", \"]\" or \"=\"",
-      "category": "Bug",
-      "category_emoji": "🐛",
-      "status": "not started",
-      "status_emoji": "⬜",
-      "prs": [],
-      "created": "2026-10-14",
-      "updated": "2026-10-14",
-      "labels": [
-        "bug"
-      ],
-      "url": "https://github.com/hydra-ecosystem/omegaconf/issues/1423"
-    },
-    {
-      "number": 1424,
-      "title": "oc.dict.values interprets literal dictionary keys as interpolation expressions",
-      "category": "Bug",
-      "category_emoji": "🐛",
-      "status": "not started",
-      "status_emoji": "⬜",
-      "prs": [],
-      "created": "2026-10-14",
-      "updated": "2026-10-14",
-      "labels": [
-        "bug",
-        "interpolation"
-      ],
-      "url": "https://github.com/hydra-ecosystem/omegaconf/issues/1424"
-    },
-    {
-      "number": 1425,
-      "title": "Nested interpolation in bracketed key access can select the wrong key",
-      "category": "Bug",
-      "category_emoji": "🐛",
-      "status": "not started",
-      "status_emoji": "⬜",
-      "prs": [],
-      "created": "2026-10-14",
-      "updated": "2026-10-14",
-      "labels": [
-        "bug",
-        "interpolation"
-      ],
-      "url": "https://github.com/hydra-ecosystem/omegaconf/issues/1425"
-    },
-    {
       "number": 1426,
       "title": "Malformed paths can silently mutate a valid prefix",
       "category": "Bug",
@@ -546,22 +582,6 @@
         "bug"
       ],
       "url": "https://github.com/hydra-ecosystem/omegaconf/issues/1426"
-    },
-    {
-      "number": 1427,
-      "title": "Define compatible escaping and addressability guarantees for generated key paths",
-      "category": "Bug",
-      "category_emoji": "🐛",
-      "status": "not started",
-      "status_emoji": "⬜",
-      "prs": [],
-      "created": "2026-10-14",
-      "updated": "2026-10-14",
-      "labels": [
-        "bug",
-        "RFC"
-      ],
-      "url": "https://github.com/hydra-ecosystem/omegaconf/issues/1427"
     },
     {
       "number": 459,
@@ -763,6 +783,86 @@
     }
   ],
   "updates": [
+    {
+      "ts": "2026-10-14T22:16:04Z",
+      "kind": "pr",
+      "issue": 1427,
+      "issue_url": "https://github.com/hydra-ecosystem/omegaconf/issues/1427",
+      "title": "Define compatible escaping and addressability guarantees for generated key paths",
+      "detail": "linked #1428"
+    },
+    {
+      "ts": "2026-10-14T22:16:04Z",
+      "kind": "pr",
+      "issue": 1425,
+      "issue_url": "https://github.com/hydra-ecosystem/omegaconf/issues/1425",
+      "title": "Nested interpolation in bracketed key access can select the wrong key",
+      "detail": "linked #1428"
+    },
+    {
+      "ts": "2026-10-14T22:16:04Z",
+      "kind": "pr",
+      "issue": 1424,
+      "issue_url": "https://github.com/hydra-ecosystem/omegaconf/issues/1424",
+      "title": "oc.dict.values interprets literal dictionary keys as interpolation expressions",
+      "detail": "linked #1428"
+    },
+    {
+      "ts": "2026-10-14T22:16:04Z",
+      "kind": "pr",
+      "issue": 1423,
+      "issue_url": "https://github.com/hydra-ecosystem/omegaconf/issues/1423",
+      "title": "OmegaConf.missing_keys() returns unescaped paths for keys containing \".\", \"[\", \"]\" or \"=\"",
+      "detail": "linked #1428"
+    },
+    {
+      "ts": "2026-10-14T22:16:04Z",
+      "kind": "status",
+      "issue": 1427,
+      "issue_url": "https://github.com/hydra-ecosystem/omegaconf/issues/1427",
+      "title": "Define compatible escaping and addressability guarantees for generated key paths",
+      "detail": "not started → in progress",
+      "pr": {
+        "number": 1428,
+        "url": "https://github.com/hydra-ecosystem/omegaconf/pull/1428"
+      }
+    },
+    {
+      "ts": "2026-10-14T22:16:04Z",
+      "kind": "status",
+      "issue": 1425,
+      "issue_url": "https://github.com/hydra-ecosystem/omegaconf/issues/1425",
+      "title": "Nested interpolation in bracketed key access can select the wrong key",
+      "detail": "not started → in progress",
+      "pr": {
+        "number": 1428,
+        "url": "https://github.com/hydra-ecosystem/omegaconf/pull/1428"
+      }
+    },
+    {
+      "ts": "2026-10-14T22:16:04Z",
+      "kind": "status",
+      "issue": 1424,
+      "issue_url": "https://github.com/hydra-ecosystem/omegaconf/issues/1424",
+      "title": "oc.dict.values interprets literal dictionary keys as interpolation expressions",
+      "detail": "not started → in progress",
+      "pr": {
+        "number": 1428,
+        "url": "https://github.com/hydra-ecosystem/omegaconf/pull/1428"
+      }
+    },
+    {
+      "ts": "2026-10-14T22:16:04Z",
+      "kind": "status",
+      "issue": 1423,
+      "issue_url": "https://github.com/hydra-ecosystem/omegaconf/issues/1423",
+      "title": "OmegaConf.missing_keys() returns unescaped paths for keys containing \".\", \"[\", \"]\" or \"=\"",
+      "detail": "not started → in progress",
+      "pr": {
+        "number": 1428,
+        "url": "https://github.com/hydra-ecosystem/omegaconf/pull/1428"
+      }
+    },
     {
       "ts": "2026-10-14T21:43:27Z",
       "kind": "label",
@@ -2353,80 +2453,6 @@
         "number": 1325,
         "url": "https://github.com/omry/omegaconf/pull/1325"
       }
-    },
-    {
-      "ts": "2026-06-27T09:31:59Z",
-      "kind": "pr",
-      "issue": 898,
-      "issue_url": "https://github.com/omry/omegaconf/issues/898",
-      "title": "_promote is erasing values from the config",
-      "detail": "linked #1324"
-    },
-    {
-      "ts": "2026-06-27T09:31:59Z",
-      "kind": "status",
-      "issue": 898,
-      "issue_url": "https://github.com/omry/omegaconf/issues/898",
-      "title": "_promote is erasing values from the config",
-      "detail": "not started → community PR",
-      "pr": {
-        "number": 1324,
-        "url": "https://github.com/omry/omegaconf/pull/1324"
-      }
-    },
-    {
-      "ts": "2026-06-25T10:18:22Z",
-      "kind": "pr",
-      "issue": 1058,
-      "issue_url": "https://github.com/omry/omegaconf/issues/1058",
-      "title": "structured config types are discarded on list merge",
-      "detail": "linked #1323"
-    },
-    {
-      "ts": "2026-06-25T10:18:22Z",
-      "kind": "status",
-      "issue": 1058,
-      "issue_url": "https://github.com/omry/omegaconf/issues/1058",
-      "title": "structured config types are discarded on list merge",
-      "detail": "not started → community PR",
-      "pr": {
-        "number": 1323,
-        "url": "https://github.com/omry/omegaconf/pull/1323"
-      }
-    },
-    {
-      "ts": "2026-06-13T09:53:00Z",
-      "kind": "closed",
-      "issue": 969,
-      "issue_url": "https://github.com/omry/omegaconf/issues/969",
-      "title": "Follow up on deprecation of `register_resolver()`"
-    },
-    {
-      "ts": "2026-06-13T06:24:20Z",
-      "kind": "pr",
-      "issue": 969,
-      "issue_url": "https://github.com/omry/omegaconf/issues/969",
-      "title": "Follow up on deprecation of `register_resolver()`",
-      "detail": "linked #1322"
-    },
-    {
-      "ts": "2026-06-13T06:24:20Z",
-      "kind": "status",
-      "issue": 969,
-      "issue_url": "https://github.com/omry/omegaconf/issues/969",
-      "title": "Follow up on deprecation of `register_resolver()`",
-      "detail": "not started → in progress",
-      "pr": {
-        "number": 1322,
-        "url": "https://github.com/omry/omegaconf/pull/1322"
-      }
-    },
-    {
-      "ts": "2026-06-13T04:21:18Z",
-      "kind": "closed",
-      "issue": 998,
-      "issue_url": "https://github.com/omry/omegaconf/issues/998",
-      "title": "Merging does not preserve target `ref_type` when source field type hint is a dict annotation"
     }
   ]
 }
