@@ -113,7 +113,7 @@ jobs:
         run: python -m pytest tests/test_website_examples.py -q
       - name: Test shared dependency maintenance
         if: matrix.docs-version == 'next'
-        run: python -m pytest .github/docusaurus/tests -q
+        run: python -m pytest tests/test_dependency_audit_pnpm.py -q
 
   build:
     needs: validate
