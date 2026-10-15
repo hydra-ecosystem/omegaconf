@@ -30,7 +30,12 @@ from omegaconf._utils import (  # _normalize_ref_type,
     is_union_annotation,
     split_key,
 )
-from omegaconf.errors import ConfigValueError, UnsupportedValueType, ValidationError
+from omegaconf.errors import (
+    ConfigValueError,
+    GrammarParseError,
+    UnsupportedValueType,
+    ValidationError,
+)
 from omegaconf.nodes import (
     AnyNode,
     BooleanNode,
@@ -1189,19 +1194,23 @@ def test_split_key_escaping(key: str, expected: List[str]) -> None:
 
 
 @mark.parametrize(
-    ("key", "expected"),
+    "key",
     [
-        # fast path (no backslash): unclosed bracket is silently dropped
-        ("a[b", ["a"]),
-        ("[a", []),
-        # slow path (backslash present) must match fast-path behaviour
-        (r"\a[b", [r"\a"]),
-        (r"\a[b.c", [r"\a"]),
+        "a[b",
+        "[a",
+        "a[b][",
+        "a[b]junk",
+        "a[b]junk.c",
+        "a[b]]",
+        r"\a[b",
+        r"\a[b.c",
+        r"\a[b]junk",
+        r"a[b\]",
     ],
 )
-def test_split_key_unclosed_bracket(key: str, expected: List[str]) -> None:
-    """Unclosed brackets are silently dropped on both fast and slow paths."""
-    assert split_key(key) == expected
+def test_split_key_malformed_path(key: str) -> None:
+    with raises(GrammarParseError, match="Invalid key path"):
+        split_key(key)
 
 
 @mark.parametrize(

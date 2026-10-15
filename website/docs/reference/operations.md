@@ -92,6 +92,12 @@ changes the referenced container and leaves the interpolation intact.
 
 ### Key paths
 
+Malformed paths, such as `a[b` or `a[b]junk`, raise `GrammarParseError` in
+`select()` and `update()`. The whole path is checked before an update changes
+the config. A `select()` default applies to valid paths that cannot be found;
+it does not suppress syntax errors. `can_select()` returns `False` for malformed
+paths.
+
 Paths accept dot and bracket notation. In 2.4, backslash-escape dots,
 brackets, or equals signs that belong to the key itself. For example,
 `r"a\.b"` selects one key named `a.b`:
