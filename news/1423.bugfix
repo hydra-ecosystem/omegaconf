@@ -1,0 +1,1 @@
+Escape special characters and preserve empty string keys in paths returned by `OmegaConf.missing_keys()`, preventing path collisions and updates to the wrong entry.

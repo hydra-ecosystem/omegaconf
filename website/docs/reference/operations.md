@@ -189,6 +189,9 @@ interpolations that lead to a missing value. It skips custom resolvers by
 default; use `resolve_custom_resolvers=True` when their results must also be
 checked.
 
+Returned paths escape `.`, `[`, `]` and `=` in dictionary key names;
+an empty key (`""`) appears as `[]`.
+
 Use `OmegaConf.is_missing(cfg, "key")` to inspect a config field. In 2.4,
 `OmegaConf.is_missing(value)` also checks a detached value; this matters for
 an escaped literal `???`, which compares equal to a normal string.
