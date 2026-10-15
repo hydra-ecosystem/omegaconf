@@ -10,9 +10,10 @@
     "1357": "2026-09-25",
     "1388": "2026-10-14",
     "1391": "2026-10-04",
+    "1423": "2026-10-15",
     "459": "2026-09-25"
   },
-  "generated_at": "2026-10-15T08:38:58Z",
+  "generated_at": "2026-10-15T08:47:54Z",
   "issues": {
     "1024": {
       "category": "Enhancement",
@@ -282,20 +283,6 @@
       "title": "Consider promoting private schema validation to a public API",
       "updated_at": "2026-10-14T20:25:54Z"
     },
-    "1423": {
-      "category": "Bug",
-      "created_at": "2026-10-14T02:03:57Z",
-      "labels": [
-        "bug"
-      ],
-      "pr_numbers": [
-        "1428"
-      ],
-      "state": "OPEN",
-      "status": "in progress",
-      "title": "OmegaConf.missing_keys() returns unescaped paths for keys containing \".\", \"[\", \"]\" or \"=\"",
-      "updated_at": "2026-10-14T21:54:54Z"
-    },
     "1424": {
       "category": "Bug",
       "created_at": "2026-10-14T21:42:24Z",
@@ -303,11 +290,9 @@
         "bug",
         "interpolation"
       ],
-      "pr_numbers": [
-        "1428"
-      ],
+      "pr_numbers": [],
       "state": "OPEN",
-      "status": "in progress",
+      "status": "not started",
       "title": "oc.dict.values interprets literal dictionary keys as interpolation expressions",
       "updated_at": "2026-10-14T21:42:24Z"
     },
@@ -318,11 +303,9 @@
         "bug",
         "interpolation"
       ],
-      "pr_numbers": [
-        "1428"
-      ],
+      "pr_numbers": [],
       "state": "OPEN",
-      "status": "in progress",
+      "status": "not started",
       "title": "Nested interpolation in bracketed key access can select the wrong key",
       "updated_at": "2026-10-14T21:42:25Z"
     },
@@ -345,11 +328,9 @@
         "RFC",
         "bug"
       ],
-      "pr_numbers": [
-        "1428"
-      ],
+      "pr_numbers": [],
       "state": "OPEN",
-      "status": "in progress",
+      "status": "not started",
       "title": "Define compatible escaping and addressability guarantees for generated key paths",
       "updated_at": "2026-10-14T21:42:28Z"
     },
@@ -550,6 +531,20 @@
       "status": "done",
       "title": "Adopt annual best-effort documentation dependency maintenance",
       "updated_at": "2026-10-04T14:14:03Z"
+    },
+    "1423": {
+      "category": "Bug",
+      "created_at": "2026-10-14T02:03:57Z",
+      "labels": [
+        "bug"
+      ],
+      "pr_numbers": [
+        "1428"
+      ],
+      "state": "CLOSED",
+      "status": "done",
+      "title": "OmegaConf.missing_keys() returns unescaped paths for keys containing \".\", \"[\", \"]\" or \"=\"",
+      "updated_at": "2026-10-14T21:54:54Z"
     },
     "459": {
       "category": "Enhancement",
