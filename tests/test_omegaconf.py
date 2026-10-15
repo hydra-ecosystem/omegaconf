@@ -1,8 +1,9 @@
 import pathlib
 import platform
 from contextlib import nullcontext
+from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, Union
+from typing import Any, Dict, List, Union
 
 from pytest import mark, param, raises
 
@@ -691,6 +692,117 @@ def test_resolve_does_not_raise_when_resolver_returns_dict_config(
 )
 def test_missing_keys(cfg: Any, expected: Any) -> None:
     assert OmegaConf.missing_keys(cfg) == expected
+
+
+@mark.parametrize(
+    ("cfg", "expected"),
+    [
+        ({"model": {"lr": "???"}, "model.lr": "???"}, {"model.lr", r"model\.lr"}),
+        ({"a[b]": {"c=d": "???"}}, {r"a\[b\].c\=d"}),
+        ({"": "???"}, {"[]"}),
+        ({"outer": {"": "???"}}, {"outer[]"}),
+        ({"": {"": {"x.y": "???"}}}, {r"[][].x\.y"}),
+        ({"a.b": ["???", {"c[d]": "???"}]}, {r"a\.b[0]", r"a\.b[1].c\[d\]"}),
+        ({"a.b": ({"c=d": "???"},)}, {r"a\.b[0].c\=d"}),
+        ({r"a\.b": "???", r"a\b": "???"}, {r"a\\.b", r"a\b"}),
+        ({"a.b": "???", "alias[x]": "${a\\.b}"}, {r"a\.b", r"alias\[x\]"}),
+    ],
+)
+def test_missing_keys_escaped_paths(cfg: Any, expected: set[str]) -> None:
+    original = OmegaConf.create(cfg)
+    cfg = OmegaConf.create(original)
+    assert OmegaConf.missing_keys(cfg) == expected
+    sentinel = object()
+    for path in expected:
+        fresh = OmegaConf.create(original)
+        assert (
+            OmegaConf.select(
+                fresh, path, default=sentinel, throw_on_resolution_failure=False
+            )
+            is sentinel
+        )
+        dotlist = OmegaConf.from_dotlist([f"{path}=123"])
+        assert OmegaConf.select(dotlist, path) == 123
+        OmegaConf.update(cfg, path, 123)
+        assert OmegaConf.select(cfg, path) == 123
+    assert OmegaConf.missing_keys(cfg) == set()
+
+
+def test_missing_keys_subtree_paths_are_root_anchored() -> None:
+    cfg = OmegaConf.create({"outer.key": {"inner[key]": "???"}})
+    assert OmegaConf.missing_keys(cfg["outer.key"]) == {r"outer\.key.inner\[key\]"}
+
+
+@dataclass
+class _UnionMissingKeysChild:
+    required: int = MISSING
+
+
+@dataclass
+class _UnionMissingKeysConfig:
+    mapping: Union[Dict[str, int], int] = field(
+        default_factory=lambda: {
+            "plain": MISSING,
+            "None": MISSING,
+            "a.b": MISSING,
+            "": MISSING,
+        }
+    )
+    sequence: Union[List[int], int] = field(default_factory=lambda: [MISSING])
+    structured: Union[_UnionMissingKeysChild, int] = field(
+        default_factory=_UnionMissingKeysChild
+    )
+
+
+def test_missing_keys_union_paths_are_transparent_and_roundtrip() -> None:
+    cfg = OmegaConf.structured(_UnionMissingKeysConfig)
+    expected = {
+        "mapping.plain",
+        "mapping.None",
+        r"mapping.a\.b",
+        "mapping[]",
+        "sequence[0]",
+        "structured.required",
+    }
+    assert OmegaConf.missing_keys(cfg) == expected
+    assert OmegaConf.missing_keys(cfg.mapping) == {
+        "mapping.plain",
+        "mapping.None",
+        r"mapping.a\.b",
+        "mapping[]",
+    }
+    assert OmegaConf.missing_keys(cfg.sequence) == {"sequence[0]"}
+    assert OmegaConf.missing_keys(cfg.structured) == {"structured.required"}
+
+    for path in expected:
+        fresh = OmegaConf.structured(_UnionMissingKeysConfig)
+        sentinel = object()
+        assert (
+            OmegaConf.select(
+                fresh, path, default=sentinel, throw_on_resolution_failure=False
+            )
+            is sentinel
+        )
+        OmegaConf.update(fresh, path, 123)
+        assert OmegaConf.select(fresh, path) == 123
+        assert OmegaConf.missing_keys(fresh) == expected - {path}
+
+
+def test_missing_keys_preserves_error_full_key() -> None:
+    cfg = OmegaConf.create({"outer.key": {"inner[key]": "???"}})
+    with raises(MissingMandatoryValue) as exc:
+        cfg["outer.key"]["inner[key]"]
+    assert exc.value.full_key == "outer.key.inner[key]"
+
+
+def test_missing_keys_escaped_custom_resolver(restore_resolvers: Any) -> None:
+    OmegaConf.register_resolver("read", lambda *, _root_: _root_["a.b"])
+    cfg = OmegaConf.create({"a.b": "???", "result[x]": "${read:}"})
+    assert OmegaConf.missing_keys(cfg) == {r"a\.b"}
+    assert OmegaConf.missing_keys(cfg, resolve_custom_resolvers=True) == {
+        r"a\.b",
+        r"result\[x\]",
+    }
 
 
 @mark.parametrize(
