@@ -1,6 +1,6 @@
 {
   "generated_on": "2026-10-15",
-  "generated_at": "2026-10-15T21:32:28Z",
+  "generated_at": "2026-10-15T22:05:03Z",
   "repo": "hydra-ecosystem/omegaconf",
   "summary": {
     "open_total": 30,
@@ -46,7 +46,7 @@
       {
         "status": "in progress",
         "emoji": "🔄",
-        "count": 0
+        "count": 1
       },
       {
         "status": "community PR",
@@ -61,7 +61,7 @@
       {
         "status": "not started",
         "emoji": "⬜",
-        "count": 30
+        "count": 29
       },
       {
         "status": "done",
@@ -71,6 +71,26 @@
     ]
   },
   "issues": [
+    {
+      "number": 1426,
+      "title": "Malformed paths can silently mutate a valid prefix",
+      "category": "Bug",
+      "category_emoji": "🐛",
+      "status": "in progress",
+      "status_emoji": "🔄",
+      "prs": [
+        {
+          "number": 1434,
+          "url": "https://github.com/hydra-ecosystem/omegaconf/pull/1434"
+        }
+      ],
+      "created": "2026-10-14",
+      "updated": "2026-10-14",
+      "labels": [
+        "bug"
+      ],
+      "url": "https://github.com/hydra-ecosystem/omegaconf/issues/1426"
+    },
     {
       "number": 91,
       "title": "Consider supporting basic operators in interpolations of numbers",
@@ -502,21 +522,6 @@
       "url": "https://github.com/hydra-ecosystem/omegaconf/issues/1424"
     },
     {
-      "number": 1426,
-      "title": "Malformed paths can silently mutate a valid prefix",
-      "category": "Bug",
-      "category_emoji": "🐛",
-      "status": "not started",
-      "status_emoji": "⬜",
-      "prs": [],
-      "created": "2026-10-14",
-      "updated": "2026-10-14",
-      "labels": [
-        "bug"
-      ],
-      "url": "https://github.com/hydra-ecosystem/omegaconf/issues/1426"
-    },
-    {
       "number": 1427,
       "title": "Define compatible escaping and addressability guarantees for generated key paths",
       "category": "Bug",
@@ -773,6 +778,26 @@
     }
   ],
   "updates": [
+    {
+      "ts": "2026-10-15T22:05:03Z",
+      "kind": "pr",
+      "issue": 1426,
+      "issue_url": "https://github.com/hydra-ecosystem/omegaconf/issues/1426",
+      "title": "Malformed paths can silently mutate a valid prefix",
+      "detail": "linked #1434"
+    },
+    {
+      "ts": "2026-10-15T22:05:03Z",
+      "kind": "status",
+      "issue": 1426,
+      "issue_url": "https://github.com/hydra-ecosystem/omegaconf/issues/1426",
+      "title": "Malformed paths can silently mutate a valid prefix",
+      "detail": "not started → in progress",
+      "pr": {
+        "number": 1434,
+        "url": "https://github.com/hydra-ecosystem/omegaconf/pull/1434"
+      }
+    },
     {
       "ts": "2026-10-15T20:43:38Z",
       "kind": "pr",
@@ -2431,20 +2456,6 @@
       "issue": 1332,
       "issue_url": "https://github.com/omry/omegaconf/issues/1332",
       "title": "Define type compatibility rules for typed interpolations"
-    },
-    {
-      "ts": "2026-07-17T17:36:36Z",
-      "kind": "closed",
-      "issue": 898,
-      "issue_url": "https://github.com/omry/omegaconf/issues/898",
-      "title": "_promote is erasing values from the config"
-    },
-    {
-      "ts": "2026-07-17T17:36:36Z",
-      "kind": "closed",
-      "issue": 731,
-      "issue_url": "https://github.com/omry/omegaconf/issues/731",
-      "title": "Subclasses of `Generic` cannot be used as structured configs"
     }
   ]
 }

@@ -14,7 +14,7 @@
     "1425": "2026-10-15",
     "459": "2026-09-25"
   },
-  "generated_at": "2026-10-15T21:32:28Z",
+  "generated_at": "2026-10-15T22:05:03Z",
   "issues": {
     "1024": {
       "category": "Enhancement",
@@ -303,9 +303,11 @@
       "labels": [
         "bug"
       ],
-      "pr_numbers": [],
+      "pr_numbers": [
+        "1434"
+      ],
       "state": "OPEN",
-      "status": "not started",
+      "status": "in progress",
       "title": "Malformed paths can silently mutate a valid prefix",
       "updated_at": "2026-10-14T21:42:26Z"
     },
