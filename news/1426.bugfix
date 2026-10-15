@@ -1,0 +1,1 @@
+Reject malformed key paths instead of silently selecting or updating a prefix. An explicit OmegaConf.select() default is returned for malformed paths. Check all dotlist and CLI paths before applying any entry.

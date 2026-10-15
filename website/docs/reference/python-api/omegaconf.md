@@ -189,6 +189,9 @@ Each entry is split on the first *unescaped* ``=``.  Everything before
 it is the key path; everything after it is the value.  Key paths follow
 the same dot/bracket syntax as :meth:`select` and :meth:`update`.
 
+Malformed key paths raise :class:`~omegaconf.errors.GrammarParseError`.
+All key paths are checked before any entry is applied.
+
 **Backslash escaping in keys:**
 Use a backslash to include a literal special character in a key name.
 The escapable characters are ``.``, ``[``, ``]``, and ``=``.
@@ -634,11 +637,14 @@ can be expressed by escaping them with a backslash:
 A backslash before any other character passes through unchanged
 (``r"a\b"`` selects the key ``"a\\b"`` — a backslash followed by ``b``).
 
+Malformed paths return the explicitly supplied default, or raise
+``GrammarParseError`` when no default is supplied.
+
 **Parameters:**
 
 - **cfg** (<code>Container</code>) – Config node to select from
 - **key** (<code>str</code>) – Key path to select (dot/bracket notation, backslash-escapable)
-- **default** (<code>Any</code>) – Default value to return if key is not found
+- **default** (<code>Any</code>) – Default value to return if key is not found or its path is malformed
 - **throw_on_resolution_failure** (<code>bool</code>) – Raise an exception if an interpolation
 resolution error occurs, otherwise return None
 - **throw_on_missing** (<code>bool</code>) – Raise an exception if an attempt to select a missing key (with the value '???')
@@ -918,6 +924,8 @@ can be expressed by escaping them with a backslash:
 - ``r"a\.b"``   — targets the key ``"a.b"`` (single key with a literal dot)
 - ``r"a\[0\]"`` — targets the key ``"a[0]"``
 - ``r"a\=b"``   — targets the key ``"a=b"``
+
+Malformed paths raise ``GrammarParseError`` before changing the config.
 
 **Parameters:**
 

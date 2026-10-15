@@ -7,6 +7,7 @@ from typing import TYPE_CHECKING, Any, ClassVar, Dict, List
 import yaml
 
 from ._conversion_warnings import _suppress_conversion_warnings_if_unset
+from ._key_path import split_key
 from ._utils import (
     _DEFAULT_MARKER_,
     ValueKind,
@@ -233,6 +234,12 @@ class BaseContainer(Container, ABC):
             fail()
 
         for arg in dotlist:
+            if isinstance(arg, str):
+                idx = _find_eq(arg)
+                key = arg if idx == -1 else arg[:idx]
+                split_key(key)
+
+        for arg in dotlist:
             if not isinstance(arg, str):
                 fail()
 
@@ -244,7 +251,6 @@ class BaseContainer(Container, ABC):
                 key = arg[0:idx]
                 value = arg[idx + 1 :]
                 value = yaml.load(value, Loader=get_yaml_loader())
-
             OmegaConf.update(self, key, value)
 
     def is_empty(self) -> bool:

@@ -168,6 +168,8 @@ From a dot-list
 Each entry is a ``"key=value"`` string.  The key path uses dot/bracket notation.
 Keys that contain literal dots, brackets, or ``=`` can be escaped with a backslash
 (see :ref:`keypath-escaping`).
+Malformed key paths raise ``GrammarParseError``. Dotlist and CLI updates check
+every key path before applying any entry.
 
 .. doctest::
 
@@ -917,6 +919,8 @@ OmegaConf.select
 Keys containing literal dots, brackets, or ``=`` can be escaped with a backslash (see :ref:`keypath-escaping`).
 String path elements that represent integers can also select integer dictionary
 keys, consistent with integer list-index selection.
+Malformed paths return the explicitly supplied default, or raise
+``GrammarParseError`` when no default is supplied.
 
 .. doctest::
 
@@ -989,6 +993,7 @@ Keys containing literal dots, brackets, or ``=`` can be escaped with a backslash
 The merge flag controls the behavior if the input is a ``dict`` or a ``list``.
 If ``merge=True`` true (the default), dicts and lists are merged instead of being assigned.
 The ``force_add`` flag ensures that the path is created even if it will result in insertion of new values into struct nodes.
+Malformed paths raise ``GrammarParseError`` before any config change.
 
 .. doctest::
 

@@ -25,6 +25,11 @@ in `sys.argv[1:]`. Call it without arguments in an application that receives
 OmegaConf overrides directly. An argument parser may collect the strings and
 pass them to `from_dotlist()` instead.
 
+Malformed key paths raise `GrammarParseError`. All paths in a dotlist are
+checked before any entry is applied, including when using
+`cfg.merge_with_dotlist()` or `cfg.merge_with_cli()`. Other errors, such as a
+value failing type validation, may still leave earlier entries applied.
+
 In 2.4, backslash-escape a literal dot, bracket, or equals sign in a key
 path. For example, `r"a\.b=10"` addresses the key `a.b` rather than nested
 keys `a` and `b`. Interpolation paths and `OmegaConf.select()` use the same

@@ -66,6 +66,7 @@ from .basecontainer import BaseContainer
 from .errors import (
     ConfigKeyError,
     ConfigTypeError,
+    GrammarParseError,
     InterpolationKeyError,
     InterpolationResolutionError,
     InterpolationToMissingValueError,
@@ -512,6 +513,9 @@ class OmegaConf:
         Each entry is split on the first *unescaped* ``=``.  Everything before
         it is the key path; everything after it is the value.  Key paths follow
         the same dot/bracket syntax as :meth:`select` and :meth:`update`.
+
+        Malformed key paths raise :class:`~omegaconf.errors.GrammarParseError`.
+        All key paths are checked before any entry is applied.
 
         **Backslash escaping in keys:**
         Use a backslash to include a literal special character in a key name.
@@ -1349,9 +1353,12 @@ class OmegaConf:
         A backslash before any other character passes through unchanged
         (``r"a\b"`` selects the key ``"a\\b"`` — a backslash followed by ``b``).
 
+        Malformed paths return the explicitly supplied default, or raise
+        ``GrammarParseError`` when no default is supplied.
+
         :param cfg: Config node to select from
         :param key: Key path to select (dot/bracket notation, backslash-escapable)
-        :param default: Default value to return if key is not found
+        :param default: Default value to return if key is not found or its path is malformed
         :param throw_on_resolution_failure: Raise an exception if an interpolation
                resolution error occurs, otherwise return None
         :param throw_on_missing: Raise an exception if an attempt to select a missing key (with the value '???')
@@ -1369,6 +1376,8 @@ class OmegaConf:
                 throw_on_missing=throw_on_missing,
             )
         except Exception as e:
+            if isinstance(e, GrammarParseError) and default is not _DEFAULT_MARKER_:
+                return default
             format_and_raise(node=cfg, key=key, value=None, cause=e, msg=str(e))
 
     @staticmethod
@@ -1393,6 +1402,8 @@ class OmegaConf:
         - ``r"a\.b"``   — targets the key ``"a.b"`` (single key with a literal dot)
         - ``r"a\[0\]"`` — targets the key ``"a[0]"``
         - ``r"a\=b"``   — targets the key ``"a=b"``
+
+        Malformed paths raise ``GrammarParseError`` before changing the config.
 
         :param cfg: input config to update
         :param key: key path to update (dot/bracket notation, backslash-escapable)
