@@ -1,0 +1,1 @@
+Fix `oc.dict.values` to treat dictionary keys literally, including non-string keys, while preserving live value references through copying and YAML serialization.

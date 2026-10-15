@@ -217,6 +217,9 @@ def register_default_resolvers() -> None:
     OmegaConf.register_resolver(
         "oc.dict.values", oc.dict.values, annotation_validation="off"
     )
+    OmegaConf.register_resolver(
+        "oc.dict._value", oc.dict._value, annotation_validation="off"
+    )
 
 
 class OmegaConf:
@@ -2120,7 +2123,7 @@ def _get_update_interpolation_result(
         assert text is not None
         interpolation = text.interpolation(0)
         interpolation_node = interpolation.interpolationNode()
-        if text.getChildCount() != 1 or interpolation_node is None:
+        if text.getChildCount() != 1:
             return None
 
         parent = node._get_parent_container()
@@ -2168,12 +2171,43 @@ def _get_update_interpolation_result(
                 selected = child
             return selected
 
-        visitor = GrammarVisitor(
-            node_interpolation_callback=resolve_node,
-            resolver_interpolation_callback=lambda **_: None,
-            memo=memo,
-        )
-        target = visitor.visitInterpolationNode(interpolation_node)
+        if interpolation_node is None:
+            from .resolvers.oc.dict import (
+                _VALUE_REF_PREFIX,
+                _reference_node,
+                _unpack_reference,
+            )
+
+            raw = _get_value(node)
+            if not raw.startswith(_VALUE_REF_PREFIX):
+                return None
+            token = raw[len(_VALUE_REF_PREFIX) : -1]
+            path, key_data = _unpack_reference(token)
+            dots = len(path) - len(path.lstrip("."))
+            relative_path = path[dots:]
+            inter_key = NodeInterpolationKey(
+                raw=path,
+                parts=tuple(split_key(relative_path)) if relative_path else (),
+                relative_dots=dots,
+            )
+            source = resolve_node(inter_key, memo)
+            if source is None:
+                return None
+            if not isinstance(source, DictConfig):
+                raise InterpolationResolutionError(
+                    "oc.dict.values requires a DictConfig"
+                )
+            child = _reference_node(token, key_data, source, node)
+            if child._is_interpolation():
+                child = _get_update_interpolation_result(child, memo=memo)
+            target = child
+        else:
+            visitor = GrammarVisitor(
+                node_interpolation_callback=resolve_node,
+                resolver_interpolation_callback=lambda **_: None,
+                memo=memo,
+            )
+            target = visitor.visitInterpolationNode(interpolation_node)
         if isinstance(target, Node):
             parent._validate_not_dereferencing_to_parent(node=node, target=target)
             return target

@@ -270,6 +270,11 @@ class BaseContainer(Container, ABC):
 
         def convert(val: Node) -> Any:
             value = val._value()
+            if enum_to_str and isinstance(value, str):
+                from .resolvers.oc.dict import _reference_enums_to_str
+
+                if val._is_interpolation():
+                    value = _reference_enums_to_str(value)
             if isinstance(val, InterpolationResultNode):
                 value = _convert_opaque_missing(value, encode_missing_literals)
             elif isinstance(value, _EscapedMissing):
@@ -334,6 +339,10 @@ class BaseContainer(Container, ABC):
         elif not resolve and conf._is_interpolation():
             inter = conf._value()
             assert isinstance(inter, str)
+            if enum_to_str:
+                from .resolvers.oc.dict import _reference_enums_to_str
+
+                inter = _reference_enums_to_str(inter)
             return inter
 
         if resolve:

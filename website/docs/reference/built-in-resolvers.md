@@ -124,6 +124,8 @@ default instead of raising. Quote paths containing resolver punctuation.
 `${oc.dict.keys:workers}` returns a `ListConfig` of dictionary keys;
 `${oc.dict.values:workers}` returns a `ListConfig` whose elements track the
 dictionary values. Both accept a path to a `DictConfig`.
+Keys are treated literally, including non-string keys. Saved values lists keep
+their references when the config is converted to YAML and loaded again.
 
 ```python
 >>> cfg = OmegaConf.create({
