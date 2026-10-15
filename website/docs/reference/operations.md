@@ -189,6 +189,21 @@ interpolations that lead to a missing value. It skips custom resolvers by
 default; use `resolve_custom_resolvers=True` when their results must also be
 checked.
 
+Missing paths escape `.`, `[`, `]` and `=` in dictionary key names.
+For example, a missing value under the literal key
+`"model.lr"` is reported as `r"model\.lr"`, so `OmegaConf.update()` can fill
+that entry without creating a nested `model.lr` entry. Existing limitations
+of key path syntax and non-string dictionary keys still apply.
+
+An empty dictionary key (`""`) is represented by `[]` in a returned path:
+
+```python
+>>> cfg = OmegaConf.create({"outer": {"": "???"}})
+>>> OmegaConf.missing_keys(cfg)
+{'outer[]'}
+
+```
+
 Use `OmegaConf.is_missing(cfg, "key")` to inspect a config field. In 2.4,
 `OmegaConf.is_missing(value)` also checks a detached value; this matters for
 an escaped literal `???`, which compares equal to a normal string.
