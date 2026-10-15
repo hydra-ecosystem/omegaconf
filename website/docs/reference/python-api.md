@@ -16,6 +16,7 @@ and return value.
 | Convert a config to a Python container | [`OmegaConf.to_container()`](./python-api/omegaconf#to_container) |
 | Serialize a config to a YAML string | [`OmegaConf.to_yaml()`](./python-api/omegaconf#to_yaml) |
 | Resolve interpolations in place | [`OmegaConf.resolve()`](./python-api/omegaconf#resolve) |
+| Configure interpolation syntax-cache memory | [`OmegaConf.control`](./syntax-cache) |
 
 ### Types and helpers
 

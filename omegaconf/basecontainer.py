@@ -14,6 +14,7 @@ from ._utils import (
     _find_eq,
     _get_value,
     _is_interpolation,
+    _is_missing_literal,
     _is_missing_value,
     _is_none,
     _is_special,
@@ -51,6 +52,7 @@ from .errors import (
     ReadonlyConfigError,
     ValidationError,
 )
+from .nodes import ValueNode
 
 if TYPE_CHECKING:
     from .dictconfig import DictConfig  # pragma: no cover
@@ -93,6 +95,17 @@ class BaseContainer(Container, ABC):
         default_value: Any = _DEFAULT_MARKER_,
     ) -> Any:
         """returns the value with the specified key, like obj.key and obj['key']"""
+        if isinstance(value, ValueNode):
+            raw = value._value()
+            if not isinstance(raw, str) or (
+                not _is_missing_literal(raw) and "${" not in raw
+            ):
+                return raw
+        elif isinstance(value, Container) and isinstance(
+            value._value(), (dict, list, tuple)
+        ):
+            return value
+
         if _is_missing_value(value):
             if default_value is not _DEFAULT_MARKER_:
                 return default_value
@@ -443,6 +456,7 @@ class BaseContainer(Container, ABC):
             expand(dest)
 
         src_items = list(src) if not src._is_missing() else []
+        is_optional, et = _resolve_optional(dest._metadata.element_type)
         for key in src_items:
             src_node = src._get_node(key, validate_access=False)
             dest_node = dest._get_node(key, validate_access=False)
@@ -481,7 +495,6 @@ class BaseContainer(Container, ABC):
                     dest[key] = target_node
                     dest_node = dest._get_node(key)
 
-            is_optional, et = _resolve_optional(dest._metadata.element_type)
             if dest_node is None and is_structured_config(et) and not src_node_missing:
                 # merging into a new node. Use element_type as a base
                 dest[key] = DictConfig(
