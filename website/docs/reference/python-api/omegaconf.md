@@ -189,6 +189,9 @@ Each entry is split on the first *unescaped* ``=``.  Everything before
 it is the key path; everything after it is the value.  Key paths follow
 the same dot/bracket syntax as :meth:`select` and :meth:`update`.
 
+Malformed key paths raise :class:`~omegaconf.errors.GrammarParseError`.
+All key paths are checked before any entry is applied.
+
 **Backslash escaping in keys:**
 Use a backslash to include a literal special character in a key name.
 The escapable characters are ``.``, ``[``, ``]``, and ``=``.
@@ -634,6 +637,9 @@ can be expressed by escaping them with a backslash:
 A backslash before any other character passes through unchanged
 (``r"a\b"`` selects the key ``"a\\b"`` — a backslash followed by ``b``).
 
+Malformed paths raise ``GrammarParseError``, even when a default is
+supplied. The default applies only to valid paths that cannot be found.
+
 **Parameters:**
 
 - **cfg** (<code>Container</code>) – Config node to select from
@@ -918,6 +924,8 @@ can be expressed by escaping them with a backslash:
 - ``r"a\.b"``   — targets the key ``"a.b"`` (single key with a literal dot)
 - ``r"a\[0\]"`` — targets the key ``"a[0]"``
 - ``r"a\=b"``   — targets the key ``"a=b"``
+
+Malformed paths raise ``GrammarParseError`` before changing the config.
 
 **Parameters:**
 
