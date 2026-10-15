@@ -1,6 +1,6 @@
 {
   "generated_on": "2026-10-15",
-  "generated_at": "2026-10-15T12:34:15Z",
+  "generated_at": "2026-10-15T13:05:34Z",
   "repo": "hydra-ecosystem/omegaconf",
   "summary": {
     "open_total": 30,
@@ -46,7 +46,7 @@
       {
         "status": "in progress",
         "emoji": "🔄",
-        "count": 0
+        "count": 1
       },
       {
         "status": "community PR",
@@ -61,7 +61,7 @@
       {
         "status": "not started",
         "emoji": "⬜",
-        "count": 30
+        "count": 29
       },
       {
         "status": "done",
@@ -71,6 +71,27 @@
     ]
   },
   "issues": [
+    {
+      "number": 1424,
+      "title": "oc.dict.values interprets literal dictionary keys as interpolation expressions",
+      "category": "Bug",
+      "category_emoji": "🐛",
+      "status": "in progress",
+      "status_emoji": "🔄",
+      "prs": [
+        {
+          "number": 1430,
+          "url": "https://github.com/hydra-ecosystem/omegaconf/pull/1430"
+        }
+      ],
+      "created": "2026-10-14",
+      "updated": "2026-10-14",
+      "labels": [
+        "bug",
+        "interpolation"
+      ],
+      "url": "https://github.com/hydra-ecosystem/omegaconf/issues/1424"
+    },
     {
       "number": 91,
       "title": "Consider supporting basic operators in interpolations of numbers",
@@ -486,22 +507,6 @@
       "url": "https://github.com/hydra-ecosystem/omegaconf/issues/1419"
     },
     {
-      "number": 1424,
-      "title": "oc.dict.values interprets literal dictionary keys as interpolation expressions",
-      "category": "Bug",
-      "category_emoji": "🐛",
-      "status": "not started",
-      "status_emoji": "⬜",
-      "prs": [],
-      "created": "2026-10-14",
-      "updated": "2026-10-14",
-      "labels": [
-        "bug",
-        "interpolation"
-      ],
-      "url": "https://github.com/hydra-ecosystem/omegaconf/issues/1424"
-    },
-    {
       "number": 1426,
       "title": "Malformed paths can silently mutate a valid prefix",
       "category": "Bug",
@@ -773,6 +778,26 @@
     }
   ],
   "updates": [
+    {
+      "ts": "2026-10-15T13:05:34Z",
+      "kind": "pr",
+      "issue": 1424,
+      "issue_url": "https://github.com/hydra-ecosystem/omegaconf/issues/1424",
+      "title": "oc.dict.values interprets literal dictionary keys as interpolation expressions",
+      "detail": "linked #1430"
+    },
+    {
+      "ts": "2026-10-15T13:05:34Z",
+      "kind": "status",
+      "issue": 1424,
+      "issue_url": "https://github.com/hydra-ecosystem/omegaconf/issues/1424",
+      "title": "oc.dict.values interprets literal dictionary keys as interpolation expressions",
+      "detail": "not started → in progress",
+      "pr": {
+        "number": 1430,
+        "url": "https://github.com/hydra-ecosystem/omegaconf/pull/1430"
+      }
+    },
     {
       "ts": "2026-10-15T09:27:41Z",
       "kind": "closed",
@@ -2429,20 +2454,6 @@
         "number": 1331,
         "url": "https://github.com/omry/omegaconf/pull/1331"
       }
-    },
-    {
-      "ts": "2026-07-16T12:12:46Z",
-      "kind": "new",
-      "issue": 1312,
-      "issue_url": "https://github.com/omry/omegaconf/issues/1312",
-      "title": "Support more flexible merge semantics in OmegaConf.merge"
-    },
-    {
-      "ts": "2026-07-16T12:08:42Z",
-      "kind": "closed",
-      "issue": 1312,
-      "issue_url": "https://github.com/omry/omegaconf/issues/1312",
-      "title": "Support more flexible merge semantics in OmegaConf.merge"
     }
   ]
 }

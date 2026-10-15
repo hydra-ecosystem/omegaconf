@@ -14,7 +14,7 @@
     "1425": "2026-10-15",
     "459": "2026-09-25"
   },
-  "generated_at": "2026-10-15T12:34:15Z",
+  "generated_at": "2026-10-15T13:05:34Z",
   "issues": {
     "1024": {
       "category": "Enhancement",
@@ -291,9 +291,11 @@
         "bug",
         "interpolation"
       ],
-      "pr_numbers": [],
+      "pr_numbers": [
+        "1430"
+      ],
       "state": "OPEN",
-      "status": "not started",
+      "status": "in progress",
       "title": "oc.dict.values interprets literal dictionary keys as interpolation expressions",
       "updated_at": "2026-10-14T21:42:24Z"
     },
