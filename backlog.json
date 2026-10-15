@@ -1,6 +1,6 @@
 {
   "generated_on": "2026-10-15",
-  "generated_at": "2026-10-15T20:43:38Z",
+  "generated_at": "2026-10-15T21:28:48Z",
   "repo": "hydra-ecosystem/omegaconf",
   "summary": {
     "open_total": 30,
@@ -486,6 +486,22 @@
       "url": "https://github.com/hydra-ecosystem/omegaconf/issues/1419"
     },
     {
+      "number": 1424,
+      "title": "oc.dict.values interprets literal dictionary keys as interpolation expressions",
+      "category": "Bug",
+      "category_emoji": "🐛",
+      "status": "not started",
+      "status_emoji": "⬜",
+      "prs": [],
+      "created": "2026-10-14",
+      "updated": "2026-10-14",
+      "labels": [
+        "bug",
+        "interpolation"
+      ],
+      "url": "https://github.com/hydra-ecosystem/omegaconf/issues/1424"
+    },
+    {
       "number": 1426,
       "title": "Malformed paths can silently mutate a valid prefix",
       "category": "Bug",
@@ -515,22 +531,6 @@
         "RFC"
       ],
       "url": "https://github.com/hydra-ecosystem/omegaconf/issues/1427"
-    },
-    {
-      "number": 1424,
-      "title": "oc.dict.values interprets literal dictionary keys as interpolation expressions",
-      "category": "Bug",
-      "category_emoji": "🐛",
-      "status": "not started",
-      "status_emoji": "⬜",
-      "prs": [],
-      "created": "2026-10-14",
-      "updated": "2026-10-14",
-      "labels": [
-        "bug",
-        "interpolation"
-      ],
-      "url": "https://github.com/hydra-ecosystem/omegaconf/issues/1424"
     },
     {
       "number": 459,
