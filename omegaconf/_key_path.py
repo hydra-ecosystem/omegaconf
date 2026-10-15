@@ -1,4 +1,4 @@
-"""Parsing of dotted and bracketed config key paths."""
+"""Parsing and escaping of config key paths."""
 
 import re
 from dataclasses import dataclass
@@ -19,6 +19,16 @@ KEY_PATH_OTHER = re.compile(r"\.([^.[]*)|\[(.*?)\]")
 # \. -> literal dot, \[ -> literal [, \] -> literal ], \= -> literal =
 # Any other character after \ passes through unchanged (including \ itself).
 _ESCAPABLE = frozenset(".[]=")
+
+
+def _escape_key(key: str) -> str:
+    """Escape path punctuation in one interpolation key segment."""
+    return re.sub(r"([\\.\[\]:=])", r"\\\1", key)
+
+
+def _unescape_key(key: str) -> str:
+    """Remove recognized escapes from one interpolation key segment."""
+    return re.sub(r"\\([\\.\[\]:=])", r"\1", key)
 
 
 def split_key(key: str) -> list[str]:

@@ -124,6 +124,8 @@ default instead of raising. Quote paths containing resolver punctuation.
 `${oc.dict.keys:workers}` returns a `ListConfig` of dictionary keys;
 `${oc.dict.values:workers}` returns a `ListConfig` whose elements track the
 dictionary values. Both accept a path to a `DictConfig`.
+Value references escape path punctuation in dictionary keys, so a key such as
+`a.b` is treated literally. Other restrictions of interpolation key syntax still apply.
 
 ```python
 >>> cfg = OmegaConf.create({

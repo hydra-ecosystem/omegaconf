@@ -1,6 +1,7 @@
 from typing import Any, List
 
 from omegaconf import AnyNode, Container, DictConfig, ListConfig
+from omegaconf._key_path import _escape_key
 from omegaconf._utils import Marker
 from omegaconf.basecontainer import BaseContainer
 from omegaconf.errors import ConfigKeyError
@@ -38,7 +39,8 @@ def values(key: str, _root_: BaseContainer, _parent_: Container) -> ListConfig:
     if key.startswith("."):
         key = f".{key}"  # extra dot to compensate for extra level of nesting within ret ListConfig
     for k in content:
-        ref_node = AnyNode(f"${{{key}.{k!s}}}")
+        escaped_key = _escape_key(str(k))
+        ref_node = AnyNode(f"${{{key}.{escaped_key}}}")
         ret.append(ref_node)
 
     # Finalize result by setting proper type and parent.

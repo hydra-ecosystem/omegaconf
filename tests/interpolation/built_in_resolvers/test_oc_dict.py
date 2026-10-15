@@ -176,6 +176,33 @@ def test_dict_values_with_missing_value() -> None:
 
 
 @mark.parametrize(
+    "literal_key",
+    ["plain", "a.b", "a[b]", "a]b", "a:b", "a=b", r"a\b", r"a\.b", "a\\"],
+)
+def test_dict_values_escape_key(literal_key: str) -> None:
+    cfg = OmegaConf.create(
+        {
+            "mapping": {literal_key: "${.target}", "a": {"b": 999}, "target": 111},
+            "values": "${oc.dict.values:mapping}",
+        }
+    )
+    values = cfg["values"]
+    assert isinstance(values, ListConfig)
+    assert values[0] == 111
+    cfg.mapping.target = 222
+    assert values[0] == 222
+
+    cfg.mapping[literal_key] = {"x": 333}
+    cfg.saved = values
+    OmegaConf.update(cfg, "saved[0].x", 444)
+    assert cfg.mapping[literal_key].x == 444
+
+    loaded = OmegaConf.create(OmegaConf.to_yaml(cfg, resolve=False))
+    loaded.mapping[literal_key].x = 555
+    assert loaded.saved[0].x == 555
+
+
+@mark.parametrize(
     ("make_resolver", "key", "expected"),
     [
         param(
