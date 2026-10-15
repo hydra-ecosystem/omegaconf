@@ -1,11 +1,10 @@
-import re
 import sys
 import warnings
 from collections.abc import Callable, Generator
 from itertools import zip_longest
 from typing import TYPE_CHECKING, Any, NoReturn, cast
 
-from ._key_path import NodeInterpolationKey, split_key
+from ._key_path import NodeInterpolationKey, _unescape_key, split_key
 from ._missing import _decode_missing_escape, _EscapedMissing, _has_missing_spelling
 from .errors import InterpolationResolutionError
 from .vendor.antlr4 import TerminalNode  # type: ignore[attr-defined]
@@ -99,7 +98,7 @@ class GrammarVisitor(OmegaConfGrammarParserVisitor):
                 str,
             )
             text = child.symbol.text  # type: ignore[attr-defined]
-            return re.sub(r"\\([\\.\[\]:=])", r"\1", text)
+            return _unescape_key(text)
 
     def visitConfigValue(self, ctx: OmegaConfGrammarParser.ConfigValueContext) -> Any:
         # text EOF
