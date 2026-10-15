@@ -1,6 +1,6 @@
 {
   "generated_on": "2026-10-15",
-  "generated_at": "2026-10-15T20:26:53Z",
+  "generated_at": "2026-10-15T20:43:38Z",
   "repo": "hydra-ecosystem/omegaconf",
   "summary": {
     "open_total": 30,
@@ -46,7 +46,7 @@
       {
         "status": "in progress",
         "emoji": "🔄",
-        "count": 1
+        "count": 0
       },
       {
         "status": "community PR",
@@ -61,7 +61,7 @@
       {
         "status": "not started",
         "emoji": "⬜",
-        "count": 29
+        "count": 30
       },
       {
         "status": "done",
@@ -71,27 +71,6 @@
     ]
   },
   "issues": [
-    {
-      "number": 1424,
-      "title": "oc.dict.values interprets literal dictionary keys as interpolation expressions",
-      "category": "Bug",
-      "category_emoji": "🐛",
-      "status": "in progress",
-      "status_emoji": "🔄",
-      "prs": [
-        {
-          "number": 1430,
-          "url": "https://github.com/hydra-ecosystem/omegaconf/pull/1430"
-        }
-      ],
-      "created": "2026-10-14",
-      "updated": "2026-10-14",
-      "labels": [
-        "bug",
-        "interpolation"
-      ],
-      "url": "https://github.com/hydra-ecosystem/omegaconf/issues/1424"
-    },
     {
       "number": 91,
       "title": "Consider supporting basic operators in interpolations of numbers",
@@ -538,6 +517,22 @@
       "url": "https://github.com/hydra-ecosystem/omegaconf/issues/1427"
     },
     {
+      "number": 1424,
+      "title": "oc.dict.values interprets literal dictionary keys as interpolation expressions",
+      "category": "Bug",
+      "category_emoji": "🐛",
+      "status": "not started",
+      "status_emoji": "⬜",
+      "prs": [],
+      "created": "2026-10-14",
+      "updated": "2026-10-14",
+      "labels": [
+        "bug",
+        "interpolation"
+      ],
+      "url": "https://github.com/hydra-ecosystem/omegaconf/issues/1424"
+    },
+    {
       "number": 459,
       "title": "Consider deprecating assignment of strings to non-string nodes like IntegerNode / FloatNode",
       "category": "Enhancement",
@@ -778,6 +773,22 @@
     }
   ],
   "updates": [
+    {
+      "ts": "2026-10-15T20:43:38Z",
+      "kind": "pr",
+      "issue": 1424,
+      "issue_url": "https://github.com/hydra-ecosystem/omegaconf/issues/1424",
+      "title": "oc.dict.values interprets literal dictionary keys as interpolation expressions",
+      "detail": "unlinked #1430"
+    },
+    {
+      "ts": "2026-10-15T20:43:38Z",
+      "kind": "status",
+      "issue": 1424,
+      "issue_url": "https://github.com/hydra-ecosystem/omegaconf/issues/1424",
+      "title": "oc.dict.values interprets literal dictionary keys as interpolation expressions",
+      "detail": "in progress → not started"
+    },
     {
       "ts": "2026-10-15T13:05:34Z",
       "kind": "pr",
@@ -2434,26 +2445,6 @@
       "issue": 731,
       "issue_url": "https://github.com/omry/omegaconf/issues/731",
       "title": "Subclasses of `Generic` cannot be used as structured configs"
-    },
-    {
-      "ts": "2026-07-17T09:14:56Z",
-      "kind": "pr",
-      "issue": 1020,
-      "issue_url": "https://github.com/omry/omegaconf/issues/1020",
-      "title": "Failure to merge interpolation into structured config",
-      "detail": "linked #1331"
-    },
-    {
-      "ts": "2026-07-17T09:14:56Z",
-      "kind": "status",
-      "issue": 1020,
-      "issue_url": "https://github.com/omry/omegaconf/issues/1020",
-      "title": "Failure to merge interpolation into structured config",
-      "detail": "not started → community PR",
-      "pr": {
-        "number": 1331,
-        "url": "https://github.com/omry/omegaconf/pull/1331"
-      }
     }
   ]
 }
