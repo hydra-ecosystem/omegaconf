@@ -122,6 +122,53 @@ def test_dynamic_bracket_key_with_literal_dot() -> None:
     assert cfg.ref == 20
 
 
+@mark.parametrize(
+    ("key", "other"),
+    [
+        ("a]b", "a"),
+        ("a][b", "a"),
+        (r"a\.b", "a.b"),
+        (r"a\[b", "a[b"),
+        (r"a\]b", "a]b"),
+        (r"a\=b", "a=b"),
+        ("a\\", "a"),
+        ("", "other"),
+    ],
+)
+@mark.parametrize("reference", ["${choices[${key}]}", "${.choices[${.key}]}"])
+def test_nested_bracket_key_preserves_literal_key(
+    key: str, other: str, reference: str
+) -> None:
+    cfg = OmegaConf.create(
+        {
+            "choices": {key: {"value": 10}, other: {"value": 20}},
+            "key": key,
+            "ref": reference,
+        }
+    )
+    assert cfg.ref.value == 10
+    OmegaConf.update(cfg, "ref.value", 30)
+    assert cfg.choices[key].value == 30
+    assert cfg.choices[other].value == 20
+    cfg.key = other
+    assert cfg.ref.value == 20
+
+
+@mark.parametrize("key", ["a]b", r"a\.b", "a\\", "", ".."])
+def test_nested_bracket_key_at_root(key: str) -> None:
+    cfg = OmegaConf.create({key: {"value": 10}, "key": key, "ref": "${[${key}].value}"})
+    assert cfg.ref == 10
+
+
+@mark.parametrize("sequence", [[10, 20], (10, 20)])
+@mark.parametrize("index", [0, "1", -1, "-1"])
+def test_nested_bracket_key_sequence_index(sequence: Any, index: Any) -> None:
+    cfg = OmegaConf.create(
+        {"sequence": sequence, "index": index, "ref": "${sequence[${index}]}"}
+    )
+    assert cfg.ref == sequence[int(index)]
+
+
 def test_empty_dynamic_key_preserves_relative_dots() -> None:
     cfg = OmegaConf.create(
         {
