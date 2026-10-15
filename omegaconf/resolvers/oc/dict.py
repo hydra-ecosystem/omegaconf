@@ -1,3 +1,4 @@
+import re
 from typing import Any, List
 
 from omegaconf import AnyNode, Container, DictConfig, ListConfig
@@ -38,7 +39,8 @@ def values(key: str, _root_: BaseContainer, _parent_: Container) -> ListConfig:
     if key.startswith("."):
         key = f".{key}"  # extra dot to compensate for extra level of nesting within ret ListConfig
     for k in content:
-        ref_node = AnyNode(f"${{{key}.{k!s}}}")
+        escaped_key = re.sub(r"([\\.\[\]:=])", r"\\\1", str(k))
+        ref_node = AnyNode(f"${{{key}.{escaped_key}}}")
         ret.append(ref_node)
 
     # Finalize result by setting proper type and parent.

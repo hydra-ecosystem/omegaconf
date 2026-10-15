@@ -1,0 +1,1 @@
+Escape path punctuation in dictionary keys used by `oc.dict.values` so literal keys are not split into nested paths.
