@@ -1,15 +1,20 @@
+import copy
+import json
+import pickle
 import re
+from dataclasses import dataclass, field
 from typing import Any, List
 
 from pytest import mark, param, raises
 
 from omegaconf import DictConfig, ListConfig, OmegaConf
 from omegaconf.errors import (
+    InterpolationKeyError,
     InterpolationResolutionError,
     InterpolationToMissingValueError,
 )
 from omegaconf.resolvers.oc.dict import _get_and_validate_dict_input
-from tests import User, Users
+from tests import Color, User, Users
 
 
 @mark.parametrize(
@@ -111,13 +116,12 @@ def test_get_and_validate_dict_input(
 
 
 @mark.parametrize(
-    ("cfg", "key", "expected_val", "expected_content"),
+    ("cfg", "key", "expected_val"),
     [
         param(
             {"foo": "${oc.dict.values:bar}", "bar": {"a": 0, "b": 1}},
             "foo",
             [0, 1],
-            ["${bar.a}", "${bar.b}"],
             id="dictconfig",
         ),
         param(
@@ -127,7 +131,6 @@ def test_get_and_validate_dict_input(
             },
             "foo",
             [{"x": 0, "y": 1}, {"x": 0}],
-            ["${bar.a}", "${bar.b}"],
             id="dictconfig_deep",
         ),
         param(
@@ -138,7 +141,6 @@ def test_get_and_validate_dict_input(
             },
             "foo",
             ["value"],
-            ["${bar.key}"],
             id="dictconfig_with_interpolated_value",
         ),
         param(
@@ -149,21 +151,17 @@ def test_get_and_validate_dict_input(
             },
             "foo",
             [0, 1],
-            ["${bar.a}", "${bar.b}"],
             id="dictconfig_chained_interpolation",
         ),
     ],
 )
-def test_dict_values(
-    cfg: Any, key: Any, expected_val: Any, expected_content: Any
-) -> None:
+def test_dict_values(cfg: Any, key: Any, expected_val: Any) -> None:
     cfg = OmegaConf.create(cfg)
     val = cfg[key]
     assert val == expected_val
     assert isinstance(val, ListConfig)
     assert val._parent is cfg
-    content = val._content
-    assert content == expected_content
+    assert all(OmegaConf.is_interpolation(val, i) for i in range(len(val)))
 
 
 def test_dict_values_with_missing_value() -> None:
@@ -173,6 +171,349 @@ def test_dict_values_with_missing_value() -> None:
         foo[0]
     cfg.bar.missing = 1
     assert foo[0] == 1
+
+
+@mark.parametrize(
+    "literal_key",
+    [
+        "a.b",
+        "a[b]",
+        "a:b",
+        "with space",
+        "",
+        "a\\",
+        "a\\.b",
+        "'quoted'",
+        '"quoted"',
+        "${probe:}",
+        "???",
+        "line\nbreak",
+        42,
+        True,
+        False,
+        1.5,
+        b"key",
+        Color.RED,
+        float("nan"),
+    ],
+)
+def test_dict_values_literal_keys(restore_resolvers: Any, literal_key: Any) -> None:
+    calls: list[str] = []
+    OmegaConf.register_resolver("probe", lambda: calls.append("key") or "target")
+    OmegaConf.register_resolver("value", lambda: calls.append("value") or 111)
+    cfg = OmegaConf.create(
+        {
+            "mapping": {literal_key: "${value:}", "target": 222},
+            "values": "${oc.dict.values:mapping}",
+        }
+    )
+    values = cfg["values"]
+    assert calls == []
+    assert list(values) == [111, 222]
+    assert calls == ["value"]
+    cfg.mapping[literal_key] = {"nested": 333}
+    assert values[0] == {"nested": 333}
+    cfg.mapping[literal_key] = 444
+    assert values[0] == 444
+    assert calls == ["value"]
+
+
+@mark.parametrize("literal_key", [True, 1.5, b"key", Color.RED])
+def test_dict_values_distinguish_key_types(literal_key: Any) -> None:
+    cfg = OmegaConf.create(
+        {
+            "mapping": {literal_key: 111, str(literal_key): 222},
+            "values": "${oc.dict.values:mapping}",
+        }
+    )
+    assert list(cfg["values"]) == [111, 222]
+
+
+@mark.parametrize("source_key", ["a:b", "with space", "${probe:}", "a\\", ""])
+def test_dict_values_source_path(restore_resolvers: Any, source_key: str) -> None:
+    calls: list[str] = []
+    OmegaConf.register_resolver("probe", lambda: calls.append("key") or "target")
+    OmegaConf.register_resolver("path", lambda: "mapping." + source_key)
+    cfg = OmegaConf.create(
+        {
+            "mapping": {source_key: {"a.b": "${.target}", "target": 111}},
+            "keys": "${oc.dict.keys:${path:}}",
+            "values": "${oc.dict.values:${path:}}",
+        }
+    )
+    assert list(cfg["keys"]) == ["a.b", "target"]
+    values = cfg["values"]
+    assert list(values) == [111, 111]
+    cfg.mapping[source_key].target = 222
+    assert list(values) == [222, 222]
+    assert calls == []
+
+
+@mark.parametrize(
+    "literal_key",
+    ["ordinary", "a.b", "${probe:}", "", True, 42, 1.5, b"key", Color.RED],
+)
+@mark.parametrize(
+    "roundtrip", ["copy", "pickle", "container", "yaml", "references_json"]
+)
+def test_dict_values_saved_references(literal_key: Any, roundtrip: str) -> None:
+    cfg = OmegaConf.create(
+        {
+            "mapping": {literal_key: 111},
+            "values": "${oc.dict.values:mapping}",
+        }
+    )
+    cfg.saved = cfg["values"]
+    if roundtrip == "copy":
+        loaded = copy.deepcopy(cfg)
+    elif roundtrip == "pickle":
+        loaded = pickle.loads(pickle.dumps(cfg))
+    elif roundtrip == "container":
+        loaded = OmegaConf.create(OmegaConf.to_container(cfg, resolve=False))
+    elif roundtrip == "references_json":
+        loaded = copy.deepcopy(cfg)
+        loaded.saved = json.loads(
+            json.dumps(OmegaConf.to_container(cfg.saved, resolve=False))
+        )
+    else:
+        loaded = OmegaConf.create(OmegaConf.to_yaml(cfg, resolve=False))
+        if literal_key is Color.RED:
+            literal_key = "RED"  # YAML converts Enum keys to names.
+    assert isinstance(loaded, DictConfig)
+    loaded.mapping[literal_key] = 222
+    assert list(loaded.saved) == [222]
+    loaded.mapping[literal_key] = 333
+    assert list(loaded.saved) == [333]
+    assert cfg.mapping[next(iter(cfg.mapping))] == 111
+
+
+def test_dict_values_follow_replaced_source() -> None:
+    cfg = OmegaConf.create(
+        {
+            "first": {"a.b": 111},
+            "second": {"a.b": 222},
+            "mapping": "${first}",
+            "values": "${oc.dict.values:mapping}",
+        }
+    )
+    values = cfg["values"]
+    cfg.mapping = "${second}"
+    assert list(values) == [222]
+    cfg.second = {"a.b": 333}
+    assert list(values) == [333]
+
+
+def test_dict_values_saved_nested_update() -> None:
+    cfg = OmegaConf.create(
+        {
+            "mapping": {"a.b": {"x": 111}},
+            "values": "${oc.dict.values:mapping}",
+        }
+    )
+    cfg.saved = cfg["values"]
+    OmegaConf.update(cfg, "saved[0].x", 222)
+    assert cfg.mapping["a.b"].x == 222
+
+
+def test_dict_values_saved_update_through_value_interpolation() -> None:
+    cfg = OmegaConf.create(
+        {
+            "mapping": {"a.b": "${target}"},
+            "target": {"x": 111},
+            "values": "${oc.dict.values:mapping}",
+        }
+    )
+    cfg.saved = cfg["values"]
+    OmegaConf.update(cfg, "saved[0].x", 222)
+    assert cfg.target.x == 222
+
+
+def test_dict_values_saved_update_resolver_source(restore_resolvers: Any) -> None:
+    OmegaConf.register_resolver(
+        "make", lambda _parent_: OmegaConf.create({"a.b": {"x": 111}}, parent=_parent_)
+    )
+    cfg = OmegaConf.create(
+        {"mapping": "${make:}", "values": "${oc.dict.values:mapping}"}
+    )
+    cfg.saved = cfg["values"]
+    OmegaConf.update(cfg, "saved[0].x", 222)
+    assert cfg.saved[0].x == 222
+    assert cfg.mapping["a.b"].x == 111
+
+
+def test_dict_values_saved_update_rejects_non_dict_source() -> None:
+    cfg = OmegaConf.create(
+        {"mapping": {"a.b": {"x": 111}}, "values": "${oc.dict.values:mapping}"}
+    )
+    cfg.saved = cfg["values"]
+    cfg.mapping = []
+    with raises(
+        InterpolationResolutionError, match="oc.dict.values requires a DictConfig"
+    ):
+        OmegaConf.update(cfg, "saved[0].x", 222)
+
+
+@mark.parametrize("roundtrip", [False, True])
+def test_dict_values_deleted_key(roundtrip: bool) -> None:
+    cfg = OmegaConf.create(
+        {"mapping": {Color.RED: 111, "RED": 222}, "values": "${oc.dict.values:mapping}"}
+    )
+    cfg.saved = cfg["values"]
+    if roundtrip:
+        cfg = OmegaConf.create(OmegaConf.to_container(cfg, resolve=False))
+    assert isinstance(cfg, DictConfig)
+    del cfg.mapping[Color.RED]
+    with raises(InterpolationKeyError):
+        cfg.saved[0]
+    assert cfg.saved[1] == 222
+    cfg.mapping[Color.RED] = 333
+    assert cfg.saved[0] == 333
+
+
+@mark.parametrize(
+    "expression",
+    ["${oc.dict._value:abc}", "${oc.dict._value:W10}", "${oc.dict._value:WzEsIHt9XQ}"],
+)
+def test_dict_values_unresolved_serialization_does_not_evaluate(
+    expression: str,
+) -> None:
+    cfg = OmegaConf.create({"value": expression})
+    assert OmegaConf.to_container(cfg, enum_to_str=True) == {"value": expression}
+
+
+def test_dict_values_nan_key_roundtrip() -> None:
+    key = float("nan")
+    cfg = OmegaConf.create(
+        {"mapping": {key: 111}, "values": "${oc.dict.values:mapping}"}
+    )
+    cfg.saved = cfg["values"]
+    loaded = OmegaConf.create(OmegaConf.to_yaml(cfg, resolve=False))
+    loaded.mapping[next(iter(loaded.mapping))] = 222
+    assert list(loaded.saved) == [222]
+
+
+def test_dict_values_distinct_nan_keys() -> None:
+    first, second = float("nan"), float("nan")
+    cfg = OmegaConf.create(
+        {"mapping": {first: 111, second: 222}, "values": "${oc.dict.values:mapping}"}
+    )
+    values = cfg["values"]
+    assert list(values) == [111, 222]
+    del cfg.mapping[first]
+    with raises(InterpolationKeyError):
+        values[0]
+    assert values[1] == 222
+
+
+def test_dict_values_distinct_nan_keys_container_roundtrip() -> None:
+    first, second = float("nan"), float("nan")
+    cfg = OmegaConf.create(
+        {"mapping": {first: 111, second: 222}, "values": "${oc.dict.values:mapping}"}
+    )
+    cfg.saved = cfg["values"]
+    loaded = OmegaConf.create(OmegaConf.to_container(cfg, resolve=False))
+    assert isinstance(loaded, DictConfig)
+    assert list(loaded.saved) == [111, 222]
+    del loaded.mapping[first]
+    with raises(InterpolationKeyError):
+        loaded.saved[0]
+    assert loaded.saved[1] == 222
+
+
+def test_dict_values_typed_container_yaml_roundtrip() -> None:
+    @dataclass
+    class Typed:
+        mapping: dict[Color, User] = field(default_factory=dict)
+        values: list[User] = field(default_factory=list)
+        saved: list[User] = field(default_factory=list)
+
+    cfg = OmegaConf.structured(
+        Typed(
+            mapping={Color.RED: User(name="red", age=111)},
+            values="${oc.dict.values:mapping}",  # type: ignore[arg-type]
+        )
+    )
+    cfg.saved = cfg["values"]
+
+    yaml_loaded = OmegaConf.create(OmegaConf.to_yaml(cfg, resolve=False))
+    yaml_loaded.mapping.RED.age = 222
+    assert yaml_loaded.saved[0].age == 222
+
+    primitive = OmegaConf.to_container(cfg, resolve=False, enum_to_str=True)
+    primitive_loaded = OmegaConf.create(primitive)
+    assert isinstance(primitive_loaded, DictConfig)
+    primitive_loaded.mapping.RED.age = 333
+    assert primitive_loaded.saved[0].age == 333
+
+
+def test_dict_values_distinct_nan_keys_enum_to_str_container_roundtrip() -> None:
+    first, second = float("nan"), float("nan")
+    cfg = OmegaConf.create(
+        {
+            "mapping": {first: 111, second: 222},
+            "values": "${oc.dict.values:mapping}",
+        }
+    )
+    cfg.saved = cfg["values"]
+    loaded = OmegaConf.create(
+        OmegaConf.to_container(cfg, resolve=False, enum_to_str=True)
+    )
+    assert isinstance(loaded, DictConfig)
+    source_keys = list(loaded.mapping)
+
+    assert list(loaded.saved) == [111, 222]
+    loaded.mapping[source_keys[1]] = 333
+    assert list(loaded.saved) == [111, 333]
+    del loaded.mapping[source_keys[0]]
+    with raises(InterpolationKeyError):
+        loaded.saved[0]
+    assert loaded.saved[1] == 333
+
+
+@mark.parametrize("eager", [False, True])
+def test_dict_values_resolution_context(eager: bool) -> None:
+    cfg = OmegaConf.create(
+        {
+            "outer": {
+                "mapping": {"a.b": "${.target}", "target": "${..target}"},
+                "target": 111,
+                "values": "${oc.dict.values:.mapping}",
+            }
+        }
+    )
+    cfg.outer.saved = cfg.outer["values"]
+    del cfg.outer["values"]
+    if eager:
+        OmegaConf.resolve(cfg)
+        assert OmegaConf.to_container(cfg.outer.saved, resolve=False) == [111, 111]
+    else:
+        cfg = OmegaConf.create(OmegaConf.to_yaml(cfg, resolve=False))
+        cfg.outer.target = 222
+        assert list(cfg.outer.saved) == [222, 222]
+
+
+def test_dict_values_reject_parent_reference(restore_resolvers: Any) -> None:
+    OmegaConf.register_resolver("root", lambda _root_: _root_)
+    cfg = OmegaConf.create(
+        {"mapping": {"key": "${root:}"}, "values": "${oc.dict.values:mapping}"}
+    )
+    with raises(InterpolationResolutionError, match="Interpolation to parent node"):
+        cfg["values"][0]
+
+
+def test_dict_values_opaque_resolver_result(restore_resolvers: Any) -> None:
+    cfg = OmegaConf.create(
+        {"mapping": {Color.RED: 111}, "values": "${oc.dict.values:mapping}"}
+    )
+    references = OmegaConf.to_container(cfg["values"], resolve=False)
+    assert isinstance(references, list)
+    reference = references[0]
+    OmegaConf.register_resolver("literal", lambda: reference)
+    cfg.text = "${literal:}"
+    result = OmegaConf.to_container(cfg, resolve=True, enum_to_str=True)
+    assert isinstance(result, dict)
+    assert result["text"] == reference
+    assert reference in OmegaConf.to_yaml(cfg, resolve=True)
 
 
 @mark.parametrize(

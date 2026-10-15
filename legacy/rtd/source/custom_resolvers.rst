@@ -505,10 +505,9 @@ as interpolations), and they return a ``ListConfig`` that contains keys or value
     >>> # Keys are copied from the DictConfig:
     >>> show(cfg.nodes)
     type: ListConfig, value: ['node3', 'node7']
-    >>> # Values are dynamically fetched through interpolations:
-    >>> show(cfg.ips)
-    type: ListConfig, value: ['${workers.node3}', '${workers.node7}']
-    >>> assert cfg.ips == ["10.0.0.2", "10.0.0.9"]
+    >>> # Values are dynamically fetched from the dictionary:
+    >>> list(cfg.ips)
+    ['10.0.0.2', '10.0.0.9']
 
 .. _clearing_resolvers:
 
