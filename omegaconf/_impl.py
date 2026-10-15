@@ -3,6 +3,7 @@ from contextvars import ContextVar
 from typing import Any
 
 from omegaconf import Container, DictConfig, ListConfig, Node, TupleConfig, ValueNode
+from omegaconf._key_path import split_key
 from omegaconf.errors import (
     ConfigKeyError,
     ConfigTypeError,
@@ -209,6 +210,8 @@ def select_node(
         try:
             cfg, key = cfg._resolve_key_and_root(key)
         except ConfigKeyError:
+            # Validate syntax even when the relative path goes above the root.
+            split_key(key)
             return None
 
         _root, _last_key, node = cfg._select_impl(

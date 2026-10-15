@@ -163,9 +163,10 @@ def select(
     *,
     _parent_: Container,
 ) -> Any:
-    from omegaconf._impl import select_value
+    from omegaconf import OmegaConf
 
-    return select_value(cfg=_parent_, key=key, absolute_key=True, default=default)
+    cfg = _parent_ if key.startswith(".") else _parent_._get_root()
+    return OmegaConf.select(cfg, key, default=default)
 
 
 __all__ = [
