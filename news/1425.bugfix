@@ -1,0 +1,1 @@
+Preserve literal brackets and backslashes in keys selected by nested bracket interpolation, preventing reads and alias updates from targeting the wrong entry.

@@ -181,9 +181,7 @@ class GrammarVisitor(OmegaConfGrammarParserVisitor):
                     child.getChild(0), OmegaConfGrammarParser.InterpolationContext
                 ):
                     inter_key_tokens.append(value)
-                    expanded = (
-                        split_key(f"[{value}]") if in_brackets else split_key(value)
-                    )
+                    expanded = [value] if in_brackets else split_key(value)
                     if first_key and not in_brackets:
                         leading_dots = len(value) - len(value.lstrip("."))
                         relative_dots += leading_dots
