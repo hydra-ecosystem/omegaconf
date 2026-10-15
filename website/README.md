@@ -1,7 +1,7 @@
 # Documentation site
 
 Dependency vulnerabilities follow the
-[shared best-effort maintenance policy](https://github.com/hydra-ecosystem/github-actions/blob/2b6bf3b11fc287a6b31617623e9b9ba52fe6e1f0/docusaurus/maintenance.md).
+[shared best-effort maintenance policy](https://github.com/hydra-ecosystem/github-actions/blob/3c1e84034cce8eafd214171a941a1938d4a78fe9/docusaurus/maintenance.md).
 The directory and audit schedule are configured in
 [`.github/docusaurus.json`](../.github/docusaurus.json); shared implementation is provided by the pinned reusable workflows.
 
