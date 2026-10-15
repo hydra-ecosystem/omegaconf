@@ -123,6 +123,7 @@ _DEFAULT_MARKER_: Any = Marker("_DEFAULT_MARKER_")
 
 class OmegaConfDumper(BaseDumper):  # type: ignore
     str_representer_added = False
+    value_reference_representer_added = False
     pathlib_representers_added = False
     tuple_representer_added = False
 
@@ -134,6 +135,10 @@ class OmegaConfDumper(BaseDumper):  # type: ignore
             data,
             style=("'" if with_quotes else None),
         )
+
+    @staticmethod
+    def value_reference_representer(dumper: yaml.Dumper, data: str) -> yaml.ScalarNode:
+        return OmegaConfDumper.str_representer(dumper, str(data))
 
     @staticmethod
     def pathlib_path_representer(dumper: yaml.Dumper, data: Any) -> yaml.Node:
@@ -171,6 +176,14 @@ def get_omega_conf_dumper() -> type[OmegaConfDumper]:
     if not OmegaConfDumper.str_representer_added:
         OmegaConfDumper.add_representer(str, OmegaConfDumper.str_representer)
         OmegaConfDumper.str_representer_added = True
+
+    if not OmegaConfDumper.value_reference_representer_added:
+        from .resolvers.oc.dict import _ValueReference
+
+        OmegaConfDumper.add_representer(
+            _ValueReference, OmegaConfDumper.value_reference_representer
+        )
+        OmegaConfDumper.value_reference_representer_added = True
 
     # Add representers for pathlib types to ensure cross-version compatibility.
     # Python 3.13+ uses pathlib._local.* internally, so we normalize to old pathlib.* tags
