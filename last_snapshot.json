@@ -11,9 +11,10 @@
     "1388": "2026-10-14",
     "1391": "2026-10-04",
     "1423": "2026-10-15",
+    "1425": "2026-10-15",
     "459": "2026-09-25"
   },
-  "generated_at": "2026-10-15T09:22:06Z",
+  "generated_at": "2026-10-15T09:27:41Z",
   "issues": {
     "1024": {
       "category": "Enhancement",
@@ -296,21 +297,6 @@
       "title": "oc.dict.values interprets literal dictionary keys as interpolation expressions",
       "updated_at": "2026-10-14T21:42:24Z"
     },
-    "1425": {
-      "category": "Bug",
-      "created_at": "2026-10-14T21:42:25Z",
-      "labels": [
-        "bug",
-        "interpolation"
-      ],
-      "pr_numbers": [
-        "1429"
-      ],
-      "state": "OPEN",
-      "status": "in progress",
-      "title": "Nested interpolation in bracketed key access can select the wrong key",
-      "updated_at": "2026-10-14T21:42:25Z"
-    },
     "1426": {
       "category": "Bug",
       "created_at": "2026-10-14T21:42:26Z",
@@ -547,6 +533,21 @@
       "status": "done",
       "title": "OmegaConf.missing_keys() returns unescaped paths for keys containing \".\", \"[\", \"]\" or \"=\"",
       "updated_at": "2026-10-14T21:54:54Z"
+    },
+    "1425": {
+      "category": "Bug",
+      "created_at": "2026-10-14T21:42:25Z",
+      "labels": [
+        "bug",
+        "interpolation"
+      ],
+      "pr_numbers": [
+        "1429"
+      ],
+      "state": "CLOSED",
+      "status": "done",
+      "title": "Nested interpolation in bracketed key access can select the wrong key",
+      "updated_at": "2026-10-14T21:42:25Z"
     },
     "459": {
       "category": "Enhancement",
