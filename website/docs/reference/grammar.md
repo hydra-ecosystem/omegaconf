@@ -30,6 +30,11 @@ backslash. `${a\.b}` addresses the key `a.b`; `${a.b}` addresses `b` under
 `a`. Use two backslashes for a literal backslash in the key. Escapes are
 interpreted once when resolving the path.
 
+Use `[]` for an empty string key, as in `${mapping[]}`. Backslash escaping
+also supports spaces, tabs, braces, parentheses, and quotes within a key.
+For example, `${a\ b}` selects the key `a b`, and `${$\{target\}}`
+selects the literal key `${target}` without evaluating it.
+
 Key-path escaping is separate from escaping an interpolation. Here the
 backslash makes the dot part of one key name:
 
@@ -76,7 +81,7 @@ This table covers the cases where quoting or escaping changes the parse:
 | Unquoted string | Slash, hyphen, backslash, plus, dot, dollar, percent, asterisk, at sign, question mark, pipe, colon, and interior spaces | `, [ ] { } ( ) =`, leading/trailing spaces, and tabs |
 | Quoted string | All punctuation except the matching quote | The matching quote and `\${` when `${` must remain text |
 | Dictionary key in a resolver argument | Unquoted text; escape punctuation as needed | Quotes and interpolations are not allowed as keys |
-| Node key path | Dots and brackets separate path components; `=` may be literal | In 2.4, escape `.`, `[`, `]`, `:`, or `\` when it belongs to the key; `=` may also be escaped |
+| Node key path | Dots and brackets separate path components; `=` may be literal | Escape `.`, `[`, `]`, `:`, `\`, spaces, tabs, braces, parentheses, and quotes when they belong to the key; `=` may also be escaped. Use `[]` for an empty key. |
 
 For unquoted arguments, quoting and backslash escaping are two ways to keep a
 delimiter as text. Backslash escaping is also available for parentheses and
