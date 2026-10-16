@@ -1,27 +1,27 @@
 {
   "generated_on": "2026-10-16",
-  "generated_at": "2026-10-16T12:13:41Z",
+  "generated_at": "2026-10-16T13:10:35Z",
   "repo": "hydra-ecosystem/omegaconf",
   "summary": {
-    "open_total": 29,
+    "open_total": 28,
     "by_category": [
       {
         "category": "Bug",
         "emoji": "🐛",
-        "count": 2,
-        "percentage": 6.9
+        "count": 1,
+        "percentage": 3.6
       },
       {
         "category": "Enhancement",
         "emoji": "✨",
         "count": 23,
-        "percentage": 79.3
+        "percentage": 82.1
       },
       {
         "category": "Documentation",
         "emoji": "📄",
         "count": 1,
-        "percentage": 3.4
+        "percentage": 3.6
       },
       {
         "category": "Question",
@@ -33,13 +33,13 @@
         "category": "Refactor",
         "emoji": "🔧",
         "count": 2,
-        "percentage": 6.9
+        "percentage": 7.1
       },
       {
         "category": "Build",
         "emoji": "🏗️",
         "count": 1,
-        "percentage": 3.4
+        "percentage": 3.6
       }
     ],
     "by_status": [
@@ -61,12 +61,12 @@
       {
         "status": "not started",
         "emoji": "⬜",
-        "count": 29
+        "count": 28
       },
       {
         "status": "done",
         "emoji": "✅",
-        "count": 14
+        "count": 15
       }
     ]
   },
@@ -486,22 +486,6 @@
       "url": "https://github.com/hydra-ecosystem/omegaconf/issues/1419"
     },
     {
-      "number": 1424,
-      "title": "oc.dict.values interprets literal dictionary keys as interpolation expressions",
-      "category": "Bug",
-      "category_emoji": "🐛",
-      "status": "not started",
-      "status_emoji": "⬜",
-      "prs": [],
-      "created": "2026-10-14",
-      "updated": "2026-10-14",
-      "labels": [
-        "bug",
-        "interpolation"
-      ],
-      "url": "https://github.com/hydra-ecosystem/omegaconf/issues/1424"
-    },
-    {
       "number": 1427,
       "title": "Define compatible escaping and addressability guarantees for generated key paths",
       "category": "Bug",
@@ -775,9 +759,32 @@
         "bug"
       ],
       "url": "https://github.com/hydra-ecosystem/omegaconf/issues/1426"
+    },
+    {
+      "number": 1424,
+      "title": "oc.dict.values interprets literal dictionary keys as interpolation expressions",
+      "category": "Bug",
+      "category_emoji": "🐛",
+      "status": "done",
+      "status_emoji": "✅",
+      "prs": [],
+      "created": "2026-10-14",
+      "updated": "2026-10-14",
+      "labels": [
+        "bug",
+        "interpolation"
+      ],
+      "url": "https://github.com/hydra-ecosystem/omegaconf/issues/1424"
     }
   ],
   "updates": [
+    {
+      "ts": "2026-10-16T13:10:35Z",
+      "kind": "closed",
+      "issue": 1424,
+      "issue_url": "https://github.com/hydra-ecosystem/omegaconf/issues/1424",
+      "title": "oc.dict.values interprets literal dictionary keys as interpolation expressions"
+    },
     {
       "ts": "2026-10-16T11:25:55Z",
       "kind": "pr",
@@ -2451,14 +2458,6 @@
       "issue": 1338,
       "issue_url": "https://github.com/omry/omegaconf/issues/1338",
       "title": "Consider a compatibility mode for legacy tuple-to-list conversion"
-    },
-    {
-      "ts": "2026-07-18T12:25:02Z",
-      "kind": "pr",
-      "issue": 392,
-      "issue_url": "https://github.com/omry/omegaconf/issues/392",
-      "title": "Improve Tuple support",
-      "detail": "linked #1336"
     }
   ]
 }

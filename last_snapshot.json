@@ -11,11 +11,12 @@
     "1388": "2026-10-14",
     "1391": "2026-10-04",
     "1423": "2026-10-15",
+    "1424": "2026-10-16",
     "1425": "2026-10-15",
     "1426": "2026-10-16",
     "459": "2026-09-25"
   },
-  "generated_at": "2026-10-16T12:13:41Z",
+  "generated_at": "2026-10-16T13:10:35Z",
   "issues": {
     "1024": {
       "category": "Enhancement",
@@ -285,19 +286,6 @@
       "title": "Consider promoting private schema validation to a public API",
       "updated_at": "2026-10-14T20:25:54Z"
     },
-    "1424": {
-      "category": "Bug",
-      "created_at": "2026-10-14T21:42:24Z",
-      "labels": [
-        "bug",
-        "interpolation"
-      ],
-      "pr_numbers": [],
-      "state": "OPEN",
-      "status": "not started",
-      "title": "oc.dict.values interprets literal dictionary keys as interpolation expressions",
-      "updated_at": "2026-10-14T21:42:24Z"
-    },
     "1427": {
       "category": "Bug",
       "created_at": "2026-10-14T21:42:27Z",
@@ -522,6 +510,19 @@
       "status": "done",
       "title": "OmegaConf.missing_keys() returns unescaped paths for keys containing \".\", \"[\", \"]\" or \"=\"",
       "updated_at": "2026-10-14T21:54:54Z"
+    },
+    "1424": {
+      "category": "Bug",
+      "created_at": "2026-10-14T21:42:24Z",
+      "labels": [
+        "bug",
+        "interpolation"
+      ],
+      "pr_numbers": [],
+      "state": "CLOSED",
+      "status": "done",
+      "title": "oc.dict.values interprets literal dictionary keys as interpolation expressions",
+      "updated_at": "2026-10-14T21:42:24Z"
     },
     "1425": {
       "category": "Bug",
