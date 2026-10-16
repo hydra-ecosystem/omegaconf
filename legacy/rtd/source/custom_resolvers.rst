@@ -419,6 +419,9 @@ oc.select
 ^^^^^^^^^
 ``oc.select`` enables selection similar to that performed with node interpolation, but is a bit more flexible.
 Using ``oc.select``, you can provide a default value to use in case the primary interpolation key is not found.
+Like ``OmegaConf.select()``, an explicit default is also returned for malformed
+paths. Without a default, malformed paths raise an interpolation resolution
+error. Errors resolving an existing value still raise.
 The following example uses "/tmp" as the default value for the node output:
 
 .. doctest::

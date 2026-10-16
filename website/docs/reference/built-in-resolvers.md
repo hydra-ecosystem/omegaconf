@@ -108,6 +108,10 @@ and returns `None`.
 is absent or missing. Unlike ordinary node interpolation, it can return a
 default instead of raising. Quote paths containing resolver punctuation.
 
+Like `OmegaConf.select()`, an explicit default is also returned for malformed
+paths. Without an explicit default, malformed paths raise an interpolation
+resolution error. Errors resolving an existing value still raise.
+
 ```python
 >>> cfg = OmegaConf.create({
 ...     "required": "???",
@@ -116,6 +120,9 @@ default instead of raising. Quote paths containing resolver punctuation.
 ... })
 >>> cfg.fallback, cfg.unfilled
 ('localhost', None)
+>>> cfg = OmegaConf.create({"value": '${oc.select:"missing[b",null}'})
+>>> cfg.value is None
+True
 
 ```
 

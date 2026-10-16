@@ -1,0 +1,1 @@
+Malformed key paths no longer select or update a prefix. OmegaConf.select() and oc.select return explicit defaults for malformed paths. Dotlist and CLI paths are checked before any entry is applied.

@@ -12,6 +12,16 @@ from omegaconf.resolvers.oc.dict import _get_and_validate_dict_input
 from tests import User, Users
 
 
+@mark.parametrize("resolver", ["oc.dict.keys", "oc.dict.values"])
+@mark.parametrize("path", ["a[b", "a[b]junk"])
+def test_dict_resolvers_reject_malformed_path(resolver: str, path: str) -> None:
+    cfg = OmegaConf.create(
+        {"a": {"b": {"key": 10}}, "path": path, "result": "${" + resolver + ":${path}}"}
+    )
+    with raises(InterpolationResolutionError, match="GrammarParseError"):
+        cfg.result
+
+
 @mark.parametrize(
     ("cfg", "key", "expected"),
     [
