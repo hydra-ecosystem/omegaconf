@@ -12,9 +12,10 @@
     "1391": "2026-10-04",
     "1423": "2026-10-15",
     "1425": "2026-10-15",
+    "1426": "2026-10-16",
     "459": "2026-09-25"
   },
-  "generated_at": "2026-10-16T06:51:19Z",
+  "generated_at": "2026-10-16T07:41:54Z",
   "issues": {
     "1024": {
       "category": "Enhancement",
@@ -297,20 +298,6 @@
       "title": "oc.dict.values interprets literal dictionary keys as interpolation expressions",
       "updated_at": "2026-10-14T21:42:24Z"
     },
-    "1426": {
-      "category": "Bug",
-      "created_at": "2026-10-14T21:42:26Z",
-      "labels": [
-        "bug"
-      ],
-      "pr_numbers": [
-        "1434"
-      ],
-      "state": "OPEN",
-      "status": "in progress",
-      "title": "Malformed paths can silently mutate a valid prefix",
-      "updated_at": "2026-10-14T21:42:26Z"
-    },
     "1427": {
       "category": "Bug",
       "created_at": "2026-10-14T21:42:27Z",
@@ -550,6 +537,20 @@
       "status": "done",
       "title": "Nested interpolation in bracketed key access can select the wrong key",
       "updated_at": "2026-10-14T21:42:25Z"
+    },
+    "1426": {
+      "category": "Bug",
+      "created_at": "2026-10-14T21:42:26Z",
+      "labels": [
+        "bug"
+      ],
+      "pr_numbers": [
+        "1434"
+      ],
+      "state": "CLOSED",
+      "status": "done",
+      "title": "Malformed paths can silently mutate a valid prefix",
+      "updated_at": "2026-10-14T21:42:26Z"
     },
     "459": {
       "category": "Enhancement",

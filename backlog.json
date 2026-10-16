@@ -1,27 +1,27 @@
 {
   "generated_on": "2026-10-16",
-  "generated_at": "2026-10-16T06:51:19Z",
+  "generated_at": "2026-10-16T07:41:54Z",
   "repo": "hydra-ecosystem/omegaconf",
   "summary": {
-    "open_total": 30,
+    "open_total": 29,
     "by_category": [
       {
         "category": "Bug",
         "emoji": "🐛",
-        "count": 3,
-        "percentage": 10.0
+        "count": 2,
+        "percentage": 6.9
       },
       {
         "category": "Enhancement",
         "emoji": "✨",
         "count": 23,
-        "percentage": 76.7
+        "percentage": 79.3
       },
       {
         "category": "Documentation",
         "emoji": "📄",
         "count": 1,
-        "percentage": 3.3
+        "percentage": 3.4
       },
       {
         "category": "Question",
@@ -33,20 +33,20 @@
         "category": "Refactor",
         "emoji": "🔧",
         "count": 2,
-        "percentage": 6.7
+        "percentage": 6.9
       },
       {
         "category": "Build",
         "emoji": "🏗️",
         "count": 1,
-        "percentage": 3.3
+        "percentage": 3.4
       }
     ],
     "by_status": [
       {
         "status": "in progress",
         "emoji": "🔄",
-        "count": 1
+        "count": 0
       },
       {
         "status": "community PR",
@@ -66,31 +66,11 @@
       {
         "status": "done",
         "emoji": "✅",
-        "count": 13
+        "count": 14
       }
     ]
   },
   "issues": [
-    {
-      "number": 1426,
-      "title": "Malformed paths can silently mutate a valid prefix",
-      "category": "Bug",
-      "category_emoji": "🐛",
-      "status": "in progress",
-      "status_emoji": "🔄",
-      "prs": [
-        {
-          "number": 1434,
-          "url": "https://github.com/hydra-ecosystem/omegaconf/pull/1434"
-        }
-      ],
-      "created": "2026-10-14",
-      "updated": "2026-10-14",
-      "labels": [
-        "bug"
-      ],
-      "url": "https://github.com/hydra-ecosystem/omegaconf/issues/1426"
-    },
     {
       "number": 91,
       "title": "Consider supporting basic operators in interpolations of numbers",
@@ -775,9 +755,36 @@
         "interpolation"
       ],
       "url": "https://github.com/hydra-ecosystem/omegaconf/issues/1425"
+    },
+    {
+      "number": 1426,
+      "title": "Malformed paths can silently mutate a valid prefix",
+      "category": "Bug",
+      "category_emoji": "🐛",
+      "status": "done",
+      "status_emoji": "✅",
+      "prs": [
+        {
+          "number": 1434,
+          "url": "https://github.com/hydra-ecosystem/omegaconf/pull/1434"
+        }
+      ],
+      "created": "2026-10-14",
+      "updated": "2026-10-14",
+      "labels": [
+        "bug"
+      ],
+      "url": "https://github.com/hydra-ecosystem/omegaconf/issues/1426"
     }
   ],
   "updates": [
+    {
+      "ts": "2026-10-16T07:41:54Z",
+      "kind": "closed",
+      "issue": 1426,
+      "issue_url": "https://github.com/hydra-ecosystem/omegaconf/issues/1426",
+      "title": "Malformed paths can silently mutate a valid prefix"
+    },
     {
       "ts": "2026-10-15T22:05:03Z",
       "kind": "pr",
@@ -2449,13 +2456,6 @@
       "issue": 1333,
       "issue_url": "https://github.com/omry/omegaconf/issues/1333",
       "title": "Consider making OmegaConf configs unhashable"
-    },
-    {
-      "ts": "2026-07-18T02:56:51Z",
-      "kind": "new",
-      "issue": 1332,
-      "issue_url": "https://github.com/omry/omegaconf/issues/1332",
-      "title": "Define type compatibility rules for typed interpolations"
     }
   ]
 }
