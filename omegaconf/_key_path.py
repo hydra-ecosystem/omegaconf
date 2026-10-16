@@ -17,19 +17,18 @@ class NodeInterpolationKey:
 KEY_PATH_HEAD = re.compile(r"(\.)*[^.[]*")
 KEY_PATH_OTHER = re.compile(r"\.([^.[]*)|\[(.*?)\]")
 
-# Characters recognised after a backslash in key paths and dotlist entries.
-# \. -> literal dot, \[ -> literal [, \] -> literal ], \= -> literal =
-# Any other character after \ passes through unchanged (including \ itself).
-_ESCAPABLE = frozenset(".[]=")
+# Characters recognised after a backslash in interpolation paths and dotlists.
+# Unknown escapes pass through unchanged.
+_ESCAPABLE = frozenset("\\.[]:={}()'\" \t")
 
 
 def _escape_key(key: str) -> str:
-    """Escape path punctuation in one interpolation key segment."""
+    """Escape path punctuation in one key segment."""
     return re.sub(r"([\\.\[\]:={}()'\" \t])", r"\\\1", key)
 
 
 def _unescape_key(key: str) -> str:
-    """Remove recognized escapes from one interpolation key segment."""
+    """Remove recognized escapes from one key segment."""
     return re.sub(r"\\([\\.\[\]:={}()'\" \t])", r"\1", key)
 
 
@@ -43,16 +42,16 @@ def split_key(key: str) -> list[str]:
         "[a].b"     -> ["a", "b"]
 
     Backslash escaping allows literal special characters inside a key name.
-    Special characters are: . [ ] =
-    Any other character after a backslash passes through unchanged (including
-    the backslash itself, since backslash is not a special character).
+    Recognized escapes match interpolation key segments: backslash, dot,
+    brackets, colon, equals, braces, parentheses, quotes, space and tab.
+    Unknown escapes pass through unchanged.
 
         r"a\.b"     -> ["a.b"]     \. -> literal dot; no split at that dot
         r"a\[0\]"   -> ["a[0]"]   \[ and \] -> literal brackets
         r"a\=b"     -> ["a=b"]    \= -> literal equals (useful in dotlists)
         r"a\b"      -> [r"a\b"]   \b -> passthrough: backslash + b, not special
-        r"a\\.b"    -> [r"a\.b"]  first \\ -> passthrough \, then \. -> literal .
-                                   result key contains a backslash followed by a dot
+        r"a\\.b"    -> ["a\\", "b"]  \\ -> literal backslash; dot splits
+        r"a\\\.b"  -> [r"a\.b"]     \\ -> literal backslash; \. -> literal dot
 
     Malformed paths raise GrammarParseError instead of returning a prefix.
     """
@@ -79,8 +78,7 @@ def split_key(key: str) -> list[str]:
         return tokens
 
     # Slow path: backslash present, parse character by character.
-    # Escape rules: \. -> literal '.', \[ -> literal '[', \] -> literal ']',
-    # \= -> literal '=', \x (anything else) -> literal '\x' (passthrough).
+    # Decode the same escapes as interpolation key segments.
     tokens: list[str] = []
     i = 0
     n = len(key)

@@ -1035,8 +1035,8 @@ Key path escaping
 ``OmegaConf.select``, ``OmegaConf.update``, ``OmegaConf.from_dotlist``, and
 ``OmegaConf.from_cli`` all parse the key path through the same engine.  YAML
 allows keys to contain any character, including the delimiters that OmegaConf
-uses in key paths (``.``, ``[``, ``]``, ``=``).  Use a backslash to include
-these characters literally in a key name:
+uses in key paths (``.``, ``[``, ``]``, ``=``). Key segments use the same
+backslash escapes as interpolation paths:
 
 .. list-table::
    :header-rows: 1
@@ -1057,6 +1057,15 @@ these characters literally in a key name:
    * - ``\=``
      - ``=``
      - Useful in ``from_dotlist`` keys that contain ``=``
+   * - ``\\``
+     - One backslash
+     - A following unescaped dot or bracket still separates path components
+   * - ``\:``
+     - ``:``
+     - Matches escaping in interpolation paths
+   * - Backslash before a brace, parenthesis, quote, space, or tab
+     - The following character
+     - Matches escaping in interpolation paths
    * - ``\x`` (any other char)
      - ``\x``
      - Passthrough: backslash + character unchanged
@@ -1071,6 +1080,19 @@ these characters literally in a key name:
     99
     >>> OmegaConf.select(cfg, r"x.a\[0\]")
     20
+    >>> cfg = OmegaConf.create({"a:b": 10, "a\\": {"b": 20}, r"a\.b": 30})
+    >>> OmegaConf.select(cfg, r"a\:b")
+    10
+    >>> OmegaConf.select(cfg, r"a\\.b")
+    20
+    >>> OmegaConf.select(cfg, r"a\\\.b")
+    30
+
+In 2.4.1, key-path decoding now matches interpolation escaping. Existing
+paths that relied on preserving backslashes before recognized escape characters
+must use the new spellings. For example, use ``r"a\\\.b"`` instead of
+``r"a\\.b"`` for the single key ``a\.b``, and ``r"a\\\:b"`` instead of
+``r"a\:b"`` for the single key ``a\:b``. Raw dictionary indexing is unchanged.
 
 For ``from_dotlist`` and ``from_cli``, the ``=`` in the key must also be
 escaped so that it is not mistaken for the key/value separator:

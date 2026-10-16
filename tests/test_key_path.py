@@ -39,6 +39,50 @@ def test_key_escaping(key: str, escaped: str) -> None:
 def test_key_escape_round_trip(characters: tuple[str, ...]) -> None:
     key = "".join(characters)
     assert _unescape_key(_escape_key(key)) == key
+    assert split_key(_escape_key(key)) == [key]
+
+
+@mark.parametrize(
+    ("path", "keys"),
+    [
+        (r"a\:b", ["a:b"]),
+        (r"a\\\:b", [r"a\:b"]),
+        (r"a\\", ["a\\"]),
+        (r"a\\b", [r"a\b"]),
+        (r"a\\.b", ["a\\", "b"]),
+        (r"a\\\.b", [r"a\.b"]),
+        (r"a\\\\.b", ["a\\\\", "b"]),
+        (r"a\\\\\.b", [r"a\\.b"]),
+        (r"[a\\][b]", ["a\\", "b"]),
+        (r"[a\\\.b]", [r"a\.b"]),
+        (r"a\\\=b", [r"a\=b"]),
+    ],
+)
+def test_escaped_paths_agree_across_consumers(path: str, keys: list[str]) -> None:
+    data: Any = 10
+    for key in reversed(keys):
+        data = {key: data}
+    cfg = OmegaConf.create(data)
+
+    assert OmegaConf.select(cfg, path) == 10
+    assert OmegaConf.can_select(cfg, path)
+    cfg["ref"] = "${" + path + "}"
+    assert cfg.ref == 10
+    OmegaConf.update(cfg, path, 20)
+    assert cfg.ref == 20
+    cfg.merge_with_dotlist([f"{path}=30"])
+    assert cfg.ref == 30
+    del cfg["ref"]
+
+    for parsed in (
+        OmegaConf.from_dotlist([f"{path}=30"]),
+        OmegaConf.from_cli([f"{path}=30"]),
+    ):
+        assert parsed == cfg
+    node = cfg
+    for key in keys[:-1]:
+        node = node[key]
+    assert node[keys[-1]] == 30
 
 
 @mark.parametrize("key", [r"a\q", r"a\$", "a\\", "a b", "${key}"])
