@@ -1,1 +1,1 @@
-Escape path punctuation in dictionary keys used by `oc.dict.values` so literal keys are not split into nested paths.
+Preserve literal string keys and source paths in oc.dict.values(), including empty keys, whitespace and interpolation-like text. Interpolation key paths now support empty brackets and escaping spaces, tabs, braces, parentheses and quotes.
