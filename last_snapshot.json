@@ -14,9 +14,10 @@
     "1424": "2026-10-16",
     "1425": "2026-10-15",
     "1426": "2026-10-16",
+    "1427": "2026-10-16",
     "459": "2026-09-25"
   },
-  "generated_at": "2026-10-16T16:04:55Z",
+  "generated_at": "2026-10-16T16:21:30Z",
   "issues": {
     "1024": {
       "category": "Enhancement",
@@ -286,21 +287,6 @@
       "title": "Consider promoting private schema validation to a public API",
       "updated_at": "2026-10-14T20:25:54Z"
     },
-    "1427": {
-      "category": "Bug",
-      "created_at": "2026-10-14T21:42:27Z",
-      "labels": [
-        "RFC",
-        "bug"
-      ],
-      "pr_numbers": [
-        "1436"
-      ],
-      "state": "OPEN",
-      "status": "in progress",
-      "title": "Define compatible escaping and addressability guarantees for generated key paths",
-      "updated_at": "2026-10-14T21:42:28Z"
-    },
     "144": {
       "category": "Enhancement",
       "created_at": "2020-01-30T01:58:10Z",
@@ -554,6 +540,21 @@
       "status": "done",
       "title": "Malformed paths can silently mutate a valid prefix",
       "updated_at": "2026-10-14T21:42:26Z"
+    },
+    "1427": {
+      "category": "Bug",
+      "created_at": "2026-10-14T21:42:27Z",
+      "labels": [
+        "RFC",
+        "bug"
+      ],
+      "pr_numbers": [
+        "1436"
+      ],
+      "state": "CLOSED",
+      "status": "done",
+      "title": "Define compatible escaping and addressability guarantees for generated key paths",
+      "updated_at": "2026-10-14T21:42:28Z"
     },
     "459": {
       "category": "Enhancement",
