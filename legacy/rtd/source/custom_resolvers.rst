@@ -492,8 +492,9 @@ view of a ``DictConfig``'s keys or values as a list,
 with behavior analogous to the ``dict.keys`` and ``dict.values`` methods in plain Python dictionaries.
 These resolvers take as input a string that is the path to another config node (using the same syntax
 as interpolations), and they return a ``ListConfig`` that contains keys or values of the node whose path was given.
-The value references escape path punctuation in dictionary keys, so a key such as ``a.b`` is treated literally.
-Other restrictions of interpolation key syntax still apply.
+Value references preserve literal string keys, including empty keys, spaces,
+punctuation and text such as ``${target}``. The source path is also escaped
+before it is reused in a reference.
 
 .. doctest::
 

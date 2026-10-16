@@ -1,4 +1,5 @@
 import re
+from itertools import product
 from typing import Any, List
 
 from pytest import mark, param, raises
@@ -9,7 +10,17 @@ from omegaconf.errors import (
     InterpolationToMissingValueError,
 )
 from omegaconf.resolvers.oc.dict import _get_and_validate_dict_input
-from tests import User, Users
+from tests import Color, User, Users
+
+
+@mark.parametrize("resolver", ["oc.dict.keys", "oc.dict.values"])
+@mark.parametrize("path", ["a[b", "a[b]junk"])
+def test_dict_resolvers_reject_malformed_path(resolver: str, path: str) -> None:
+    cfg = OmegaConf.create(
+        {"a": {"b": {"key": 10}}, "path": path, "result": "${" + resolver + ":${path}}"}
+    )
+    with raises(InterpolationResolutionError, match="GrammarParseError"):
+        cfg.result
 
 
 @mark.parametrize("resolver", ["oc.dict.keys", "oc.dict.values"])
@@ -187,7 +198,30 @@ def test_dict_values_with_missing_value() -> None:
 
 @mark.parametrize(
     "literal_key",
-    ["plain", "a.b", "a[b]", "a]b", "a:b", "a=b", r"a\b", r"a\.b", "a\\"],
+    [
+        "plain",
+        "a.b",
+        "a[b]",
+        "a]b",
+        "a:b",
+        "a=b",
+        r"a\b",
+        r"a\.b",
+        "a\\",
+        "",
+        "a b",
+        " a ",
+        "a\tb",
+        "a{b}",
+        "a(b)",
+        "a'b",
+        'a"b',
+        "${target}",
+        "${probe:}",
+        "${oc.env:HOME}",
+        "a\nb",
+        "a\rb",
+    ],
 )
 def test_dict_values_escape_key(literal_key: str) -> None:
     cfg = OmegaConf.create(
@@ -210,6 +244,69 @@ def test_dict_values_escape_key(literal_key: str) -> None:
     loaded = OmegaConf.create(OmegaConf.to_yaml(cfg, resolve=False))
     loaded.mapping[literal_key].x = 555
     assert loaded.saved[0].x == 555
+
+
+@mark.parametrize("source_key", ["a:b", "a.b", "a[b]", r"a\b", "", "a b", "${target}"])
+@mark.parametrize("relative", [False, True])
+def test_dict_values_escape_source_path(source_key: str, relative: bool) -> None:
+    path = "mapping[" + source_key.replace("]", r"\]") + "]"
+    if relative:
+        path = "." + path
+    cfg = OmegaConf.create(
+        {
+            "mapping": {source_key: {"x": 111}},
+            "path": path.replace("${", r"\${"),
+            "values": "${oc.dict.values:${path}}",
+        }
+    )
+    values = cfg["values"]
+    assert list(values) == [111]
+    cfg.mapping[source_key].x = 222
+    assert list(values) == [222]
+    cfg.saved = values
+    loaded = OmegaConf.create(OmegaConf.to_yaml(cfg, resolve=False))
+    loaded.mapping[source_key].x = 333
+    assert list(loaded.saved) == [333]
+
+
+def test_dict_values_literal_keys_do_not_interpolate(restore_resolvers: Any) -> None:
+    calls = []
+    OmegaConf.register_resolver("probe", lambda: calls.append(True) or "target")
+    cfg = OmegaConf.create(
+        {
+            "mapping": {"${target}": 111, "${probe:}": 222, "chosen": 333},
+            "target": "chosen",
+            "values": "${oc.dict.values:mapping}",
+        }
+    )
+    assert list(cfg["values"]) == [111, 222, 333]
+    assert calls == []
+
+
+@mark.parametrize("characters", list(product("a\\.[]:={}()'\" \t$", repeat=2)))
+def test_dict_values_literal_key_combinations(characters: tuple[str, ...]) -> None:
+    key = "".join(characters)
+    cfg = OmegaConf.create(
+        {"mapping": {key: 111}, "values": "${oc.dict.values:mapping}"}
+    )
+    assert list(cfg["values"]) == [111]
+
+
+@mark.parametrize("path", ["", "."])
+def test_dict_values_root_path(path: str) -> None:
+    cfg = OmegaConf.create(
+        {"first": 111, "path": path, "values": "${oc.dict.values:${path}}"}
+    )
+    values = cfg["values"]
+    assert values[0] == 111
+    cfg.first = 222
+    assert values[0] == 222
+
+
+@mark.parametrize("mapping", [{1: 111}, DictConfig({Color.RED: 111}, key_type=Color)])
+def test_dict_values_supported_non_string_keys(mapping: Any) -> None:
+    cfg = OmegaConf.create({"mapping": mapping, "values": "${oc.dict.values:mapping}"})
+    assert list(cfg["values"]) == [111]
 
 
 @mark.parametrize(

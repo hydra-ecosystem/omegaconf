@@ -131,8 +131,9 @@ True
 `${oc.dict.keys:workers}` returns a `ListConfig` of dictionary keys;
 `${oc.dict.values:workers}` returns a `ListConfig` whose elements track the
 dictionary values. Both accept a path to a `DictConfig`.
-Value references escape path punctuation in dictionary keys, so a key such as
-`a.b` is treated literally. Other restrictions of interpolation key syntax still apply.
+Value references preserve literal string keys, including empty keys, spaces,
+punctuation, and text such as `${target}`. The source path is also escaped
+before it is reused in a reference.
 
 ```python
 >>> cfg = OmegaConf.create({
@@ -145,5 +146,11 @@ Value references escape path punctuation in dictionary keys, so a key such as
 >>> cfg.workers.first = "host-b"
 >>> list(cfg.hosts)
 ['host-b']
+>>> cfg = OmegaConf.create({
+...     "mapping": {"": 10, "a b": 20, "${target}": 30},
+...     "values": "${oc.dict.values:mapping}",
+... })
+>>> list(cfg["values"])
+[10, 20, 30]
 
 ```
