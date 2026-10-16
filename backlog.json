@@ -1,6 +1,6 @@
 {
   "generated_on": "2026-10-16",
-  "generated_at": "2026-10-16T13:10:35Z",
+  "generated_at": "2026-10-16T15:37:48Z",
   "repo": "hydra-ecosystem/omegaconf",
   "summary": {
     "open_total": 28,
@@ -46,7 +46,7 @@
       {
         "status": "in progress",
         "emoji": "🔄",
-        "count": 0
+        "count": 1
       },
       {
         "status": "community PR",
@@ -61,7 +61,7 @@
       {
         "status": "not started",
         "emoji": "⬜",
-        "count": 28
+        "count": 27
       },
       {
         "status": "done",
@@ -71,6 +71,27 @@
     ]
   },
   "issues": [
+    {
+      "number": 1427,
+      "title": "Define compatible escaping and addressability guarantees for generated key paths",
+      "category": "Bug",
+      "category_emoji": "🐛",
+      "status": "in progress",
+      "status_emoji": "🔄",
+      "prs": [
+        {
+          "number": 1436,
+          "url": "https://github.com/hydra-ecosystem/omegaconf/pull/1436"
+        }
+      ],
+      "created": "2026-10-14",
+      "updated": "2026-10-14",
+      "labels": [
+        "bug",
+        "RFC"
+      ],
+      "url": "https://github.com/hydra-ecosystem/omegaconf/issues/1427"
+    },
     {
       "number": 91,
       "title": "Consider supporting basic operators in interpolations of numbers",
@@ -486,22 +507,6 @@
       "url": "https://github.com/hydra-ecosystem/omegaconf/issues/1419"
     },
     {
-      "number": 1427,
-      "title": "Define compatible escaping and addressability guarantees for generated key paths",
-      "category": "Bug",
-      "category_emoji": "🐛",
-      "status": "not started",
-      "status_emoji": "⬜",
-      "prs": [],
-      "created": "2026-10-14",
-      "updated": "2026-10-14",
-      "labels": [
-        "bug",
-        "RFC"
-      ],
-      "url": "https://github.com/hydra-ecosystem/omegaconf/issues/1427"
-    },
-    {
       "number": 459,
       "title": "Consider deprecating assignment of strings to non-string nodes like IntegerNode / FloatNode",
       "category": "Enhancement",
@@ -720,6 +725,22 @@
       "url": "https://github.com/hydra-ecosystem/omegaconf/issues/1423"
     },
     {
+      "number": 1424,
+      "title": "oc.dict.values interprets literal dictionary keys as interpolation expressions",
+      "category": "Bug",
+      "category_emoji": "🐛",
+      "status": "done",
+      "status_emoji": "✅",
+      "prs": [],
+      "created": "2026-10-14",
+      "updated": "2026-10-14",
+      "labels": [
+        "bug",
+        "interpolation"
+      ],
+      "url": "https://github.com/hydra-ecosystem/omegaconf/issues/1424"
+    },
+    {
       "number": 1425,
       "title": "Nested interpolation in bracketed key access can select the wrong key",
       "category": "Bug",
@@ -759,25 +780,29 @@
         "bug"
       ],
       "url": "https://github.com/hydra-ecosystem/omegaconf/issues/1426"
-    },
-    {
-      "number": 1424,
-      "title": "oc.dict.values interprets literal dictionary keys as interpolation expressions",
-      "category": "Bug",
-      "category_emoji": "🐛",
-      "status": "done",
-      "status_emoji": "✅",
-      "prs": [],
-      "created": "2026-10-14",
-      "updated": "2026-10-14",
-      "labels": [
-        "bug",
-        "interpolation"
-      ],
-      "url": "https://github.com/hydra-ecosystem/omegaconf/issues/1424"
     }
   ],
   "updates": [
+    {
+      "ts": "2026-10-16T15:37:48Z",
+      "kind": "pr",
+      "issue": 1427,
+      "issue_url": "https://github.com/hydra-ecosystem/omegaconf/issues/1427",
+      "title": "Define compatible escaping and addressability guarantees for generated key paths",
+      "detail": "linked #1436"
+    },
+    {
+      "ts": "2026-10-16T15:37:48Z",
+      "kind": "status",
+      "issue": 1427,
+      "issue_url": "https://github.com/hydra-ecosystem/omegaconf/issues/1427",
+      "title": "Define compatible escaping and addressability guarantees for generated key paths",
+      "detail": "not started → in progress",
+      "pr": {
+        "number": 1436,
+        "url": "https://github.com/hydra-ecosystem/omegaconf/pull/1436"
+      }
+    },
     {
       "ts": "2026-10-16T13:10:35Z",
       "kind": "closed",
@@ -2444,20 +2469,6 @@
       "issue": 392,
       "issue_url": "https://github.com/omry/omegaconf/issues/392",
       "title": "Improve Tuple support"
-    },
-    {
-      "ts": "2026-07-18T19:15:15Z",
-      "kind": "new",
-      "issue": 1340,
-      "issue_url": "https://github.com/omry/omegaconf/issues/1340",
-      "title": "Inherited flag cache is not invalidated through container-valued unions"
-    },
-    {
-      "ts": "2026-07-18T13:16:18Z",
-      "kind": "new",
-      "issue": 1338,
-      "issue_url": "https://github.com/omry/omegaconf/issues/1338",
-      "title": "Consider a compatibility mode for legacy tuple-to-list conversion"
     }
   ]
 }

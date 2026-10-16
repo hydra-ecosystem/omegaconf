@@ -16,7 +16,7 @@
     "1426": "2026-10-16",
     "459": "2026-09-25"
   },
-  "generated_at": "2026-10-16T13:10:35Z",
+  "generated_at": "2026-10-16T15:37:48Z",
   "issues": {
     "1024": {
       "category": "Enhancement",
@@ -293,9 +293,11 @@
         "RFC",
         "bug"
       ],
-      "pr_numbers": [],
+      "pr_numbers": [
+        "1436"
+      ],
       "state": "OPEN",
-      "status": "not started",
+      "status": "in progress",
       "title": "Define compatible escaping and addressability guarantees for generated key paths",
       "updated_at": "2026-10-14T21:42:28Z"
     },
