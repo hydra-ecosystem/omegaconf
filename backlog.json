@@ -1,6 +1,6 @@
 {
   "generated_on": "2026-10-16",
-  "generated_at": "2026-10-16T07:41:54Z",
+  "generated_at": "2026-10-16T09:39:06Z",
   "repo": "hydra-ecosystem/omegaconf",
   "summary": {
     "open_total": 29,
@@ -46,7 +46,7 @@
       {
         "status": "in progress",
         "emoji": "🔄",
-        "count": 0
+        "count": 1
       },
       {
         "status": "community PR",
@@ -61,7 +61,7 @@
       {
         "status": "not started",
         "emoji": "⬜",
-        "count": 29
+        "count": 28
       },
       {
         "status": "done",
@@ -71,6 +71,27 @@
     ]
   },
   "issues": [
+    {
+      "number": 1424,
+      "title": "oc.dict.values interprets literal dictionary keys as interpolation expressions",
+      "category": "Bug",
+      "category_emoji": "🐛",
+      "status": "in progress",
+      "status_emoji": "🔄",
+      "prs": [
+        {
+          "number": 1435,
+          "url": "https://github.com/hydra-ecosystem/omegaconf/pull/1435"
+        }
+      ],
+      "created": "2026-10-14",
+      "updated": "2026-10-14",
+      "labels": [
+        "bug",
+        "interpolation"
+      ],
+      "url": "https://github.com/hydra-ecosystem/omegaconf/issues/1424"
+    },
     {
       "number": 91,
       "title": "Consider supporting basic operators in interpolations of numbers",
@@ -486,22 +507,6 @@
       "url": "https://github.com/hydra-ecosystem/omegaconf/issues/1419"
     },
     {
-      "number": 1424,
-      "title": "oc.dict.values interprets literal dictionary keys as interpolation expressions",
-      "category": "Bug",
-      "category_emoji": "🐛",
-      "status": "not started",
-      "status_emoji": "⬜",
-      "prs": [],
-      "created": "2026-10-14",
-      "updated": "2026-10-14",
-      "labels": [
-        "bug",
-        "interpolation"
-      ],
-      "url": "https://github.com/hydra-ecosystem/omegaconf/issues/1424"
-    },
-    {
       "number": 1427,
       "title": "Define compatible escaping and addressability guarantees for generated key paths",
       "category": "Bug",
@@ -778,6 +783,26 @@
     }
   ],
   "updates": [
+    {
+      "ts": "2026-10-16T09:39:06Z",
+      "kind": "pr",
+      "issue": 1424,
+      "issue_url": "https://github.com/hydra-ecosystem/omegaconf/issues/1424",
+      "title": "oc.dict.values interprets literal dictionary keys as interpolation expressions",
+      "detail": "linked #1435"
+    },
+    {
+      "ts": "2026-10-16T09:39:06Z",
+      "kind": "status",
+      "issue": 1424,
+      "issue_url": "https://github.com/hydra-ecosystem/omegaconf/issues/1424",
+      "title": "oc.dict.values interprets literal dictionary keys as interpolation expressions",
+      "detail": "not started → in progress",
+      "pr": {
+        "number": 1435,
+        "url": "https://github.com/hydra-ecosystem/omegaconf/pull/1435"
+      }
+    },
     {
       "ts": "2026-10-16T07:41:54Z",
       "kind": "closed",
@@ -2442,20 +2467,6 @@
       "issue": 1335,
       "issue_url": "https://github.com/omry/omegaconf/issues/1335",
       "title": "Support escaped keys in node interpolation paths"
-    },
-    {
-      "ts": "2026-07-18T06:51:09Z",
-      "kind": "new",
-      "issue": 1334,
-      "issue_url": "https://github.com/omry/omegaconf/issues/1334",
-      "title": "Materialize container results returned by custom resolvers"
-    },
-    {
-      "ts": "2026-07-18T04:41:59Z",
-      "kind": "new",
-      "issue": 1333,
-      "issue_url": "https://github.com/omry/omegaconf/issues/1333",
-      "title": "Consider making OmegaConf configs unhashable"
     }
   ]
 }
