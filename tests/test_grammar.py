@@ -31,6 +31,24 @@ TAB = "\t"  # to be used in raw strings, e.g. `fr"C:\{TAB}foo"`
 INVALID_CHARS_IN_KEY_NAMES = r"""\{}()[].:"' """
 UNQUOTED_SPECIAL = r"/-\+.$%*@?|"  # special characters allowed in unquoted strings
 
+
+@mark.parametrize(
+    ("reference", "mapping"),
+    [
+        ("${[]}", {"": 111}),
+        ("${mapping[]}", {"mapping": {"": 111}}),
+        ("${[][child]}", {"": {"child": 111}}),
+        ("${[][]}", {"": {"": 111}}),
+        (r"${a\ b}", {"a b": 111}),
+        (r"${$\{key\}}", {"${key}": 111, "key": "wrong"}),
+    ],
+)
+def test_literal_interpolation_keys(reference: str, mapping: Any) -> None:
+    cfg = OmegaConf.create(mapping)
+    cfg.ref = reference
+    assert cfg.ref == 111
+
+
 # A fixed config that may be used (but not modified!) by tests.
 BASE_TEST_CFG = OmegaConf.create(
     {

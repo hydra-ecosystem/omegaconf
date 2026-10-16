@@ -23,6 +23,11 @@ from omegaconf.errors import GrammarParseError
         ("a\\", "a\\\\"),
         (r"a\.b", r"a\\\.b"),
         (".[]:=\\", r"\.\[\]\:\=\\"),
+        ("a b", r"a\ b"),
+        ("a\tb", "a\\\tb"),
+        ("{}()", r"\{\}\(\)"),
+        ("'\"", "\\'\\\""),
+        ("${key}", r"$\{key\}"),
     ],
 )
 def test_key_escaping(key: str, escaped: str) -> None:
@@ -30,7 +35,7 @@ def test_key_escaping(key: str, escaped: str) -> None:
     assert _unescape_key(escaped) == key
 
 
-@mark.parametrize("characters", list(product("a\\.[]:=", repeat=2)))
+@mark.parametrize("characters", list(product("a\\.[]:={}()'\" \t$", repeat=2)))
 def test_key_escape_round_trip(characters: tuple[str, ...]) -> None:
     key = "".join(characters)
     assert _unescape_key(_escape_key(key)) == key

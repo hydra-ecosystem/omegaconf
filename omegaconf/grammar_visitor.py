@@ -142,8 +142,8 @@ class GrammarVisitor(OmegaConfGrammarParserVisitor):
     ) -> "Node | None":
         # INTER_OPEN
         # DOT*                                                     // relative interpolation?
-        # (configKey | BRACKET_OPEN configKey BRACKET_CLOSE)       // foo, [foo]
-        # (DOT configKey | BRACKET_OPEN configKey BRACKET_CLOSE)*  // .foo, [foo], .foo[bar], [foo].bar[baz]
+        # (configKey | BRACKET_OPEN configKey? BRACKET_CLOSE)       // foo, [foo], []
+        # (DOT configKey | BRACKET_OPEN configKey? BRACKET_CLOSE)*  // .foo, [foo], .foo[bar], [foo].bar[baz]
         # INTER_CLOSE;
 
         assert ctx.getChildCount() >= 3
@@ -153,6 +153,7 @@ class GrammarVisitor(OmegaConfGrammarParserVisitor):
         relative_dots = 0
         first_key = True
         in_brackets = False
+        empty_brackets = False
         for child in ctx.getChildren():
             if isinstance(child, TerminalNode):
                 s = child.symbol  # type: ignore[attr-defined]
@@ -166,7 +167,11 @@ class GrammarVisitor(OmegaConfGrammarParserVisitor):
                         relative_dots += 1
                     if s.type == OmegaConfGrammarLexer.BRACKET_OPEN:
                         in_brackets = True
+                        empty_brackets = True
                     elif s.type == OmegaConfGrammarLexer.BRACKET_CLOSE:
+                        if empty_brackets:
+                            parts.append("")
+                            first_key = False
                         in_brackets = False
                 else:
                     assert s.type in (
@@ -176,6 +181,7 @@ class GrammarVisitor(OmegaConfGrammarParserVisitor):
             else:
                 assert isinstance(child, OmegaConfGrammarParser.ConfigKeyContext)
                 value = self.visitConfigKey(child)
+                empty_brackets = False
                 if isinstance(
                     child.getChild(0), OmegaConfGrammarParser.InterpolationContext
                 ):

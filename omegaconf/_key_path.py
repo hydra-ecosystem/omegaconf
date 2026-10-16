@@ -25,12 +25,12 @@ _ESCAPABLE = frozenset(".[]=")
 
 def _escape_key(key: str) -> str:
     """Escape path punctuation in one interpolation key segment."""
-    return re.sub(r"([\\.\[\]:=])", r"\\\1", key)
+    return re.sub(r"([\\.\[\]:={}()'\" \t])", r"\\\1", key)
 
 
 def _unescape_key(key: str) -> str:
     """Remove recognized escapes from one interpolation key segment."""
-    return re.sub(r"\\([\\.\[\]:=])", r"\1", key)
+    return re.sub(r"\\([\\.\[\]:={}()'\" \t])", r"\1", key)
 
 
 def split_key(key: str) -> list[str]:
