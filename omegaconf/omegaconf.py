@@ -31,7 +31,7 @@ import yaml
 
 from . import DictConfig, DictKeyType, ListConfig
 from ._conversion_warnings import _suppress_conversion_warnings
-from ._key_path import split_key
+from ._key_path import _escape_key, split_key
 from ._missing import _decode_missing_escape
 from ._utils import (
     _DEFAULT_MARKER_,
@@ -1343,15 +1343,17 @@ class OmegaConf:
         The key path uses dot notation (``"a.b.c"``) or bracket notation
         (``"a[b][c]"``), or a mix of both.
 
-        **Keys containing special characters** (``.``, ``[``, ``]``, ``=``)
-        can be expressed by escaping them with a backslash:
+        Key segments can escape backslashes, dots, brackets, colons, equals,
+        braces, parentheses, quotes, spaces, and tabs with a backslash:
 
         - ``r"a\.b"``   — selects the key ``"a.b"`` (single key with a literal dot)
         - ``r"a\[0\]"`` — selects the key ``"a[0]"``
         - ``r"a\=b"``   — selects the key ``"a=b"``
+        - ``r"a\:b"``   — selects the key ``"a:b"``
+        - ``r"a\ b"``   — selects the key ``"a b"``
 
-        A backslash before any other character passes through unchanged
-        (``r"a\b"`` selects the key ``"a\\b"`` — a backslash followed by ``b``).
+        Unknown escapes pass through unchanged (``r"a\b"`` selects the key
+        ``r"a\b"`` — a backslash followed by ``b``).
 
         Malformed paths return the explicitly supplied default, or raise
         ``GrammarParseError`` when no default is supplied.
@@ -1540,8 +1542,8 @@ class OmegaConf:
         """
         Returns a set of missing keys in a dotlist style.
 
-        Dictionary key segments escape ``.``, ``[``, ``]`` and ``=`` using
-        backslashes. An empty dictionary key (``""``) is represented by ``[]``
+        Dictionary key segments use the same backslash escaping as ``select``
+        and interpolation paths. An empty dictionary key (``""``) uses ``[]``
         in a returned path. For example, an empty key under ``outer`` has the
         path ``outer[]``. Paths remain rooted at the config root when called on
         a subtree. Escaping follows the existing key path rules; it does not
@@ -1611,7 +1613,7 @@ class OmegaConf:
                     parts.append(f"[{key}]")
                 else:
                     key = key.name if isinstance(key, Enum) else str(key)
-                    escaped = re.sub(r"([.\[\]=])", r"\\\1", key)
+                    escaped = _escape_key(key)
                     parts.append(f".{escaped}" if key else "[]")
                 node = parent
             return "".join(reversed(parts)).removeprefix(".")

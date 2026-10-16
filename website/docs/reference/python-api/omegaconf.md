@@ -491,8 +491,8 @@ missing_keys(cfg: Any, *, resolve_custom_resolvers: bool = False) -> set[str]
 
 Returns a set of missing keys in a dotlist style.
 
-Dictionary key segments escape ``.``, ``[``, ``]`` and ``=`` using
-backslashes. An empty dictionary key (``""``) is represented by ``[]``
+Dictionary key segments use the same backslash escaping as ``select``
+and interpolation paths. An empty dictionary key (``""``) uses ``[]``
 in a returned path. For example, an empty key under ``outer`` has the
 path ``outer[]``. Paths remain rooted at the config root when called on
 a subtree. Escaping follows the existing key path rules; it does not
@@ -627,15 +627,17 @@ Select a value from a config using a key path.
 The key path uses dot notation (``"a.b.c"``) or bracket notation
 (``"a[b][c]"``), or a mix of both.
 
-**Keys containing special characters** (``.``, ``[``, ``]``, ``=``)
-can be expressed by escaping them with a backslash:
+Key segments can escape backslashes, dots, brackets, colons, equals,
+braces, parentheses, quotes, spaces, and tabs with a backslash:
 
 - ``r"a\.b"``   — selects the key ``"a.b"`` (single key with a literal dot)
 - ``r"a\[0\]"`` — selects the key ``"a[0]"``
 - ``r"a\=b"``   — selects the key ``"a=b"``
+- ``r"a\:b"``   — selects the key ``"a:b"``
+- ``r"a\ b"``   — selects the key ``"a b"``
 
-A backslash before any other character passes through unchanged
-(``r"a\b"`` selects the key ``"a\\b"`` — a backslash followed by ``b``).
+Unknown escapes pass through unchanged (``r"a\b"`` selects the key
+``r"a\b"`` — a backslash followed by ``b``).
 
 Malformed paths return the explicitly supplied default, or raise
 ``GrammarParseError`` when no default is supplied.
