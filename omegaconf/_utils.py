@@ -1470,10 +1470,10 @@ def _find_eq(s: str) -> int:
 
     Used by from_dotlist / from_cli to split a dotlist entry like ``"a.b=1"``
     into key (``"a.b"``) and value (``"1"``).  The split must be escape-aware
-    so that keys containing literal '=' can be expressed as ``r"a\\=b=value"``.
+    so that keys containing literal '=' can be expressed as ``r"a\=b=value"``.
 
     Escape rule (same as split_key slow path): a backslash followed by a
-    character in _ESCAPABLE (. [ ] =) consumes both characters and skips the
+    character in _ESCAPABLE consumes both characters and skips the
     second one for matching purposes.  A backslash before any other character
     is NOT a recognised escape and does not shield the following character —
     so ``r"a\b=1"`` still splits at the '='.

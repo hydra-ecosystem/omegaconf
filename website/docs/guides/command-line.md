@@ -30,10 +30,32 @@ checked before any entry is applied, including when using
 `cfg.merge_with_dotlist()` or `cfg.merge_with_cli()`. Other errors, such as a
 value failing type validation, may still leave earlier entries applied.
 
-In 2.4, backslash-escape a literal dot, bracket, or equals sign in a key
-path. For example, `r"a\.b=10"` addresses the key `a.b` rather than nested
-keys `a` and `b`. Interpolation paths and `OmegaConf.select()` use the same
-key-path escaping rules.
+Backslash escapes in key paths follow the interpolation rules. For example,
+`r"a\.b=10"` addresses the key `a.b`, and `r"a\:b=10"` addresses `a:b`.
+Two backslashes encode one literal backslash. A following unescaped dot
+still separates parent and child keys:
+
+```python
+>>> cfg = OmegaConf.from_dotlist([r"a\\.b=10"])
+>>> cfg["a\\"]["b"]
+10
+>>> OmegaConf.select(cfg, r"a\\.b")
+10
+>>> OmegaConf.update(cfg, r"a\\.b", 20)
+>>> cfg["a\\"]["b"]
+20
+
+```
+
+The recognized escapes cover backslashes, dots, brackets, colons, equals
+signs, braces, parentheses, quotes, spaces, and tabs. Unknown escapes, such
+as `\q`, retain the backslash. Raw dictionary indexing uses literal keys.
+
+In 2.4.1, `select()`, `update()`, and dotlists now decode the same key-segment
+escapes as interpolation. This changes existing spellings containing
+backslashes: use `r"a\\\.b"` for the single key `a\.b`, and `r"a\\\:b"` for
+the single key `a\:b`. The old spellings were `r"a\\.b"` and `r"a\:b"`,
+respectively. The new spellings also work in interpolation paths.
 
 When passing an override through a shell, quote it so the backslash reaches
 Python unchanged:

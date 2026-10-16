@@ -94,7 +94,7 @@ from tests import Group, Package, User
         param({"a.b": 0}, r"a\.b", 1, {"a.b": 1}, id="key:dot"),
         param({"a[0]": 0}, r"a\[0\]", 1, {"a[0]": 1}, id="key:brackets"),
         param({"a]b": 0}, r"a\]b", 1, {"a]b": 1}, id="key:close-bracket"),
-        param({r"a\.b": 0}, r"a\\.b", 1, {r"a\.b": 1}, id="key:backslash-dot"),
+        param({r"a\.b": 0}, r"a\\\.b", 1, {r"a\.b": 1}, id="key:backslash-dot"),
         param({"x": {"a.b": 0}}, r"x.a\.b", 1, {"x": {"a.b": 1}}, id="key:nested:dot"),
         param(
             {"x": {"a[0]": 0}},
