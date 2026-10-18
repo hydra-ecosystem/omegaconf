@@ -1,9 +1,18 @@
-name: Docusaurus dependency audit
+name: Node dependency audit
 
 'on':
   schedule:
   - cron: 0 2 * * 1
+  - cron: 0 2 1 */3 *
   workflow_dispatch:
+    inputs:
+      audit-kind:
+        description: Security fixes only, or security plus routine upgrades for this run.
+        type: choice
+        default: security
+        options:
+        - security
+        - upgrades
 
 permissions:
   contents: read
@@ -16,16 +25,19 @@ jobs:
   audit:
     permissions:
       contents: read
-    uses: hydra-ecosystem/github-actions/.github/workflows/docusaurus-audit.yml@3c1e84034cce8eafd214171a941a1938d4a78fe9
+      issues: write
+    uses: hydra-ecosystem/github-actions/.github/workflows/node-audit.yml@2026bcc879525736aa3263e0ec4c693b9e6b6ec6
+    with:
+      audit-kind: ${{ inputs.audit-kind || 'auto' }}
 
   pull-request:
     needs: audit
     permissions:
       contents: write
       pull-requests: write
-    uses: hydra-ecosystem/github-actions/.github/workflows/docusaurus-publish.yml@3c1e84034cce8eafd214171a941a1938d4a78fe9
+    uses: hydra-ecosystem/github-actions/.github/workflows/node-publish.yml@2026bcc879525736aa3263e0ec4c693b9e6b6ec6
     with:
       validation-passed: ${{ needs.audit.outputs.validation_passed }}
-      app-client-id: ${{ vars.DOCUSAURUS_APP_CLIENT_ID }}
+      app-client-id: ${{ vars.NODE_AUDIT_APP_CLIENT_ID }}
     secrets:
-      app-private-key: ${{ secrets.DOCUSAURUS_APP_PRIVATE_KEY }}
+      app-private-key: ${{ secrets.NODE_AUDIT_APP_PRIVATE_KEY }}
