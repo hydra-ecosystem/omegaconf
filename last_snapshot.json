@@ -17,7 +17,7 @@
     "1427": "2026-10-16",
     "459": "2026-09-25"
   },
-  "generated_at": "2026-10-20T18:22:40Z",
+  "generated_at": "2026-10-20T21:21:30Z",
   "issues": {
     "1024": {
       "category": "Enhancement",
@@ -299,6 +299,16 @@
       "status": "not started",
       "title": "Full Union type support in structured configs",
       "updated_at": "2026-07-24T12:43:57Z"
+    },
+    "1440": {
+      "category": "Enhancement",
+      "created_at": "2026-10-20T21:20:08Z",
+      "labels": [],
+      "pr_numbers": [],
+      "state": "OPEN",
+      "status": "not started",
+      "title": "Dataclass fields with `init=False` can't be set by `__post_init__` when using `to_object()`",
+      "updated_at": "2026-10-20T21:21:26Z"
     },
     "537": {
       "category": "Refactor",

@@ -1,9 +1,9 @@
 {
   "generated_on": "2026-10-20",
-  "generated_at": "2026-10-20T18:22:40Z",
+  "generated_at": "2026-10-20T21:21:30Z",
   "repo": "hydra-ecosystem/omegaconf",
   "summary": {
-    "open_total": 27,
+    "open_total": 28,
     "by_category": [
       {
         "category": "Bug",
@@ -14,14 +14,14 @@
       {
         "category": "Enhancement",
         "emoji": "✨",
-        "count": 23,
-        "percentage": 85.2
+        "count": 24,
+        "percentage": 85.7
       },
       {
         "category": "Documentation",
         "emoji": "📄",
         "count": 1,
-        "percentage": 3.7
+        "percentage": 3.6
       },
       {
         "category": "Question",
@@ -33,13 +33,13 @@
         "category": "Refactor",
         "emoji": "🔧",
         "count": 2,
-        "percentage": 7.4
+        "percentage": 7.1
       },
       {
         "category": "Build",
         "emoji": "🏗️",
         "count": 1,
-        "percentage": 3.7
+        "percentage": 3.6
       }
     ],
     "by_status": [
@@ -61,7 +61,7 @@
       {
         "status": "not started",
         "emoji": "⬜",
-        "count": 27
+        "count": 28
       },
       {
         "status": "done",
@@ -486,6 +486,19 @@
       "url": "https://github.com/hydra-ecosystem/omegaconf/issues/1419"
     },
     {
+      "number": 1440,
+      "title": "Dataclass fields with `init=False` can't be set by `__post_init__` when using `to_object()`",
+      "category": "Enhancement",
+      "category_emoji": "✨",
+      "status": "not started",
+      "status_emoji": "⬜",
+      "prs": [],
+      "created": "2026-10-20",
+      "updated": "2026-10-20",
+      "labels": [],
+      "url": "https://github.com/hydra-ecosystem/omegaconf/issues/1440"
+    },
+    {
       "number": 459,
       "title": "Consider deprecating assignment of strings to non-string nodes like IntegerNode / FloatNode",
       "category": "Enhancement",
@@ -783,6 +796,13 @@
     }
   ],
   "updates": [
+    {
+      "ts": "2026-10-20T21:21:30Z",
+      "kind": "new",
+      "issue": 1440,
+      "issue_url": "https://github.com/hydra-ecosystem/omegaconf/issues/1440",
+      "title": "Dataclass fields with `init=False` can't be set by `__post_init__` when using `to_object()`"
+    },
     {
       "ts": "2026-10-16T16:21:30Z",
       "kind": "closed",
@@ -2461,14 +2481,6 @@
       "issue": 813,
       "issue_url": "https://github.com/omry/omegaconf/issues/813",
       "title": "OmegaConf.masked_copy does not preserve ValueNode type"
-    },
-    {
-      "ts": "2026-07-19T13:03:06Z",
-      "kind": "label",
-      "issue": 928,
-      "issue_url": "https://github.com/omry/omegaconf/issues/928",
-      "title": "`OmegaConf.get_type` inconsistent on `NoneType`",
-      "detail": "removed \"needs triage\""
     }
   ]
 }
