@@ -14,24 +14,43 @@ def test_workspace_classifies_platform_specific_build_scripts():
     assert policy["allowBuilds"]["fsevents"] is False
 
 
-def test_workflow_limits_credentials_and_calls_one_pinned_integration():
+def test_workflow_calls_coordinator_with_expected_permissions_and_filtered_pushes():
     root = Path(__file__).parents[1]
     workflow = yaml.safe_load(
         (root / ".github/workflows/dependency-audit.yml").read_text()
     )
     assert workflow["permissions"] == {"contents": "read"}
-    auditor, publisher = workflow["jobs"]["audit"], workflow["jobs"]["pull-request"]
-    assert auditor["permissions"] == {"contents": "read", "issues": "write"}
-    assert "secrets" not in auditor
-    assert publisher["permissions"] == {"contents": "write", "pull-requests": "write"}
-    assert auditor["uses"].rsplit("@", 1)[1] == publisher["uses"].rsplit("@", 1)[1]
-    assert auditor["uses"].split("@", 1)[0].endswith("/node-audit.yml")
-    assert publisher["uses"].split("@", 1)[0].endswith("/node-publish.yml")
-    assert (
-        publisher["with"]["validation-passed"]
-        == "${{ needs.audit.outputs.validation_passed }}"
+    assert set(workflow["jobs"]) == {"maintenance"}
+    coordinator = workflow["jobs"]["maintenance"]
+    assert coordinator["uses"] == (
+        "hydra-ecosystem/github-actions/.github/workflows/node-maintenance.yml@v1"
     )
-    assert set(publisher["secrets"]) == {"app-private-key"}
+    assert coordinator["permissions"] == {
+        "contents": "write",
+        "pull-requests": "write",
+        "issues": "write",
+    }
+    assert coordinator["with"]["audit-kind"] == "${{ inputs.audit-kind || 'auto' }}"
+    assert (
+        coordinator["with"]["app-client-id"] == "${{ vars.NODE_AUDIT_APP_CLIENT_ID }}"
+    )
+    assert coordinator["secrets"] == {
+        "app-private-key": "${{ secrets.NODE_AUDIT_APP_PRIVATE_KEY }}"
+    }
+    events = workflow.get("on", workflow.get(True))
+    assert events["push"] == {
+        "branches": ["main"],
+        "paths": [
+            "**/pnpm-lock.yaml",
+            "**/package-lock.json",
+            ".github/node-maintenance.json",
+        ],
+    }
+    assert workflow["concurrency"] == {
+        "group": "dependency-audit",
+        "cancel-in-progress": False,
+        "queue": "max",
+    }
     deploy = yaml.safe_load((root / ".github/workflows/deploy-docs.yml").read_text())
     events = deploy.get("on", deploy.get(True))
     for event in ("push", "pull_request"):
