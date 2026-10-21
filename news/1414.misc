@@ -1,0 +1,1 @@
+Improve configuration access and merge performance, including repeated interpolation reads, key-path selection, and list indexing.
