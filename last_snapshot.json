@@ -17,7 +17,7 @@
     "1427": "2026-10-16",
     "459": "2026-09-25"
   },
-  "generated_at": "2026-10-21T12:55:54Z",
+  "generated_at": "2026-10-22T12:52:59Z",
   "issues": {
     "1024": {
       "category": "Enhancement",
@@ -308,7 +308,7 @@
       "state": "OPEN",
       "status": "not started",
       "title": "Dataclass fields with `init=False` can't be set by `__post_init__` when using `to_object()`",
-      "updated_at": "2026-10-20T21:21:26Z"
+      "updated_at": "2026-10-21T19:01:06Z"
     },
     "537": {
       "category": "Refactor",
