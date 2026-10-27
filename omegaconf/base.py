@@ -42,6 +42,7 @@ from .errors import (
     KeyValidationError,
     MissingMandatoryValue,
     OmegaConfBaseException,
+    ReadonlyConfigError,
     UnsupportedInterpolationType,
     ValidationError,
 )
@@ -1158,6 +1159,72 @@ class UnionNode(Box):
             self.__dict__["_content"] = previous_content
             self.__dict__["_metadata"] = previous_metadata
             raise e
+
+    def _merge_with(self, other: Node, *, _allow_readonly_target: bool = False) -> None:
+        """Merge a source node using the union's branch-selection rules."""
+        from .dictconfig import DictConfig
+
+        source_missing = other._is_missing()
+        target = self._maybe_dereference_node() if self._is_interpolation() else None
+        if source_missing and not isinstance(target, Container):
+            return
+        if self._get_flag("readonly") and not _allow_readonly_target:
+            self._format_and_raise(
+                key=None,
+                value=_get_value(other),
+                cause=ReadonlyConfigError("Cannot change read-only config container"),
+            )
+
+        if isinstance(target, Container):
+            if self._get_flag("no_deepcopy_set_nodes"):
+                target = copy.deepcopy(target)
+            self._set_value(target)
+        if source_missing:
+            return
+
+        selected = self._value()
+        source = other._value() if isinstance(other, UnionNode) else other
+        merge_into_selected_structured = False
+        if isinstance(selected, DictConfig) and isinstance(source, DictConfig):
+            dest_ref_type = selected._metadata.ref_type
+            union_ref_type = self._metadata.ref_type
+            structured_candidates = [
+                t for t in union_ref_type.__args__ if is_structured_config(t)
+            ]
+            src_selected_ref_type = select_structured_config_union_member(
+                value=source,
+                candidates=structured_candidates,
+            )
+            source_is_same_structured_branch = (
+                is_structured_config(dest_ref_type)
+                and src_selected_ref_type is dest_ref_type
+            )
+            source_is_mapping = source._metadata.object_type is dict
+            source_is_untyped_mapping = (
+                source_is_mapping
+                and source._metadata.ref_type is Any
+                and source._metadata.key_type is Any
+                and source._metadata.element_type is Any
+            )
+            union_has_dict_branch = any(
+                is_dict_annotation(t) for t in union_ref_type.__args__
+            )
+            merge_into_selected_structured = is_structured_config(dest_ref_type) and (
+                source_is_same_structured_branch
+                or source_is_untyped_mapping
+                or (source_is_mapping and not union_has_dict_branch)
+            )
+
+        if merge_into_selected_structured:
+            assert isinstance(selected, DictConfig)
+            assert isinstance(source, DictConfig)
+            selected._merge_with(source, _allow_readonly_target=_allow_readonly_target)
+        else:
+            value = _get_value(other)
+            try:
+                self._set_value(value)
+            except Exception as e:
+                self._format_and_raise(key=None, value=value, cause=e)
 
     def _set_value_impl(self, value: Any, flags: dict[str, bool] | None = None) -> None:
         from omegaconf._utils import is_literal_annotation
