@@ -996,9 +996,6 @@ class BaseContainer(Container, ABC):
             cur_type: Any,
             key: DictKeyType | int | slice | None,
         ) -> str:
-            if key is None:
-                return full_key
-
             if isinstance(key, slice):
                 key = _slice_to_str(key)
             elif isinstance(key, Enum):
@@ -1036,20 +1033,27 @@ class BaseContainer(Container, ABC):
                 full_key = prepand("", type(cur), None, key)
                 if cur._key() is not None:
                     full_key = prepand(
-                        full_key, type(cur._get_parent()), type(cur), cur._key()
+                        full_key,
+                        type(cur._get_parent_container()),
+                        type(cur),
+                        cur._key(),
                     )
             else:
-                full_key = prepand("", type(cur._get_parent()), type(cur), cur._key())
+                full_key = prepand(
+                    "", type(cur._get_parent_container()), type(cur), cur._key()
+                )
         else:
             cur = self
             if cur._key() is None:
                 return ""
-            full_key = self._key()
+            full_key = prepand(
+                "", type(cur._get_parent_container()), type(cur), cur._key()
+            )
 
         assert cur is not None
         memo = {id(cur)}  # remember already visited nodes so as to detect cycles
-        while cur._get_parent() is not None:
-            cur = cur._get_parent()
+        while cur._get_parent_container() is not None:
+            cur = cur._get_parent_container()
             if id(cur) in memo:
                 raise ConfigCycleDetectedException(
                     f"Cycle when iterating over parents of key `{key!s}`"
@@ -1058,7 +1062,7 @@ class BaseContainer(Container, ABC):
             assert cur is not None
             if cur._key() is not None:
                 full_key = prepand(
-                    full_key, type(cur._get_parent()), type(cur), cur._key()
+                    full_key, type(cur._get_parent_container()), type(cur), cur._key()
                 )
 
         return full_key

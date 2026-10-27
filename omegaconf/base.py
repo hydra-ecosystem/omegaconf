@@ -356,6 +356,9 @@ class Node(ABC):
     def _is_interpolation(self) -> bool: ...
 
     def _key(self) -> Any:
+        parent = self._get_parent()
+        if isinstance(parent, UnionNode):
+            return parent._key()
         return self._metadata.key
 
     def _set_key(self, key: Any) -> None:
