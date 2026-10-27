@@ -276,3 +276,5 @@
 {"ts": "2026-10-16T16:21:30Z", "kind": "closed", "issue": 1427, "issue_url": "https://github.com/hydra-ecosystem/omegaconf/issues/1427", "title": "Define compatible escaping and addressability guarantees for generated key paths"}
 {"ts": "2026-10-20T21:21:30Z", "kind": "new", "issue": 1440, "issue_url": "https://github.com/hydra-ecosystem/omegaconf/issues/1440", "title": "Dataclass fields with `init=False` can't be set by `__post_init__` when using `to_object()`"}
 {"ts": "2026-10-27T12:56:11Z", "kind": "new", "issue": 1441, "issue_url": "https://github.com/hydra-ecosystem/omegaconf/issues/1441", "title": "Support tuple literals in OmegaConf.from_dotlist()"}
+{"ts": "2026-10-27T21:23:31Z", "kind": "new", "issue": 1442, "issue_url": "https://github.com/hydra-ecosystem/omegaconf/issues/1442", "title": "Keep logical keys and paths consistent for union members"}
+{"ts": "2026-10-27T21:23:31Z", "kind": "new", "issue": 1443, "issue_url": "https://github.com/hydra-ecosystem/omegaconf/issues/1443", "title": "Allow direct UnionNode merges to reuse branch-selection rules"}

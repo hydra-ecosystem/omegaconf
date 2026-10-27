@@ -17,7 +17,7 @@
     "1427": "2026-10-16",
     "459": "2026-09-25"
   },
-  "generated_at": "2026-10-27T13:05:39Z",
+  "generated_at": "2026-10-27T21:23:31Z",
   "issues": {
     "1024": {
       "category": "Enhancement",
@@ -321,6 +321,26 @@
       "status": "not started",
       "title": "Support tuple literals in OmegaConf.from_dotlist()",
       "updated_at": "2026-10-27T12:54:52Z"
+    },
+    "1442": {
+      "category": "Enhancement",
+      "created_at": "2026-10-27T21:22:09Z",
+      "labels": [],
+      "pr_numbers": [],
+      "state": "OPEN",
+      "status": "not started",
+      "title": "Keep logical keys and paths consistent for union members",
+      "updated_at": "2026-10-27T21:22:09Z"
+    },
+    "1443": {
+      "category": "Enhancement",
+      "created_at": "2026-10-27T21:22:17Z",
+      "labels": [],
+      "pr_numbers": [],
+      "state": "OPEN",
+      "status": "not started",
+      "title": "Allow direct UnionNode merges to reuse branch-selection rules",
+      "updated_at": "2026-10-27T21:22:17Z"
     },
     "537": {
       "category": "Refactor",
