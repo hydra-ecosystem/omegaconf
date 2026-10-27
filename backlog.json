@@ -1,9 +1,9 @@
 {
-  "generated_on": "2026-10-26",
-  "generated_at": "2026-10-26T14:04:45Z",
+  "generated_on": "2026-10-27",
+  "generated_at": "2026-10-27T12:56:11Z",
   "repo": "hydra-ecosystem/omegaconf",
   "summary": {
-    "open_total": 28,
+    "open_total": 29,
     "by_category": [
       {
         "category": "Bug",
@@ -14,14 +14,14 @@
       {
         "category": "Enhancement",
         "emoji": "✨",
-        "count": 24,
-        "percentage": 85.7
+        "count": 25,
+        "percentage": 86.2
       },
       {
         "category": "Documentation",
         "emoji": "📄",
         "count": 1,
-        "percentage": 3.6
+        "percentage": 3.4
       },
       {
         "category": "Question",
@@ -33,13 +33,13 @@
         "category": "Refactor",
         "emoji": "🔧",
         "count": 2,
-        "percentage": 7.1
+        "percentage": 6.9
       },
       {
         "category": "Build",
         "emoji": "🏗️",
         "count": 1,
-        "percentage": 3.6
+        "percentage": 3.4
       }
     ],
     "by_status": [
@@ -61,7 +61,7 @@
       {
         "status": "not started",
         "emoji": "⬜",
-        "count": 28
+        "count": 29
       },
       {
         "status": "done",
@@ -499,6 +499,21 @@
       "url": "https://github.com/hydra-ecosystem/omegaconf/issues/1440"
     },
     {
+      "number": 1441,
+      "title": "Support tuple literals in OmegaConf.from_dotlist()",
+      "category": "Enhancement",
+      "category_emoji": "✨",
+      "status": "not started",
+      "status_emoji": "⬜",
+      "prs": [],
+      "created": "2026-10-27",
+      "updated": "2026-10-27",
+      "labels": [
+        "enhancement"
+      ],
+      "url": "https://github.com/hydra-ecosystem/omegaconf/issues/1441"
+    },
+    {
       "number": 459,
       "title": "Consider deprecating assignment of strings to non-string nodes like IntegerNode / FloatNode",
       "category": "Enhancement",
@@ -796,6 +811,13 @@
     }
   ],
   "updates": [
+    {
+      "ts": "2026-10-27T12:56:11Z",
+      "kind": "new",
+      "issue": 1441,
+      "issue_url": "https://github.com/hydra-ecosystem/omegaconf/issues/1441",
+      "title": "Support tuple literals in OmegaConf.from_dotlist()"
+    },
     {
       "ts": "2026-10-20T21:21:30Z",
       "kind": "new",
@@ -2474,13 +2496,6 @@
       "issue": 899,
       "issue_url": "https://github.com/omry/omegaconf/issues/899",
       "title": "[Static typing] Make DictConfig generic in the dataclass that it represents (if any)"
-    },
-    {
-      "ts": "2026-07-19T13:03:06Z",
-      "kind": "closed",
-      "issue": 813,
-      "issue_url": "https://github.com/omry/omegaconf/issues/813",
-      "title": "OmegaConf.masked_copy does not preserve ValueNode type"
     }
   ]
 }

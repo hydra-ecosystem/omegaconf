@@ -17,7 +17,7 @@
     "1427": "2026-10-16",
     "459": "2026-09-25"
   },
-  "generated_at": "2026-10-26T14:04:45Z",
+  "generated_at": "2026-10-27T12:56:11Z",
   "issues": {
     "1024": {
       "category": "Enhancement",
@@ -309,6 +309,18 @@
       "status": "not started",
       "title": "Dataclass fields with `init=False` can't be set by `__post_init__` when using `to_object()`",
       "updated_at": "2026-10-21T19:01:06Z"
+    },
+    "1441": {
+      "category": "Enhancement",
+      "created_at": "2026-10-27T12:54:52Z",
+      "labels": [
+        "enhancement"
+      ],
+      "pr_numbers": [],
+      "state": "OPEN",
+      "status": "not started",
+      "title": "Support tuple literals in OmegaConf.from_dotlist()",
+      "updated_at": "2026-10-27T12:54:52Z"
     },
     "537": {
       "category": "Refactor",
