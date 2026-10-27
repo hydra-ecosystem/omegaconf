@@ -17,7 +17,7 @@
     "1427": "2026-10-16",
     "459": "2026-09-25"
   },
-  "generated_at": "2026-10-27T21:24:46Z",
+  "generated_at": "2026-10-27T22:14:17Z",
   "issues": {
     "1024": {
       "category": "Enhancement",
@@ -326,9 +326,12 @@
       "category": "Enhancement",
       "created_at": "2026-10-27T21:22:09Z",
       "labels": [],
-      "pr_numbers": [],
+      "pr_numbers": [
+        "1444",
+        "1445"
+      ],
       "state": "OPEN",
-      "status": "not started",
+      "status": "in progress",
       "title": "Keep logical keys and paths consistent for union members",
       "updated_at": "2026-10-27T21:22:09Z"
     },
@@ -336,9 +339,12 @@
       "category": "Enhancement",
       "created_at": "2026-10-27T21:22:17Z",
       "labels": [],
-      "pr_numbers": [],
+      "pr_numbers": [
+        "1444",
+        "1445"
+      ],
       "state": "OPEN",
-      "status": "not started",
+      "status": "in progress",
       "title": "Allow direct UnionNode merges to reuse branch-selection rules",
       "updated_at": "2026-10-27T21:22:17Z"
     },

@@ -1,6 +1,6 @@
 {
   "generated_on": "2026-10-27",
-  "generated_at": "2026-10-27T21:24:46Z",
+  "generated_at": "2026-10-27T22:14:17Z",
   "repo": "hydra-ecosystem/omegaconf",
   "summary": {
     "open_total": 31,
@@ -46,7 +46,7 @@
       {
         "status": "in progress",
         "emoji": "🔄",
-        "count": 0
+        "count": 2
       },
       {
         "status": "community PR",
@@ -61,7 +61,7 @@
       {
         "status": "not started",
         "emoji": "⬜",
-        "count": 31
+        "count": 29
       },
       {
         "status": "done",
@@ -71,6 +71,50 @@
     ]
   },
   "issues": [
+    {
+      "number": 1442,
+      "title": "Keep logical keys and paths consistent for union members",
+      "category": "Enhancement",
+      "category_emoji": "✨",
+      "status": "in progress",
+      "status_emoji": "🔄",
+      "prs": [
+        {
+          "number": 1444,
+          "url": "https://github.com/hydra-ecosystem/omegaconf/pull/1444"
+        },
+        {
+          "number": 1445,
+          "url": "https://github.com/hydra-ecosystem/omegaconf/pull/1445"
+        }
+      ],
+      "created": "2026-10-27",
+      "updated": "2026-10-27",
+      "labels": [],
+      "url": "https://github.com/hydra-ecosystem/omegaconf/issues/1442"
+    },
+    {
+      "number": 1443,
+      "title": "Allow direct UnionNode merges to reuse branch-selection rules",
+      "category": "Enhancement",
+      "category_emoji": "✨",
+      "status": "in progress",
+      "status_emoji": "🔄",
+      "prs": [
+        {
+          "number": 1444,
+          "url": "https://github.com/hydra-ecosystem/omegaconf/pull/1444"
+        },
+        {
+          "number": 1445,
+          "url": "https://github.com/hydra-ecosystem/omegaconf/pull/1445"
+        }
+      ],
+      "created": "2026-10-27",
+      "updated": "2026-10-27",
+      "labels": [],
+      "url": "https://github.com/hydra-ecosystem/omegaconf/issues/1443"
+    },
     {
       "number": 91,
       "title": "Consider supporting basic operators in interpolations of numbers",
@@ -514,32 +558,6 @@
       "url": "https://github.com/hydra-ecosystem/omegaconf/issues/1441"
     },
     {
-      "number": 1442,
-      "title": "Keep logical keys and paths consistent for union members",
-      "category": "Enhancement",
-      "category_emoji": "✨",
-      "status": "not started",
-      "status_emoji": "⬜",
-      "prs": [],
-      "created": "2026-10-27",
-      "updated": "2026-10-27",
-      "labels": [],
-      "url": "https://github.com/hydra-ecosystem/omegaconf/issues/1442"
-    },
-    {
-      "number": 1443,
-      "title": "Allow direct UnionNode merges to reuse branch-selection rules",
-      "category": "Enhancement",
-      "category_emoji": "✨",
-      "status": "not started",
-      "status_emoji": "⬜",
-      "prs": [],
-      "created": "2026-10-27",
-      "updated": "2026-10-27",
-      "labels": [],
-      "url": "https://github.com/hydra-ecosystem/omegaconf/issues/1443"
-    },
-    {
       "number": 459,
       "title": "Consider deprecating assignment of strings to non-string nodes like IntegerNode / FloatNode",
       "category": "Enhancement",
@@ -837,6 +855,46 @@
     }
   ],
   "updates": [
+    {
+      "ts": "2026-10-27T22:14:17Z",
+      "kind": "pr",
+      "issue": 1443,
+      "issue_url": "https://github.com/hydra-ecosystem/omegaconf/issues/1443",
+      "title": "Allow direct UnionNode merges to reuse branch-selection rules",
+      "detail": "linked #1444, #1445"
+    },
+    {
+      "ts": "2026-10-27T22:14:17Z",
+      "kind": "pr",
+      "issue": 1442,
+      "issue_url": "https://github.com/hydra-ecosystem/omegaconf/issues/1442",
+      "title": "Keep logical keys and paths consistent for union members",
+      "detail": "linked #1444, #1445"
+    },
+    {
+      "ts": "2026-10-27T22:14:17Z",
+      "kind": "status",
+      "issue": 1443,
+      "issue_url": "https://github.com/hydra-ecosystem/omegaconf/issues/1443",
+      "title": "Allow direct UnionNode merges to reuse branch-selection rules",
+      "detail": "not started → in progress",
+      "pr": {
+        "number": 1444,
+        "url": "https://github.com/hydra-ecosystem/omegaconf/pull/1444"
+      }
+    },
+    {
+      "ts": "2026-10-27T22:14:17Z",
+      "kind": "status",
+      "issue": 1442,
+      "issue_url": "https://github.com/hydra-ecosystem/omegaconf/issues/1442",
+      "title": "Keep logical keys and paths consistent for union members",
+      "detail": "not started → in progress",
+      "pr": {
+        "number": 1444,
+        "url": "https://github.com/hydra-ecosystem/omegaconf/pull/1444"
+      }
+    },
     {
       "ts": "2026-10-27T21:23:31Z",
       "kind": "new",
@@ -2494,34 +2552,6 @@
       "issue": 815,
       "issue_url": "https://github.com/omry/omegaconf/issues/815",
       "title": "merge-readonly interatction"
-    },
-    {
-      "ts": "2026-07-19T16:30:47Z",
-      "kind": "closed",
-      "issue": 846,
-      "issue_url": "https://github.com/omry/omegaconf/issues/846",
-      "title": "Nightly builds"
-    },
-    {
-      "ts": "2026-07-19T16:08:39Z",
-      "kind": "closed",
-      "issue": 864,
-      "issue_url": "https://github.com/omry/omegaconf/issues/864",
-      "title": "Support interpolation to integer keys (or other non-string keys)"
-    },
-    {
-      "ts": "2026-07-19T15:48:00Z",
-      "kind": "closed",
-      "issue": 882,
-      "issue_url": "https://github.com/omry/omegaconf/issues/882",
-      "title": "Interpolation to index of custom interpolation fails, depending on order of structured config fields"
-    },
-    {
-      "ts": "2026-07-19T15:39:05Z",
-      "kind": "closed",
-      "issue": 999,
-      "issue_url": "https://github.com/omry/omegaconf/issues/999",
-      "title": "`List[Tuple[T, ...]]` not supported"
     }
   ]
 }
