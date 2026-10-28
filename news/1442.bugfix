@@ -1,0 +1,1 @@
+Fix logical keys and paths for values selected by union-typed fields.
