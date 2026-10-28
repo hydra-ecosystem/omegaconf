@@ -15,9 +15,10 @@
     "1425": "2026-10-15",
     "1426": "2026-10-16",
     "1427": "2026-10-16",
+    "1443": "2026-10-28",
     "459": "2026-09-25"
   },
-  "generated_at": "2026-10-28T08:10:02Z",
+  "generated_at": "2026-10-28T08:53:39Z",
   "issues": {
     "1024": {
       "category": "Enhancement",
@@ -327,26 +328,12 @@
       "created_at": "2026-10-27T21:22:09Z",
       "labels": [],
       "pr_numbers": [
-        "1444",
         "1445"
       ],
       "state": "OPEN",
       "status": "in progress",
       "title": "Keep logical keys and paths consistent for union members",
       "updated_at": "2026-10-27T21:22:09Z"
-    },
-    "1443": {
-      "category": "Enhancement",
-      "created_at": "2026-10-27T21:22:17Z",
-      "labels": [],
-      "pr_numbers": [
-        "1444",
-        "1445"
-      ],
-      "state": "OPEN",
-      "status": "in progress",
-      "title": "Allow direct UnionNode merges to reuse branch-selection rules",
-      "updated_at": "2026-10-27T21:22:17Z"
     },
     "537": {
       "category": "Refactor",
@@ -603,6 +590,19 @@
       "status": "done",
       "title": "Define compatible escaping and addressability guarantees for generated key paths",
       "updated_at": "2026-10-14T21:42:28Z"
+    },
+    "1443": {
+      "category": "Enhancement",
+      "created_at": "2026-10-27T21:22:17Z",
+      "labels": [],
+      "pr_numbers": [
+        "1444",
+        "1445"
+      ],
+      "state": "CLOSED",
+      "status": "done",
+      "title": "Allow direct UnionNode merges to reuse branch-selection rules",
+      "updated_at": "2026-10-27T21:22:17Z"
     },
     "459": {
       "category": "Enhancement",
