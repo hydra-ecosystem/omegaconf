@@ -70,7 +70,10 @@ the website can build and deploy in CI.
 
 #### Submitting a PR
 
-We welcome your pull requests.
+Before starting substantial work, offer to send a PR in the issue description
+or a comment, and wait for a maintainer to agree that you can take it on. This
+also applies to issues in active milestones or marked “help wanted.” Only open
+a PR after that agreement, and link to the conversation.
 
 When submitting a PR please ensure that it includes:
 - automated tests for any new feature or bugfix
@@ -82,12 +85,6 @@ When submitting a PR please ensure that it includes:
 
 Developer-only tooling, repository maintenance, and CI-only changes do not need
 a news fragment unless they affect the shipped product experience.
-
-For any non-trivial change, please open an issue or design discussion and wait
-for maintainer feedback before starting substantial implementation work. Pull
-requests in these areas should link to the issue or discussion where the
-direction was agreed. Pull requests without prior design alignment may be
-redirected to discussion before implementation review.
 
 #### Modifying the Jupyter notebook
 
