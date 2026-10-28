@@ -30,7 +30,12 @@ from omegaconf._utils import (  # _normalize_ref_type,
     is_union_annotation,
     split_key,
 )
-from omegaconf.errors import ConfigValueError, UnsupportedValueType, ValidationError
+from omegaconf.errors import (
+    ConfigValueError,
+    GrammarParseError,
+    UnsupportedValueType,
+    ValidationError,
+)
 from omegaconf.nodes import (
     AnyNode,
     BooleanNode,
@@ -1160,16 +1165,17 @@ def test_split_key(key: str, expected: List[str]) -> None:
         (r"a\bc", [r"a\bc"]),
         # bare \ at end of string passes through
         ("a\\", ["a\\"]),
-        # two backslashes: first \ is bare (next char is \, not special), second is bare at end
-        (r"\\", [r"\\"]),
-        # \\. -> first \ bare (outputs \), second \ escapes dot -> key is \.
-        (r"\\.", [r"\."]),
-        # \\[ -> first \ bare, second \ escapes [ -> key is \[
-        (r"\\[", [r"\["]),
-        # \\] -> first \ bare, second \ escapes ] -> key is \]
-        (r"\\]", [r"\]"]),
-        # three backslashes: each is bare (no special char follows), key is unchanged
-        ("\\" * 3, ["\\" * 3]),
+        # A pair of backslashes encodes one literal backslash.
+        (r"\\", ["\\"]),
+        # After a backslash pair, an unescaped dot or bracket is a separator.
+        (r"a\\.b", ["a\\", "b"]),
+        (r"a\\[b]", ["a\\", "b"]),
+        # Escape the punctuation too when it belongs to the same key.
+        (r"\\\.", [r"\."]),
+        (r"\\\[", [r"\["]),
+        (r"\\\]", [r"\]"]),
+        # Three backslashes encode a pair followed by a bare trailing backslash.
+        ("\\" * 3, ["\\" * 2]),
         # bracket notation: dot inside [] is already literal
         ("a[b.c]", ["a", "b.c"]),
         # escaped brackets as part of a key, followed by real bracket notation
@@ -1179,7 +1185,7 @@ def test_split_key(key: str, expected: List[str]) -> None:
         # \= -> literal equals sign in key (useful for dotlist keys containing =)
         (r"a\=b", ["a=b"]),
         (r"a\=b.c", ["a=b", "c"]),
-        (r"a\:b", [r"a\:b"]),
+        (r"a\:b", ["a:b"]),
         # unescaped = is just a regular character (not a delimiter in split_key)
         ("a=b", ["a=b"]),
     ],
@@ -1189,19 +1195,23 @@ def test_split_key_escaping(key: str, expected: List[str]) -> None:
 
 
 @mark.parametrize(
-    ("key", "expected"),
+    "key",
     [
-        # fast path (no backslash): unclosed bracket is silently dropped
-        ("a[b", ["a"]),
-        ("[a", []),
-        # slow path (backslash present) must match fast-path behaviour
-        (r"\a[b", [r"\a"]),
-        (r"\a[b.c", [r"\a"]),
+        "a[b",
+        "[a",
+        "a[b][",
+        "a[b]junk",
+        "a[b]junk.c",
+        "a[b]]",
+        r"\a[b",
+        r"\a[b.c",
+        r"\a[b]junk",
+        r"a[b\]",
     ],
 )
-def test_split_key_unclosed_bracket(key: str, expected: List[str]) -> None:
-    """Unclosed brackets are silently dropped on both fast and slow paths."""
-    assert split_key(key) == expected
+def test_split_key_malformed_path(key: str) -> None:
+    with raises(GrammarParseError, match="Invalid key path"):
+        split_key(key)
 
 
 @mark.parametrize(
@@ -1224,6 +1234,10 @@ def test_split_key_unclosed_bracket(key: str, expected: List[str]) -> None:
         (r"a\[b\]=1", 6),
         # backslash before a non-special char does NOT shield the following char
         (r"a\b=1", 3),
+        # A backslash pair leaves the following assignment separator unescaped.
+        (r"a\\=1", 3),
+        # An odd run of backslashes still escapes the first equals sign.
+        (r"a\\\=b=1", 6),
         # '=' immediately at start
         ("=1", 0),
         # key-only (no '=')

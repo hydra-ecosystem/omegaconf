@@ -83,6 +83,9 @@ An interpolation can select part of another interpolation's path:
 
 ```
 
+Inside brackets, a nested reference selects one literal key, including any
+dots, brackets or backslashes in its value.
+
 Avoid cycles: an interpolation cannot eventually refer back to itself.
 
 ## Resolve now

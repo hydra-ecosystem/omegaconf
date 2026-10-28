@@ -189,13 +189,21 @@ Each entry is split on the first *unescaped* ``=``.  Everything before
 it is the key path; everything after it is the value.  Key paths follow
 the same dot/bracket syntax as :meth:`select` and :meth:`update`.
 
+Malformed key paths raise :class:`~omegaconf.errors.GrammarParseError`.
+All key paths are checked before any entry is applied.
+
 **Backslash escaping in keys:**
 Use a backslash to include a literal special character in a key name.
-The escapable characters are ``.``, ``[``, ``]``, and ``=``.
+Recognized escapes match :meth:`select`: backslashes, dots, brackets,
+colons, equals, braces, parentheses, quotes, spaces, and tabs.
+Two backslashes encode one literal backslash. Unknown escapes retain
+the backslash.
 
 - ``r"a\.b=1"``    — key is ``"a.b"`` (dot is part of the key)
 - ``r"a\=b=1"``    — key is ``"a=b"`` (``=`` is part of the key;
   the second ``=`` is the key/value separator)
+- ``r"a\:b=1"``    — key is ``"a:b"``
+- ``r"a\\.b=1"``  — key ``"a\\"`` contains child ``"b"``
 
 Values may contain ``=`` freely; only the first unescaped ``=`` separates
 key from value (e.g. ``"url=http://x?a=1"`` gives key ``url``,
@@ -488,6 +496,13 @@ missing_keys(cfg: Any, *, resolve_custom_resolvers: bool = False) -> set[str]
 
 Returns a set of missing keys in a dotlist style.
 
+Dictionary key segments use the same backslash escaping as ``select``
+and interpolation paths. An empty dictionary key (``""``) uses ``[]``
+in a returned path. For example, an empty key under ``outer`` has the
+path ``outer[]``. Paths remain rooted at the config root when called on
+a subtree. Escaping follows the existing key path rules; it does not
+extend the supported key types or path syntax.
+
 Node interpolations that dereference missing values are reported as missing
 keys, whether they are the full value or part of a string.
 
@@ -617,21 +632,28 @@ Select a value from a config using a key path.
 The key path uses dot notation (``"a.b.c"``) or bracket notation
 (``"a[b][c]"``), or a mix of both.
 
-**Keys containing special characters** (``.``, ``[``, ``]``, ``=``)
-can be expressed by escaping them with a backslash:
+Key segments can escape backslashes, dots, brackets, colons, equals,
+braces, parentheses, quotes, spaces, and tabs with a backslash:
 
 - ``r"a\.b"``   — selects the key ``"a.b"`` (single key with a literal dot)
 - ``r"a\[0\]"`` — selects the key ``"a[0]"``
 - ``r"a\=b"``   — selects the key ``"a=b"``
+- ``r"a\:b"``   — selects the key ``"a:b"``
+- ``r"a\ b"``   — selects the key ``"a b"``
 
-A backslash before any other character passes through unchanged
-(``r"a\b"`` selects the key ``"a\\b"`` — a backslash followed by ``b``).
+Two backslashes encode one literal backslash. A following unescaped
+dot or bracket still separates path components.
+Unknown escapes pass through unchanged (``r"a\b"`` selects the key
+``r"a\b"`` — a backslash followed by ``b``).
+
+Malformed paths return the explicitly supplied default, or raise
+``GrammarParseError`` when no default is supplied.
 
 **Parameters:**
 
 - **cfg** (<code>Container</code>) – Config node to select from
 - **key** (<code>str</code>) – Key path to select (dot/bracket notation, backslash-escapable)
-- **default** (<code>Any</code>) – Default value to return if key is not found
+- **default** (<code>Any</code>) – Default value to return if key is not found or its path is malformed
 - **throw_on_resolution_failure** (<code>bool</code>) – Raise an exception if an interpolation
 resolution error occurs, otherwise return None
 - **throw_on_missing** (<code>bool</code>) – Raise an exception if an attempt to select a missing key (with the value '???')
@@ -905,12 +927,21 @@ Update a value in a config using a key path.
 The key path uses dot notation (``"a.b.c"``) or bracket notation
 (``"a[b][c]"``), or a mix of both.
 
-**Keys containing special characters** (``.``, ``[``, ``]``, ``=``)
-can be expressed by escaping them with a backslash:
+Key segments use the same backslash escapes as :meth:`select`:
+backslashes, dots, brackets, colons, equals, braces, parentheses,
+quotes, spaces, and tabs.
 
 - ``r"a\.b"``   — targets the key ``"a.b"`` (single key with a literal dot)
 - ``r"a\[0\]"`` — targets the key ``"a[0]"``
 - ``r"a\=b"``   — targets the key ``"a=b"``
+- ``r"a\:b"``   — targets the key ``"a:b"``
+- ``r"a\\.b"``  — targets child ``"b"`` under key ``"a\\"``
+
+Two backslashes encode one literal backslash. A following unescaped
+dot or bracket still separates path components. Unknown escapes
+retain the backslash.
+
+Malformed paths raise ``GrammarParseError`` before changing the config.
 
 **Parameters:**
 

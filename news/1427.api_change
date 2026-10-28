@@ -1,0 +1,1 @@
+Align key-segment escaping in `select()`, `update()`, and dotlists with interpolation paths. Escape a literal backslash as `\\` and a literal colon as `\:`. Existing paths that preserved these backslashes must use the new escaped spellings. Paths from `missing_keys()` use the same rules.

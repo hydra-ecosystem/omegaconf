@@ -108,6 +108,10 @@ and returns `None`.
 is absent or missing. Unlike ordinary node interpolation, it can return a
 default instead of raising. Quote paths containing resolver punctuation.
 
+Like `OmegaConf.select()`, an explicit default is also returned for malformed
+paths. Without an explicit default, malformed paths raise an interpolation
+resolution error. Errors resolving an existing value still raise.
+
 ```python
 >>> cfg = OmegaConf.create({
 ...     "required": "???",
@@ -116,6 +120,9 @@ default instead of raising. Quote paths containing resolver punctuation.
 ... })
 >>> cfg.fallback, cfg.unfilled
 ('localhost', None)
+>>> cfg = OmegaConf.create({"value": '${oc.select:"missing[b",null}'})
+>>> cfg.value is None
+True
 
 ```
 
@@ -124,6 +131,11 @@ default instead of raising. Quote paths containing resolver punctuation.
 `${oc.dict.keys:workers}` returns a `ListConfig` of dictionary keys;
 `${oc.dict.values:workers}` returns a `ListConfig` whose elements track the
 dictionary values. Both accept a path to a `DictConfig`.
+Dictionary key strings are stored literally: a key named `"${target}"`
+keeps those exact characters. OmegaConf resolves interpolation syntax in
+values, not in dictionary key strings. `oc.dict.values` preserves these
+literal keys, including empty keys, spaces, and punctuation. The source path
+is also escaped before it is reused in a reference.
 
 ```python
 >>> cfg = OmegaConf.create({
@@ -136,5 +148,13 @@ dictionary values. Both accept a path to a `DictConfig`.
 >>> cfg.workers.first = "host-b"
 >>> list(cfg.hosts)
 ['host-b']
+>>> cfg = OmegaConf.create({
+...     "mapping": {"": 10, "a b": 20, "${target}": 30},
+...     "values": "${oc.dict.values:mapping}",
+... })
+>>> cfg.mapping["${target}"]  # The key is stored literally; target is not defined.
+30
+>>> list(cfg["values"])
+[10, 20, 30]
 
 ```

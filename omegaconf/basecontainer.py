@@ -7,6 +7,7 @@ from typing import TYPE_CHECKING, Any, ClassVar, Dict, List
 import yaml
 
 from ._conversion_warnings import _suppress_conversion_warnings_if_unset
+from ._key_path import split_key
 from ._utils import (
     _DEFAULT_MARKER_,
     ValueKind,
@@ -30,7 +31,6 @@ from ._utils import (
     is_structured_config,
     is_tuple_annotation,
     is_union_annotation,
-    select_structured_config_union_member,
 )
 from ._yaml import get_yaml_loader
 from .base import (
@@ -233,6 +233,12 @@ class BaseContainer(Container, ABC):
             fail()
 
         for arg in dotlist:
+            if isinstance(arg, str):
+                idx = _find_eq(arg)
+                key = arg if idx == -1 else arg[:idx]
+                split_key(key)
+
+        for arg in dotlist:
             if not isinstance(arg, str):
                 fail()
 
@@ -244,7 +250,6 @@ class BaseContainer(Container, ABC):
                 key = arg[0:idx]
                 value = arg[idx + 1 :]
                 value = yaml.load(value, Loader=get_yaml_loader())
-
             OmegaConf.update(self, key, value)
 
     def is_empty(self) -> bool:
@@ -473,7 +478,7 @@ class BaseContainer(Container, ABC):
 
             if (
                 dest_node is not None
-                and not isinstance(dest_node, TupleConfig)
+                and not isinstance(dest_node, (TupleConfig, UnionNode))
                 and dest_node._is_interpolation()
             ):
                 target_node = dest_node._maybe_dereference_node()
@@ -490,52 +495,9 @@ class BaseContainer(Container, ABC):
                 dest_node = dest._get_node(key)
 
             if dest_node is not None:
-                selected_union_value = (
-                    dest_node._value() if isinstance(dest_node, UnionNode) else None
-                )
-                src_union_value = (
-                    src_node._value() if isinstance(src_node, UnionNode) else src_node
-                )
-                merge_into_selected_structured = False
-                if isinstance(selected_union_value, DictConfig) and isinstance(
-                    src_union_value, DictConfig
-                ):
-                    dest_ref_type = selected_union_value._metadata.ref_type
-                    union_ref_type = dest_node._metadata.ref_type
-                    structured_candidates = [
-                        t for t in union_ref_type.__args__ if is_structured_config(t)
-                    ]
-                    src_selected_ref_type = select_structured_config_union_member(
-                        value=src_union_value,
-                        candidates=structured_candidates,
-                    )
-                    source_is_same_structured_branch = (
-                        is_structured_config(dest_ref_type)
-                        and src_selected_ref_type is dest_ref_type
-                    )
-                    source_is_mapping = src_union_value._metadata.object_type is dict
-                    source_is_untyped_mapping = (
-                        source_is_mapping
-                        and src_union_value._metadata.ref_type is Any
-                        and src_union_value._metadata.key_type is Any
-                        and src_union_value._metadata.element_type is Any
-                    )
-                    union_has_dict_branch = any(
-                        is_dict_annotation(t) for t in union_ref_type.__args__
-                    )
-                    merge_into_selected_structured = is_structured_config(
-                        dest_ref_type
-                    ) and (
-                        source_is_same_structured_branch
-                        or source_is_untyped_mapping
-                        or (source_is_mapping and not union_has_dict_branch)
-                    )
-
-                if merge_into_selected_structured:
-                    assert isinstance(selected_union_value, DictConfig)
-                    assert isinstance(src_union_value, DictConfig)
-                    selected_union_value._merge_with(
-                        src_union_value,
+                if isinstance(dest_node, UnionNode):
+                    dest_node._merge_with(
+                        src_node,
                         _allow_readonly_target=_allow_readonly_target,
                     )
                 elif isinstance(dest_node, BaseContainer):
@@ -554,7 +516,7 @@ class BaseContainer(Container, ABC):
                     if isinstance(src_node, BaseContainer):
                         dest.__setitem__(key, src_node)
                     else:
-                        assert isinstance(dest_node, (ValueNode, UnionNode))
+                        assert isinstance(dest_node, ValueNode)
                         assert isinstance(src_node, (ValueNode, UnionNode))
                         try:
                             if isinstance(dest_node, AnyNode):
@@ -990,9 +952,6 @@ class BaseContainer(Container, ABC):
             cur_type: Any,
             key: DictKeyType | int | slice | None,
         ) -> str:
-            if key is None:
-                return full_key
-
             if isinstance(key, slice):
                 key = _slice_to_str(key)
             elif isinstance(key, Enum):
@@ -1030,20 +989,27 @@ class BaseContainer(Container, ABC):
                 full_key = prepand("", type(cur), None, key)
                 if cur._key() is not None:
                     full_key = prepand(
-                        full_key, type(cur._get_parent()), type(cur), cur._key()
+                        full_key,
+                        type(cur._get_parent_container()),
+                        type(cur),
+                        cur._key(),
                     )
             else:
-                full_key = prepand("", type(cur._get_parent()), type(cur), cur._key())
+                full_key = prepand(
+                    "", type(cur._get_parent_container()), type(cur), cur._key()
+                )
         else:
             cur = self
             if cur._key() is None:
                 return ""
-            full_key = self._key()
+            full_key = prepand(
+                "", type(cur._get_parent_container()), type(cur), cur._key()
+            )
 
         assert cur is not None
         memo = {id(cur)}  # remember already visited nodes so as to detect cycles
-        while cur._get_parent() is not None:
-            cur = cur._get_parent()
+        while cur._get_parent_container() is not None:
+            cur = cur._get_parent_container()
             if id(cur) in memo:
                 raise ConfigCycleDetectedException(
                     f"Cycle when iterating over parents of key `{key!s}`"
@@ -1052,7 +1018,7 @@ class BaseContainer(Container, ABC):
             assert cur is not None
             if cur._key() is not None:
                 full_key = prepand(
-                    full_key, type(cur._get_parent()), type(cur), cur._key()
+                    full_key, type(cur._get_parent_container()), type(cur), cur._key()
                 )
 
         return full_key

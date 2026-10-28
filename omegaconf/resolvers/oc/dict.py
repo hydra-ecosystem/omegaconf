@@ -1,6 +1,7 @@
 from typing import Any, List
 
 from omegaconf import AnyNode, Container, DictConfig, ListConfig
+from omegaconf._key_path import _escape_key, split_key
 from omegaconf._utils import Marker
 from omegaconf.basecontainer import BaseContainer
 from omegaconf.errors import ConfigKeyError
@@ -35,10 +36,19 @@ def values(key: str, _root_: BaseContainer, _parent_: Container) -> ListConfig:
     assert isinstance(content, dict)
 
     ret = ListConfig([])
-    if key.startswith("."):
-        key = f".{key}"  # extra dot to compensate for extra level of nesting within ret ListConfig
+    relative_dots = len(key) - len(key.lstrip("."))
+    path = key[relative_dots:]
+    path_parts = split_key(path) if path else []
+    escaped_path = "".join(
+        ("." if i else "") + _escape_key(part) if part else "[]"
+        for i, part in enumerate(path_parts)
+    )
+    # Compensate for the extra level of nesting within the returned ListConfig.
+    prefix = "." * (relative_dots + 1) if relative_dots else ""
     for k in content:
-        ref_node = AnyNode(f"${{{key}.{k!s}}}")
+        escaped_key = _escape_key(str(k))
+        suffix = ("." if escaped_path else "") + escaped_key if escaped_key else "[]"
+        ref_node = AnyNode(f"${{{prefix}{escaped_path}{suffix}}}")
         ret.append(ref_node)
 
     # Finalize result by setting proper type and parent.

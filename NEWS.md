@@ -1,3 +1,19 @@
+## 2.4.1rc2 (2026-10-28)
+
+
+### Bug Fixes
+
+- Escape special characters and preserve empty string keys in paths returned by `OmegaConf.missing_keys()`, preventing path collisions and updates to the wrong entry. ([#1423](https://github.com/hydra-ecosystem/omegaconf/issues/1423))
+- Preserve literal string keys and source paths in oc.dict.values(), including empty keys, whitespace and interpolation-like text. Interpolation key paths now support empty brackets and escaping spaces, tabs, braces, parentheses and quotes. ([#1424](https://github.com/hydra-ecosystem/omegaconf/issues/1424))
+- Preserve literal brackets and backslashes in keys selected by nested bracket interpolation, preventing reads and alias updates from targeting the wrong entry. ([#1425](https://github.com/hydra-ecosystem/omegaconf/issues/1425))
+- Malformed key paths no longer select or update a prefix. OmegaConf.select() and oc.select return explicit defaults for malformed paths. Dotlist and CLI paths are checked before any entry is applied. ([#1426](https://github.com/hydra-ecosystem/omegaconf/issues/1426))
+- Fix logical keys and paths for values selected by union-typed fields. ([#1442](https://github.com/hydra-ecosystem/omegaconf/issues/1442))
+- Fix direct merges into union-typed configuration values. ([#1443](https://github.com/hydra-ecosystem/omegaconf/issues/1443))
+
+### API changes and deprecations
+
+- Align key-segment escaping in `select()`, `update()`, and dotlists with interpolation paths. Escape a literal backslash as `\\` and a literal colon as `\:`. Existing paths that preserved these backslashes must use the new escaped spellings. Paths from `missing_keys()` use the same rules. ([#1427](https://github.com/hydra-ecosystem/omegaconf/issues/1427))
+
 ## 2.4.0 (2026-10-09)
 
 ### Introduction

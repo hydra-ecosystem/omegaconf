@@ -92,6 +92,21 @@ changes the referenced container and leaves the interpolation intact.
 
 ### Key paths
 
+Malformed paths, such as `a[b` or `a[b]junk`, raise `GrammarParseError` in
+`select()` unless an explicit default is supplied. With a default,
+`select()` returns that default for malformed paths and paths that cannot be
+found. `update()` raises before changing the config. `can_select()` returns
+`False` for malformed paths.
+
+```python
+>>> cfg = OmegaConf.create({"a": {"b": 10}})
+>>> OmegaConf.select(cfg, "missing[b", default=None) is None
+True
+>>> OmegaConf.select(cfg, "a[b", default=0)
+0
+
+```
+
 Paths accept dot and bracket notation. In 2.4, backslash-escape dots,
 brackets, or equals signs that belong to the key itself. For example,
 `r"a\.b"` selects one key named `a.b`:
@@ -188,6 +203,9 @@ False
 interpolations that lead to a missing value. It skips custom resolvers by
 default; use `resolve_custom_resolvers=True` when their results must also be
 checked.
+
+Returned paths escape `.`, `[`, `]` and `=` in dictionary key names;
+an empty key (`""`) appears as `[]`.
 
 Use `OmegaConf.is_missing(cfg, "key")` to inspect a config field. In 2.4,
 `OmegaConf.is_missing(value)` also checks a detached value; this matters for

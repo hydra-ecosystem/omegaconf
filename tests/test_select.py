@@ -6,7 +6,11 @@ from pytest import mark, param, raises, warns
 from omegaconf import DictConfig, ListConfig, MissingMandatoryValue, OmegaConf
 from omegaconf._impl import select_value
 from omegaconf._utils import _ensure_container
-from omegaconf.errors import InterpolationKeyError
+from omegaconf.errors import (
+    GrammarParseError,
+    InterpolationKeyError,
+    InterpolationResolutionError,
+)
 from tests import Color
 
 
@@ -76,8 +80,8 @@ class TestSelect:
             param({"a.b": 1}, r"a\.b", 1, id="key:dot"),
             param({"a[0]": 1}, r"a\[0\]", 1, id="key:brackets"),
             param({"a]b": 1}, r"a\]b", 1, id="key:close-bracket"),
-            param({r"a\.b": 1}, r"a\\.b", 1, id="key:backslash-dot"),
-            param({r"a\:b": 1}, r"a\:b", 1, id="key:backslash-colon"),
+            param({r"a\.b": 1}, r"a\\\.b", 1, id="key:backslash-dot"),
+            param({r"a\:b": 1}, r"a\\\:b", 1, id="key:backslash-colon"),
             param({"x": {"a.b": 1}}, r"x.a\.b", 1, id="key:nested:dot"),
             param({"x": {"a[0]": 1}}, r"x.a\[0\]", 1, id="key:nested:brackets"),
             param({"a=b": 1}, r"a\=b", 1, id="key:equals"),
@@ -236,6 +240,18 @@ class TestSelect:
         # throw on resolution failure still throws if default is provided
         with raises(InterpolationKeyError):
             OmegaConf.select(cfg, key, default=123, throw_on_resolution_failure=True)
+
+    def test_select_default_does_not_hide_resolver_grammar_error(
+        self, restore_resolvers: Any, struct: Optional[bool]
+    ) -> None:
+        def invalid_value() -> None:
+            raise GrammarParseError("invalid resolver value")
+
+        OmegaConf.register_resolver("invalid_value", invalid_value)
+        cfg = OmegaConf.create({"a": "${invalid_value:}"})
+        OmegaConf.set_struct(cfg, struct)
+        with raises(InterpolationResolutionError, match="invalid resolver value"):
+            OmegaConf.select(cfg, "a", default=None)
 
     @mark.parametrize(
         ("cfg", "node_key", "expected"),

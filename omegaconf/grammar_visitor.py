@@ -1,11 +1,10 @@
-import re
 import sys
 import warnings
 from collections.abc import Callable, Generator
 from itertools import zip_longest
 from typing import TYPE_CHECKING, Any, NoReturn, cast
 
-from ._key_path import NodeInterpolationKey, split_key
+from ._key_path import NodeInterpolationKey, _unescape_key, split_key
 from ._missing import _decode_missing_escape, _EscapedMissing, _has_missing_spelling
 from .errors import InterpolationResolutionError
 from .vendor.antlr4 import TerminalNode  # type: ignore[attr-defined]
@@ -99,7 +98,7 @@ class GrammarVisitor(OmegaConfGrammarParserVisitor):
                 str,
             )
             text = child.symbol.text  # type: ignore[attr-defined]
-            return re.sub(r"\\([\\.\[\]:=])", r"\1", text)
+            return _unescape_key(text)
 
     def visitConfigValue(self, ctx: OmegaConfGrammarParser.ConfigValueContext) -> Any:
         # text EOF
@@ -143,8 +142,8 @@ class GrammarVisitor(OmegaConfGrammarParserVisitor):
     ) -> "Node | None":
         # INTER_OPEN
         # DOT*                                                     // relative interpolation?
-        # (configKey | BRACKET_OPEN configKey BRACKET_CLOSE)       // foo, [foo]
-        # (DOT configKey | BRACKET_OPEN configKey BRACKET_CLOSE)*  // .foo, [foo], .foo[bar], [foo].bar[baz]
+        # (configKey | BRACKET_OPEN configKey? BRACKET_CLOSE)       // foo, [foo], []
+        # (DOT configKey | BRACKET_OPEN configKey? BRACKET_CLOSE)*  // .foo, [foo], .foo[bar], [foo].bar[baz]
         # INTER_CLOSE;
 
         assert ctx.getChildCount() >= 3
@@ -154,6 +153,7 @@ class GrammarVisitor(OmegaConfGrammarParserVisitor):
         relative_dots = 0
         first_key = True
         in_brackets = False
+        empty_brackets = False
         for child in ctx.getChildren():
             if isinstance(child, TerminalNode):
                 s = child.symbol  # type: ignore[attr-defined]
@@ -167,7 +167,11 @@ class GrammarVisitor(OmegaConfGrammarParserVisitor):
                         relative_dots += 1
                     if s.type == OmegaConfGrammarLexer.BRACKET_OPEN:
                         in_brackets = True
+                        empty_brackets = True
                     elif s.type == OmegaConfGrammarLexer.BRACKET_CLOSE:
+                        if empty_brackets:
+                            parts.append("")
+                            first_key = False
                         in_brackets = False
                 else:
                     assert s.type in (
@@ -177,13 +181,12 @@ class GrammarVisitor(OmegaConfGrammarParserVisitor):
             else:
                 assert isinstance(child, OmegaConfGrammarParser.ConfigKeyContext)
                 value = self.visitConfigKey(child)
+                empty_brackets = False
                 if isinstance(
                     child.getChild(0), OmegaConfGrammarParser.InterpolationContext
                 ):
                     inter_key_tokens.append(value)
-                    expanded = (
-                        split_key(f"[{value}]") if in_brackets else split_key(value)
-                    )
+                    expanded = [value] if in_brackets else split_key(value)
                     if first_key and not in_brackets:
                         leading_dots = len(value) - len(value.lstrip("."))
                         relative_dots += leading_dots

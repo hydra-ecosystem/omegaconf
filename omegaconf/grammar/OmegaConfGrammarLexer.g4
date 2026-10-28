@@ -93,7 +93,7 @@ INTER_ID: ID -> type(ID);
 // is ok to "consume" all '$' characters within the `INTER_KEY` token.
 // A doubled backslash is literal; one backslash escapes a key delimiter.
 // Keeping path separators as separate tokens preserves segment boundaries.
-INTER_KEY: (~[\\{}()[\]:. \t'"] | '\\\\' | '\\.' | '\\[' | '\\]' | '\\:' | '\\=')+;
+INTER_KEY: (~[\\{}()[\]:. \t'"] | '\\' [\\.[\]:={}()'" \t])+;
 
 
 ////////////////////////

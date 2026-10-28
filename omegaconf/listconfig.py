@@ -310,7 +310,7 @@ class ListConfig(BaseContainer, MutableSequence[Any]):
             node = self._get_node(i)
             if node is not None:
                 assert isinstance(node, Node)
-                node._metadata.key = i
+                node._set_key(i)
 
     @_warn_on_conversion
     def insert(self, index: int, item: Any) -> None:

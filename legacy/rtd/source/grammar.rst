@@ -53,14 +53,19 @@ This is reflected in the following parser rules:
         interpolationNode:
             INTER_OPEN  // ${
             DOT* 
-            (configKey | BRACKET_OPEN configKey BRACKET_CLOSE)
-            (DOT configKey | BRACKET_OPEN configKey BRACKET_CLOSE)*
+            (configKey | BRACKET_OPEN configKey? BRACKET_CLOSE)
+            (DOT configKey | BRACKET_OPEN configKey? BRACKET_CLOSE)*
             INTER_CLOSE;  // }
 
         interpolationResolver:
             INTER_OPEN  // ${
             resolverName COLON sequence?
             BRACE_CLOSE;  // }
+
+Use ``[]`` for an empty string key, for example ``${mapping[]}``.
+Within interpolation key names, backslashes can escape spaces, tabs, braces,
+parentheses and quotes as well as path punctuation. For example, ``${a\ b}``
+selects ``a b`` and ``${$\{target\}}`` selects the literal key ``${target}``.
 
 The following are all valid examples of config node interpolations according to the ``interpolationNode`` rule
 (note in particular that it supports both dot and bracket notations to access child nodes):

@@ -31,7 +31,7 @@ import yaml
 
 from . import DictConfig, DictKeyType, ListConfig
 from ._conversion_warnings import _suppress_conversion_warnings
-from ._key_path import split_key
+from ._key_path import _escape_key, split_key
 from ._missing import _decode_missing_escape
 from ._utils import (
     _DEFAULT_MARKER_,
@@ -66,6 +66,7 @@ from .basecontainer import BaseContainer
 from .errors import (
     ConfigKeyError,
     ConfigTypeError,
+    GrammarParseError,
     InterpolationKeyError,
     InterpolationResolutionError,
     InterpolationToMissingValueError,
@@ -513,13 +514,21 @@ class OmegaConf:
         it is the key path; everything after it is the value.  Key paths follow
         the same dot/bracket syntax as :meth:`select` and :meth:`update`.
 
+        Malformed key paths raise :class:`~omegaconf.errors.GrammarParseError`.
+        All key paths are checked before any entry is applied.
+
         **Backslash escaping in keys:**
         Use a backslash to include a literal special character in a key name.
-        The escapable characters are ``.``, ``[``, ``]``, and ``=``.
+        Recognized escapes match :meth:`select`: backslashes, dots, brackets,
+        colons, equals, braces, parentheses, quotes, spaces, and tabs.
+        Two backslashes encode one literal backslash. Unknown escapes retain
+        the backslash.
 
         - ``r"a\.b=1"``    — key is ``"a.b"`` (dot is part of the key)
         - ``r"a\=b=1"``    — key is ``"a=b"`` (``=`` is part of the key;
           the second ``=`` is the key/value separator)
+        - ``r"a\:b=1"``    — key is ``"a:b"``
+        - ``r"a\\.b=1"``  — key ``"a\\"`` contains child ``"b"``
 
         Values may contain ``=`` freely; only the first unescaped ``=`` separates
         key from value (e.g. ``"url=http://x?a=1"`` gives key ``url``,
@@ -1339,19 +1348,26 @@ class OmegaConf:
         The key path uses dot notation (``"a.b.c"``) or bracket notation
         (``"a[b][c]"``), or a mix of both.
 
-        **Keys containing special characters** (``.``, ``[``, ``]``, ``=``)
-        can be expressed by escaping them with a backslash:
+        Key segments can escape backslashes, dots, brackets, colons, equals,
+        braces, parentheses, quotes, spaces, and tabs with a backslash:
 
         - ``r"a\.b"``   — selects the key ``"a.b"`` (single key with a literal dot)
         - ``r"a\[0\]"`` — selects the key ``"a[0]"``
         - ``r"a\=b"``   — selects the key ``"a=b"``
+        - ``r"a\:b"``   — selects the key ``"a:b"``
+        - ``r"a\ b"``   — selects the key ``"a b"``
 
-        A backslash before any other character passes through unchanged
-        (``r"a\b"`` selects the key ``"a\\b"`` — a backslash followed by ``b``).
+        Two backslashes encode one literal backslash. A following unescaped
+        dot or bracket still separates path components.
+        Unknown escapes pass through unchanged (``r"a\b"`` selects the key
+        ``r"a\b"`` — a backslash followed by ``b``).
+
+        Malformed paths return the explicitly supplied default, or raise
+        ``GrammarParseError`` when no default is supplied.
 
         :param cfg: Config node to select from
         :param key: Key path to select (dot/bracket notation, backslash-escapable)
-        :param default: Default value to return if key is not found
+        :param default: Default value to return if key is not found or its path is malformed
         :param throw_on_resolution_failure: Raise an exception if an interpolation
                resolution error occurs, otherwise return None
         :param throw_on_missing: Raise an exception if an attempt to select a missing key (with the value '???')
@@ -1369,6 +1385,8 @@ class OmegaConf:
                 throw_on_missing=throw_on_missing,
             )
         except Exception as e:
+            if isinstance(e, GrammarParseError) and default is not _DEFAULT_MARKER_:
+                return default
             format_and_raise(node=cfg, key=key, value=None, cause=e, msg=str(e))
 
     @staticmethod
@@ -1387,12 +1405,21 @@ class OmegaConf:
         The key path uses dot notation (``"a.b.c"``) or bracket notation
         (``"a[b][c]"``), or a mix of both.
 
-        **Keys containing special characters** (``.``, ``[``, ``]``, ``=``)
-        can be expressed by escaping them with a backslash:
+        Key segments use the same backslash escapes as :meth:`select`:
+        backslashes, dots, brackets, colons, equals, braces, parentheses,
+        quotes, spaces, and tabs.
 
         - ``r"a\.b"``   — targets the key ``"a.b"`` (single key with a literal dot)
         - ``r"a\[0\]"`` — targets the key ``"a[0]"``
         - ``r"a\=b"``   — targets the key ``"a=b"``
+        - ``r"a\:b"``   — targets the key ``"a:b"``
+        - ``r"a\\.b"``  — targets child ``"b"`` under key ``"a\\"``
+
+        Two backslashes encode one literal backslash. A following unescaped
+        dot or bracket still separates path components. Unknown escapes
+        retain the backslash.
+
+        Malformed paths raise ``GrammarParseError`` before changing the config.
 
         :param cfg: input config to update
         :param key: key path to update (dot/bracket notation, backslash-escapable)
@@ -1529,6 +1556,13 @@ class OmegaConf:
         """
         Returns a set of missing keys in a dotlist style.
 
+        Dictionary key segments use the same backslash escaping as ``select``
+        and interpolation paths. An empty dictionary key (``""``) uses ``[]``
+        in a returned path. For example, an empty key under ``outer`` has the
+        path ``outer[]``. Paths remain rooted at the config root when called on
+        a subtree. Escaping follows the existing key path rules; it does not
+        extend the supported key types or path syntax.
+
         Node interpolations that dereference missing values are reported as missing
         keys, whether they are the full value or part of a string.
 
@@ -1580,6 +1614,24 @@ class OmegaConf:
                 )
             return False
 
+        def missing_key(node: Node) -> str:
+            # Build a machine path from raw metadata, rather than the diagnostic
+            # full-key formatter, which deliberately leaves key names unescaped.
+            parts: list[str] = []
+            while (parent := node._get_parent()) is not None:
+                key = node._key()
+                if isinstance(parent, UnionNode):
+                    # UnionNode is a transparent wrapper around its concrete child.
+                    pass
+                elif isinstance(parent, (ListConfig, TupleConfig)):
+                    parts.append(f"[{key}]")
+                else:
+                    key = key.name if isinstance(key, Enum) else str(key)
+                    escaped = _escape_key(key)
+                    parts.append(f".{escaped}" if key else "[]")
+                node = parent
+            return "".join(reversed(parts)).removeprefix(".")
+
         def gather(_cfg: Container) -> None:
             itr: Iterable[Any]
             if isinstance(_cfg, (ListConfig, TupleConfig)):
@@ -1591,7 +1643,7 @@ class OmegaConf:
                 node = _cfg._get_child(key)
                 assert isinstance(node, Node)
                 if node._is_missing():
-                    missings.add(_cfg._get_full_key(key))
+                    missings.add(missing_key(node))
                 elif (
                     not resolve_custom_resolvers
                     and node._is_interpolation()
@@ -1603,7 +1655,7 @@ class OmegaConf:
                         value = _cfg[key]
                     except InterpolationResolutionError as exc:
                         if is_missing_value_error(exc):
-                            missings.add(_cfg._get_full_key(key))
+                            missings.add(missing_key(node))
                         else:
                             raise
                     else:

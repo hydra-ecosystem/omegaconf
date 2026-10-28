@@ -136,5 +136,5 @@ class ConfigCycleDetectedException(OmegaConfBaseException):
 
 class GrammarParseError(OmegaConfBaseException):
     """
-    Thrown when failing to parse an expression according to the ANTLR grammar.
+    Thrown when failing to parse an expression or config key path.
     """

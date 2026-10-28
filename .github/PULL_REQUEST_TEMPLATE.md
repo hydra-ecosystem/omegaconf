@@ -1,5 +1,11 @@
 <!-- Thank you for sending a PR and taking the time to improve OmegaConf -->
 
+## Maintainer agreement
+
+**Has a maintainer agreed that you can take this issue on?**
+
+Link to that conversation:
+
 ## Motivation
 
 (Write your motivation for proposed changes here.)
@@ -7,11 +13,6 @@
 ### Have you read the [Contributing Guidelines on pull requests](https://github.com/hydra-ecosystem/omegaconf/blob/main/CONTRIBUTING.md)?
 
 Yes/No
-
-### For any non-trivial change: is there an issue or design discussion where maintainers agreed on the direction?
-
-(Link to the issue or discussion. Pull requests without prior design alignment
-may be redirected to discussion before implementation review.)
 
 ## Test Plan
 

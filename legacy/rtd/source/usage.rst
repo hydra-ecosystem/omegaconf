@@ -168,6 +168,8 @@ From a dot-list
 Each entry is a ``"key=value"`` string.  The key path uses dot/bracket notation.
 Keys that contain literal dots, brackets, or ``=`` can be escaped with a backslash
 (see :ref:`keypath-escaping`).
+Malformed key paths raise ``GrammarParseError``. Dotlist and CLI updates check
+every key path before applying any entry.
 
 .. doctest::
 
@@ -917,6 +919,8 @@ OmegaConf.select
 Keys containing literal dots, brackets, or ``=`` can be escaped with a backslash (see :ref:`keypath-escaping`).
 String path elements that represent integers can also select integer dictionary
 keys, consistent with integer list-index selection.
+Malformed paths return the explicitly supplied default, or raise
+``GrammarParseError`` when no default is supplied.
 
 .. doctest::
 
@@ -989,6 +993,7 @@ Keys containing literal dots, brackets, or ``=`` can be escaped with a backslash
 The merge flag controls the behavior if the input is a ``dict`` or a ``list``.
 If ``merge=True`` true (the default), dicts and lists are merged instead of being assigned.
 The ``force_add`` flag ensures that the path is created even if it will result in insertion of new values into struct nodes.
+Malformed paths raise ``GrammarParseError`` before any config change.
 
 .. doctest::
 
@@ -1030,8 +1035,8 @@ Key path escaping
 ``OmegaConf.select``, ``OmegaConf.update``, ``OmegaConf.from_dotlist``, and
 ``OmegaConf.from_cli`` all parse the key path through the same engine.  YAML
 allows keys to contain any character, including the delimiters that OmegaConf
-uses in key paths (``.``, ``[``, ``]``, ``=``).  Use a backslash to include
-these characters literally in a key name:
+uses in key paths (``.``, ``[``, ``]``, ``=``). Key segments use the same
+backslash escapes as interpolation paths:
 
 .. list-table::
    :header-rows: 1
@@ -1052,6 +1057,15 @@ these characters literally in a key name:
    * - ``\=``
      - ``=``
      - Useful in ``from_dotlist`` keys that contain ``=``
+   * - ``\\``
+     - One backslash
+     - A following unescaped dot or bracket still separates path components
+   * - ``\:``
+     - ``:``
+     - Matches escaping in interpolation paths
+   * - Backslash before a brace, parenthesis, quote, space, or tab
+     - The following character
+     - Matches escaping in interpolation paths
    * - ``\x`` (any other char)
      - ``\x``
      - Passthrough: backslash + character unchanged
@@ -1066,6 +1080,19 @@ these characters literally in a key name:
     99
     >>> OmegaConf.select(cfg, r"x.a\[0\]")
     20
+    >>> cfg = OmegaConf.create({"a:b": 10, "a\\": {"b": 20}, r"a\.b": 30})
+    >>> OmegaConf.select(cfg, r"a\:b")
+    10
+    >>> OmegaConf.select(cfg, r"a\\.b")
+    20
+    >>> OmegaConf.select(cfg, r"a\\\.b")
+    30
+
+In 2.4.1, key-path decoding now matches interpolation escaping. Existing
+paths that relied on preserving backslashes before recognized escape characters
+must use the new spellings. For example, use ``r"a\\\.b"`` instead of
+``r"a\\.b"`` for the single key ``a\.b``, and ``r"a\\\:b"`` instead of
+``r"a\:b"`` for the single key ``a\:b``. Raw dictionary indexing is unchanged.
 
 For ``from_dotlist`` and ``from_cli``, the ``=`` in the key must also be
 escaped so that it is not mistaken for the key/value separator:

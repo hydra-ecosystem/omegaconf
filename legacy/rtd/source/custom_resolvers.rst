@@ -419,6 +419,9 @@ oc.select
 ^^^^^^^^^
 ``oc.select`` enables selection similar to that performed with node interpolation, but is a bit more flexible.
 Using ``oc.select``, you can provide a default value to use in case the primary interpolation key is not found.
+Like ``OmegaConf.select()``, an explicit default is also returned for malformed
+paths. Without a default, malformed paths raise an interpolation resolution
+error. Errors resolving an existing value still raise.
 The following example uses "/tmp" as the default value for the node output:
 
 .. doctest::
@@ -489,6 +492,11 @@ view of a ``DictConfig``'s keys or values as a list,
 with behavior analogous to the ``dict.keys`` and ``dict.values`` methods in plain Python dictionaries.
 These resolvers take as input a string that is the path to another config node (using the same syntax
 as interpolations), and they return a ``ListConfig`` that contains keys or values of the node whose path was given.
+Dictionary key strings are stored literally: a key named ``"${target}"``
+keeps those exact characters. OmegaConf resolves interpolation syntax in
+values, not in dictionary key strings. ``oc.dict.values`` preserves these
+literal keys, including empty keys, spaces and punctuation. The source path
+is also escaped before it is reused in a reference.
 
 .. doctest::
 
