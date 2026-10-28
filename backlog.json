@@ -1,6 +1,6 @@
 {
   "generated_on": "2026-10-28",
-  "generated_at": "2026-10-28T09:57:04Z",
+  "generated_at": "2026-10-28T13:56:03Z",
   "repo": "hydra-ecosystem/omegaconf",
   "summary": {
     "open_total": 29,
@@ -810,6 +810,24 @@
       "url": "https://github.com/hydra-ecosystem/omegaconf/issues/1427"
     },
     {
+      "number": 1442,
+      "title": "Keep logical keys and paths consistent for union members",
+      "category": "Enhancement",
+      "category_emoji": "✨",
+      "status": "done",
+      "status_emoji": "✅",
+      "prs": [
+        {
+          "number": 1445,
+          "url": "https://github.com/hydra-ecosystem/omegaconf/pull/1445"
+        }
+      ],
+      "created": "2026-10-27",
+      "updated": "2026-10-27",
+      "labels": [],
+      "url": "https://github.com/hydra-ecosystem/omegaconf/issues/1442"
+    },
+    {
       "number": 1443,
       "title": "Allow direct UnionNode merges to reuse branch-selection rules",
       "category": "Enhancement",
@@ -830,24 +848,6 @@
       "updated": "2026-10-27",
       "labels": [],
       "url": "https://github.com/hydra-ecosystem/omegaconf/issues/1443"
-    },
-    {
-      "number": 1442,
-      "title": "Keep logical keys and paths consistent for union members",
-      "category": "Enhancement",
-      "category_emoji": "✨",
-      "status": "done",
-      "status_emoji": "✅",
-      "prs": [
-        {
-          "number": 1445,
-          "url": "https://github.com/hydra-ecosystem/omegaconf/pull/1445"
-        }
-      ],
-      "created": "2026-10-27",
-      "updated": "2026-10-27",
-      "labels": [],
-      "url": "https://github.com/hydra-ecosystem/omegaconf/issues/1442"
     }
   ],
   "updates": [
