@@ -15,10 +15,11 @@
     "1425": "2026-10-15",
     "1426": "2026-10-16",
     "1427": "2026-10-16",
+    "1442": "2026-10-28",
     "1443": "2026-10-28",
     "459": "2026-09-25"
   },
-  "generated_at": "2026-10-28T09:49:55Z",
+  "generated_at": "2026-10-28T09:57:04Z",
   "issues": {
     "1024": {
       "category": "Enhancement",
@@ -323,18 +324,6 @@
       "title": "Support tuple literals in OmegaConf.from_dotlist()",
       "updated_at": "2026-10-27T12:54:52Z"
     },
-    "1442": {
-      "category": "Enhancement",
-      "created_at": "2026-10-27T21:22:09Z",
-      "labels": [],
-      "pr_numbers": [
-        "1445"
-      ],
-      "state": "OPEN",
-      "status": "in progress",
-      "title": "Keep logical keys and paths consistent for union members",
-      "updated_at": "2026-10-27T21:22:09Z"
-    },
     "537": {
       "category": "Refactor",
       "created_at": "2021-02-11T01:05:19Z",
@@ -590,6 +579,18 @@
       "status": "done",
       "title": "Define compatible escaping and addressability guarantees for generated key paths",
       "updated_at": "2026-10-14T21:42:28Z"
+    },
+    "1442": {
+      "category": "Enhancement",
+      "created_at": "2026-10-27T21:22:09Z",
+      "labels": [],
+      "pr_numbers": [
+        "1445"
+      ],
+      "state": "CLOSED",
+      "status": "done",
+      "title": "Keep logical keys and paths consistent for union members",
+      "updated_at": "2026-10-27T21:22:09Z"
     },
     "1443": {
       "category": "Enhancement",
