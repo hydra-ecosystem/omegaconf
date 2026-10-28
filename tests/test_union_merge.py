@@ -171,6 +171,64 @@ def test_direct_union_merge_respects_readonly() -> None:
 
 
 @mark.parametrize("direct", [False, True])
+@mark.parametrize("child_readonly", [False, True])
+@mark.parametrize("empty", [False, True])
+def test_union_merge_obeys_selected_child_readonly(
+    direct: bool, child_readonly: bool, empty: bool
+) -> None:
+    parent = OmegaConf.structured(PetWithDefaultConfig)
+    OmegaConf.set_readonly(parent, True)
+    OmegaConf.set_readonly(parent.pet, child_readonly)
+    source = OmegaConf.create({} if empty else {"name": "Fido"})
+
+    def merge() -> None:
+        if direct:
+            node = parent._get_node("pet")
+            assert isinstance(node, UnionNode)
+            node._merge_with(source)
+        else:
+            parent.merge_with({"pet": source})
+
+    if child_readonly and not empty:
+        with raises(ReadonlyConfigError):
+            merge()
+    else:
+        merge()
+
+    expected_name = "Rex" if child_readonly or empty else "Fido"
+    assert parent.pet == {"name": expected_name, "breed": "Lab"}
+    assert OmegaConf.is_readonly(parent)
+    assert OmegaConf.is_readonly(parent.pet) is child_readonly
+
+
+@mark.parametrize("direct", [False, True])
+def test_readonly_union_does_not_materialize_writable_interpolation(
+    direct: bool,
+) -> None:
+    @dataclass
+    class Parent:
+        default: Dog = field(default_factory=lambda: Dog(name="Rex", breed="Lab"))
+        pet: Dog | Cat = "${default}"  # type: ignore[assignment]
+
+    parent = OmegaConf.structured(Parent)
+    OmegaConf.set_readonly(parent, True)
+    OmegaConf.set_readonly(parent.default, False)
+    source = OmegaConf.create({"name": "Fido"})
+
+    with raises(ReadonlyConfigError) as error:
+        if direct:
+            node = parent._get_node("pet")
+            assert isinstance(node, UnionNode)
+            node._merge_with(source)
+        else:
+            parent.merge_with({"pet": source})
+
+    assert error.value.full_key == "pet"
+    assert OmegaConf.is_interpolation(parent, "pet")
+    assert parent.default == {"name": "Rex", "breed": "Lab"}
+
+
+@mark.parametrize("direct", [False, True])
 def test_union_merge_preserves_validation_error_context(direct: bool) -> None:
     parent = OmegaConf.structured(PetWithDefaultConfig)
     node = parent._get_node("pet")

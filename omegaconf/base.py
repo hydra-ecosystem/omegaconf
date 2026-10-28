@@ -1168,14 +1168,15 @@ class UnionNode(Box):
         target = self._maybe_dereference_node() if self._is_interpolation() else None
         if source_missing and not isinstance(target, Container):
             return
-        if self._get_flag("readonly") and not _allow_readonly_target:
-            self._format_and_raise(
-                key=None,
-                value=_get_value(other),
-                cause=ReadonlyConfigError("Cannot change read-only config container"),
-            )
-
         if isinstance(target, Container):
+            if self._get_flag("readonly") and not _allow_readonly_target:
+                self._format_and_raise(
+                    key=None,
+                    value=_get_value(other),
+                    cause=ReadonlyConfigError(
+                        "Cannot change read-only config container"
+                    ),
+                )
             if self._get_flag("no_deepcopy_set_nodes"):
                 target = copy.deepcopy(target)
             self._set_value(target)
@@ -1222,6 +1223,10 @@ class UnionNode(Box):
         else:
             value = _get_value(other)
             try:
+                if self._get_flag("readonly") and not _allow_readonly_target:
+                    raise ReadonlyConfigError(
+                        "Cannot change read-only config container"
+                    )
                 self._set_value(value)
             except Exception as e:
                 self._format_and_raise(key=None, value=value, cause=e)
