@@ -18,9 +18,9 @@ A clear and concise description of any alternative solutions or features you've 
 
 **Are you willing to open a pull request?** (See [CONTRIBUTING](https://github.com/hydra-ecosystem/omegaconf/blob/main/CONTRIBUTING.md))
 
-For non-trivial features, API changes, or behavior changes, please wait for
-maintainer feedback on the direction before starting substantial implementation
-work.
+Please open an issue and get maintainer agreement before starting substantial
+work. Only open a PR once a maintainer has agreed that the change is wanted,
+and link to that discussion in your PR.
 
 **Additional context**
 Add any other context or screenshots about the feature request here.
