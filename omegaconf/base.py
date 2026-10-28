@@ -356,9 +356,6 @@ class Node(ABC):
     def _is_interpolation(self) -> bool: ...
 
     def _key(self) -> Any:
-        parent = self._get_parent()
-        if isinstance(parent, UnionNode):
-            return parent._key()
         return self._metadata.key
 
     def _set_key(self, key: Any) -> None:
@@ -1120,6 +1117,12 @@ class UnionNode(Box):
         else:
             return parent._get_full_key(self._metadata.key)
 
+    def _set_key(self, key: Any) -> None:
+        super()._set_key(key)
+        content = self._value()
+        if isinstance(content, Node):
+            content._set_key(key)
+
     def _invalidate_flags_cache(self) -> None:
         if self.__dict__["_flags_cache"] is not None:
             super()._invalidate_flags_cache()
@@ -1229,7 +1232,7 @@ class UnionNode(Box):
                         value=value,
                         ref_type=candidate_ref_type,
                         is_optional=False,
-                        key=None,
+                        key=self._key(),
                         parent=self,
                     )
                     break
@@ -1289,7 +1292,7 @@ class UnionNode(Box):
                     value=value,
                     ref_type=active_ref_type,
                     is_optional=False,
-                    key=None,
+                    key=self._key(),
                     parent=None,
                 )
                 node._set_parent(self)
@@ -1324,7 +1327,7 @@ class UnionNode(Box):
                     value=ref_type,
                     ref_type=ref_type,
                     is_optional=False,
-                    key=None,
+                    key=self._key(),
                     parent=self,
                 )
             else:
@@ -1332,7 +1335,7 @@ class UnionNode(Box):
                     value=value,
                     ref_type=ref_type,
                     is_optional=False,
-                    key=None,
+                    key=self._key(),
                     parent=self,
                 )
             assert isinstance(node, DictConfig)
@@ -1407,7 +1410,7 @@ class UnionNode(Box):
                             value=value,
                             ref_type=candidate_ref_type,
                             is_optional=False,
-                            key=None,
+                            key=self._key(),
                             parent=self,
                         )
                     matches.append(node)
@@ -1432,7 +1435,7 @@ class UnionNode(Box):
                     value=value,
                     ref_type=selected._metadata.ref_type,
                     is_optional=False,
-                    key=None,
+                    key=self._key(),
                     parent=self,
                 )
             self.__dict__["_content"] = selected

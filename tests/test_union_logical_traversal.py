@@ -1,12 +1,13 @@
 import copy
 import pickle
 from dataclasses import dataclass, field
+from typing import Any
 
 from pytest import mark, raises
 
 from omegaconf import OmegaConf, UnionNode
 from omegaconf.base import Node
-from omegaconf.errors import ConfigKeyError
+from omegaconf.errors import ConfigKeyError, ValidationError
 
 
 @dataclass
@@ -41,6 +42,7 @@ def test_selected_union_child_has_logical_key_and_path(placement: str) -> None:
     child = parent._get_child(key)
     assert child._get_parent_container() is parent
     assert child._key() == key
+    assert child._metadata.key == key
     assert parent._get_child(child._key()) is child
     assert child._get_full_key(None) == path
     assert child._get_full_key("lr") == path + ".lr"
@@ -55,6 +57,44 @@ def test_union_key_follows_list_reindexing() -> None:
     assert member._key() == 0
     assert member._get_full_key(None) == "choices[0]"
     assert config.choices._get_child(member._key()) is member
+    config.choices.insert(0, Adam())
+    assert member._key() == 1
+    assert member._get_full_key(None) == "choices[1]"
+    assert config.choices._get_child(member._key()) is member
+
+
+@mark.parametrize(
+    "value,ref_type",
+    [
+        (10, int | str),
+        (Adam(), Adam | SGD),
+        ([1], list[int] | str),
+        ((1,), tuple[int, ...] | str),
+        ({"a": 1}, dict[str, int] | str),
+    ],
+)
+def test_union_assignment_sets_selected_member_key(value: Any, ref_type: Any) -> None:
+    config = OmegaConf.create({"value": UnionNode("???", ref_type)})
+
+    config.value = value
+
+    child = config._get_child("value")
+    assert isinstance(child, Node)
+    assert child._metadata.key == "value"
+    assert child._key() == "value"
+    assert child._get_parent_container() is config
+
+
+def test_union_assignment_error_keeps_logical_path_and_original_member() -> None:
+    config = OmegaConf.structured(Config)
+    original = config.optimizer
+
+    with raises(ValidationError) as error:
+        config.optimizer = {"lr": "invalid"}
+
+    assert error.value.full_key == "optimizer.lr"
+    assert config.optimizer is original
+    assert original._key() == "optimizer"
 
 
 @mark.parametrize("clone", [copy.deepcopy, lambda cfg: pickle.loads(pickle.dumps(cfg))])
