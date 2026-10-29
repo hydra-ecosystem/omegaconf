@@ -1,6 +1,6 @@
 {
   "generated_on": "2026-10-29",
-  "generated_at": "2026-10-29T20:57:32Z",
+  "generated_at": "2026-10-29T21:04:21Z",
   "repo": "hydra-ecosystem/omegaconf",
   "summary": {
     "open_total": 29,
@@ -810,6 +810,19 @@
       "url": "https://github.com/hydra-ecosystem/omegaconf/issues/1427"
     },
     {
+      "number": 1440,
+      "title": "Dataclass fields with `init=False` can't be set by `__post_init__` when using `to_object()`",
+      "category": "Enhancement",
+      "category_emoji": "✨",
+      "status": "done",
+      "status_emoji": "✅",
+      "prs": [],
+      "created": "2026-10-20",
+      "updated": "2026-10-21",
+      "labels": [],
+      "url": "https://github.com/hydra-ecosystem/omegaconf/issues/1440"
+    },
+    {
       "number": 1442,
       "title": "Keep logical keys and paths consistent for union members",
       "category": "Enhancement",
@@ -848,19 +861,6 @@
       "updated": "2026-10-27",
       "labels": [],
       "url": "https://github.com/hydra-ecosystem/omegaconf/issues/1443"
-    },
-    {
-      "number": 1440,
-      "title": "Dataclass fields with `init=False` can't be set by `__post_init__` when using `to_object()`",
-      "category": "Enhancement",
-      "category_emoji": "✨",
-      "status": "done",
-      "status_emoji": "✅",
-      "prs": [],
-      "created": "2026-10-20",
-      "updated": "2026-10-21",
-      "labels": [],
-      "url": "https://github.com/hydra-ecosystem/omegaconf/issues/1440"
     }
   ],
   "updates": [
