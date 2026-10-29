@@ -1,9 +1,9 @@
 {
   "generated_on": "2026-10-29",
-  "generated_at": "2026-10-29T14:03:28Z",
+  "generated_at": "2026-10-29T20:57:32Z",
   "repo": "hydra-ecosystem/omegaconf",
   "summary": {
-    "open_total": 30,
+    "open_total": 29,
     "by_category": [
       {
         "category": "Bug",
@@ -14,14 +14,14 @@
       {
         "category": "Enhancement",
         "emoji": "✨",
-        "count": 26,
-        "percentage": 86.7
+        "count": 25,
+        "percentage": 86.2
       },
       {
         "category": "Documentation",
         "emoji": "📄",
         "count": 1,
-        "percentage": 3.3
+        "percentage": 3.4
       },
       {
         "category": "Question",
@@ -33,13 +33,13 @@
         "category": "Refactor",
         "emoji": "🔧",
         "count": 2,
-        "percentage": 6.7
+        "percentage": 6.9
       },
       {
         "category": "Build",
         "emoji": "🏗️",
         "count": 1,
-        "percentage": 3.3
+        "percentage": 3.4
       }
     ],
     "by_status": [
@@ -61,12 +61,12 @@
       {
         "status": "not started",
         "emoji": "⬜",
-        "count": 30
+        "count": 29
       },
       {
         "status": "done",
         "emoji": "✅",
-        "count": 18
+        "count": 19
       }
     ]
   },
@@ -396,7 +396,7 @@
       "status_emoji": "⬜",
       "prs": [],
       "created": "2026-07-03",
-      "updated": "2026-09-24",
+      "updated": "2026-10-29",
       "labels": [
         "structured config",
         "RFC"
@@ -484,19 +484,6 @@
         "enhancement"
       ],
       "url": "https://github.com/hydra-ecosystem/omegaconf/issues/1419"
-    },
-    {
-      "number": 1440,
-      "title": "Dataclass fields with `init=False` can't be set by `__post_init__` when using `to_object()`",
-      "category": "Enhancement",
-      "category_emoji": "✨",
-      "status": "not started",
-      "status_emoji": "⬜",
-      "prs": [],
-      "created": "2026-10-20",
-      "updated": "2026-10-21",
-      "labels": [],
-      "url": "https://github.com/hydra-ecosystem/omegaconf/issues/1440"
     },
     {
       "number": 1441,
@@ -861,9 +848,29 @@
       "updated": "2026-10-27",
       "labels": [],
       "url": "https://github.com/hydra-ecosystem/omegaconf/issues/1443"
+    },
+    {
+      "number": 1440,
+      "title": "Dataclass fields with `init=False` can't be set by `__post_init__` when using `to_object()`",
+      "category": "Enhancement",
+      "category_emoji": "✨",
+      "status": "done",
+      "status_emoji": "✅",
+      "prs": [],
+      "created": "2026-10-20",
+      "updated": "2026-10-21",
+      "labels": [],
+      "url": "https://github.com/hydra-ecosystem/omegaconf/issues/1440"
     }
   ],
   "updates": [
+    {
+      "ts": "2026-10-29T20:57:32Z",
+      "kind": "closed",
+      "issue": 1440,
+      "issue_url": "https://github.com/hydra-ecosystem/omegaconf/issues/1440",
+      "title": "Dataclass fields with `init=False` can't be set by `__post_init__` when using `to_object()`"
+    },
     {
       "ts": "2026-10-29T08:17:59Z",
       "kind": "new",
@@ -2554,13 +2561,6 @@
         "number": 1344,
         "url": "https://github.com/omry/omegaconf/pull/1344"
       }
-    },
-    {
-      "ts": "2026-07-19T19:35:30Z",
-      "kind": "closed",
-      "issue": 725,
-      "issue_url": "https://github.com/omry/omegaconf/issues/725",
-      "title": "Support assignment of numpy floats to FloatNode"
     }
   ]
 }
