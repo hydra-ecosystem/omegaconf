@@ -1,9 +1,9 @@
 {
-  "generated_on": "2026-10-28",
-  "generated_at": "2026-10-28T13:56:03Z",
+  "generated_on": "2026-10-29",
+  "generated_at": "2026-10-29T08:17:59Z",
   "repo": "hydra-ecosystem/omegaconf",
   "summary": {
-    "open_total": 29,
+    "open_total": 30,
     "by_category": [
       {
         "category": "Bug",
@@ -14,14 +14,14 @@
       {
         "category": "Enhancement",
         "emoji": "✨",
-        "count": 25,
-        "percentage": 86.2
+        "count": 26,
+        "percentage": 86.7
       },
       {
         "category": "Documentation",
         "emoji": "📄",
         "count": 1,
-        "percentage": 3.4
+        "percentage": 3.3
       },
       {
         "category": "Question",
@@ -33,13 +33,13 @@
         "category": "Refactor",
         "emoji": "🔧",
         "count": 2,
-        "percentage": 6.9
+        "percentage": 6.7
       },
       {
         "category": "Build",
         "emoji": "🏗️",
         "count": 1,
-        "percentage": 3.4
+        "percentage": 3.3
       }
     ],
     "by_status": [
@@ -61,7 +61,7 @@
       {
         "status": "not started",
         "emoji": "⬜",
-        "count": 29
+        "count": 30
       },
       {
         "status": "done",
@@ -514,6 +514,19 @@
       "url": "https://github.com/hydra-ecosystem/omegaconf/issues/1441"
     },
     {
+      "number": 1447,
+      "title": "Preserve owning-field semantics when merging updates",
+      "category": "Enhancement",
+      "category_emoji": "✨",
+      "status": "not started",
+      "status_emoji": "⬜",
+      "prs": [],
+      "created": "2026-10-29",
+      "updated": "2026-10-29",
+      "labels": [],
+      "url": "https://github.com/hydra-ecosystem/omegaconf/issues/1447"
+    },
+    {
       "number": 459,
       "title": "Consider deprecating assignment of strings to non-string nodes like IntegerNode / FloatNode",
       "category": "Enhancement",
@@ -851,6 +864,13 @@
     }
   ],
   "updates": [
+    {
+      "ts": "2026-10-29T08:17:59Z",
+      "kind": "new",
+      "issue": 1447,
+      "issue_url": "https://github.com/hydra-ecosystem/omegaconf/issues/1447",
+      "title": "Preserve owning-field semantics when merging updates"
+    },
     {
       "ts": "2026-10-28T09:57:04Z",
       "kind": "closed",
@@ -2541,13 +2561,6 @@
       "issue": 725,
       "issue_url": "https://github.com/omry/omegaconf/issues/725",
       "title": "Support assignment of numpy floats to FloatNode"
-    },
-    {
-      "ts": "2026-07-19T18:58:16Z",
-      "kind": "closed",
-      "issue": 726,
-      "issue_url": "https://github.com/omry/omegaconf/issues/726",
-      "title": "Consistent resolving of interpolations to random resolver values"
     }
   ]
 }

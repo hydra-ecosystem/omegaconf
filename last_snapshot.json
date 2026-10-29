@@ -19,7 +19,7 @@
     "1443": "2026-10-28",
     "459": "2026-09-25"
   },
-  "generated_at": "2026-10-28T13:56:03Z",
+  "generated_at": "2026-10-29T08:17:59Z",
   "issues": {
     "1024": {
       "category": "Enhancement",
@@ -323,6 +323,16 @@
       "status": "not started",
       "title": "Support tuple literals in OmegaConf.from_dotlist()",
       "updated_at": "2026-10-27T12:54:52Z"
+    },
+    "1447": {
+      "category": "Enhancement",
+      "created_at": "2026-10-29T08:16:41Z",
+      "labels": [],
+      "pr_numbers": [],
+      "state": "OPEN",
+      "status": "not started",
+      "title": "Preserve owning-field semantics when merging updates",
+      "updated_at": "2026-10-29T08:17:11Z"
     },
     "537": {
       "category": "Refactor",

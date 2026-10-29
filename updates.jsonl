@@ -285,3 +285,4 @@
 {"ts": "2026-10-28T08:53:39Z", "kind": "closed", "issue": 1443, "issue_url": "https://github.com/hydra-ecosystem/omegaconf/issues/1443", "title": "Allow direct UnionNode merges to reuse branch-selection rules"}
 {"ts": "2026-10-28T08:53:39Z", "kind": "pr", "issue": 1442, "issue_url": "https://github.com/hydra-ecosystem/omegaconf/issues/1442", "title": "Keep logical keys and paths consistent for union members", "detail": "unlinked #1444"}
 {"ts": "2026-10-28T09:57:04Z", "kind": "closed", "issue": 1442, "issue_url": "https://github.com/hydra-ecosystem/omegaconf/issues/1442", "title": "Keep logical keys and paths consistent for union members"}
+{"ts": "2026-10-29T08:17:59Z", "kind": "new", "issue": 1447, "issue_url": "https://github.com/hydra-ecosystem/omegaconf/issues/1447", "title": "Preserve owning-field semantics when merging updates"}
