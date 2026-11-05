@@ -1,0 +1,43 @@
+name: Repair selected Node dependency pins
+
+'on':
+  workflow_dispatch:
+    inputs:
+      request-id:
+        description: Verified request UUID
+        required: true
+        type: string
+      pull-request:
+        description: Managed PR number
+        required: true
+        type: string
+      expected-head:
+        description: Confirmed PR head SHA
+        required: true
+        type: string
+      expected-base:
+        description: Confirmed PR base SHA
+        required: true
+        type: string
+      selections:
+        description: Exact selected items as compact JSON
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  repair:
+    permissions:
+      contents: write
+      pull-requests: write
+      actions: read
+      checks: read
+    uses: hydra-ecosystem/github-actions/.github/workflows/node-repair.yml@v2
+    with:
+      request-id: ${{ inputs['request-id'] }}
+      pull-request: ${{ inputs['pull-request'] }}
+      expected-head: ${{ inputs['expected-head'] }}
+      expected-base: ${{ inputs['expected-base'] }}
+      selections: ${{ inputs.selections }}

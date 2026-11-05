@@ -23,12 +23,14 @@ def test_workflow_calls_coordinator_with_expected_permissions_and_filtered_pushe
     assert set(workflow["jobs"]) == {"maintenance"}
     coordinator = workflow["jobs"]["maintenance"]
     assert coordinator["uses"] == (
-        "hydra-ecosystem/github-actions/.github/workflows/node-maintenance.yml@v1"
+        "hydra-ecosystem/github-actions/.github/workflows/node-maintenance.yml@v2"
     )
     assert coordinator["permissions"] == {
         "contents": "write",
         "pull-requests": "write",
         "issues": "write",
+        "actions": "read",
+        "checks": "read",
     }
     assert coordinator["with"]["audit-kind"] == "${{ inputs.audit-kind || 'auto' }}"
     assert (
@@ -44,6 +46,8 @@ def test_workflow_calls_coordinator_with_expected_permissions_and_filtered_pushe
             "**/pnpm-lock.yaml",
             "**/package-lock.json",
             ".github/node-maintenance.json",
+            "**/.nvmrc",
+            "**/.node-version",
         ],
     }
     assert workflow["concurrency"] == {
@@ -51,6 +55,37 @@ def test_workflow_calls_coordinator_with_expected_permissions_and_filtered_pushe
         "cancel-in-progress": False,
         "queue": "max",
     }
+    repair = yaml.safe_load(
+        (root / ".github/workflows/dependency-repair.yml").read_text()
+    )
+    assert repair["permissions"] == {"contents": "read"}
+    events = repair.get("on", repair.get(True))
+    assert set(events) == {"workflow_dispatch"}
+    inputs = {
+        "request-id",
+        "pull-request",
+        "expected-head",
+        "expected-base",
+        "selections",
+    }
+    assert set(events["workflow_dispatch"]["inputs"]) == inputs
+    for specification in events["workflow_dispatch"]["inputs"].values():
+        assert specification["required"] is True
+        assert specification["type"] == "string"
+    assert set(repair["jobs"]) == {"repair"}
+    caller = repair["jobs"]["repair"]
+    assert caller["uses"] == (
+        "hydra-ecosystem/github-actions/.github/workflows/node-repair.yml@v2"
+    )
+    assert caller["permissions"] == {
+        "contents": "write",
+        "pull-requests": "write",
+        "actions": "read",
+        "checks": "read",
+    }
+    assert caller["with"] == {
+        name: "${{ inputs['" + name + "'] }}" for name in inputs - {"selections"}
+    } | {"selections": "${{ inputs.selections }}"}
     deploy = yaml.safe_load((root / ".github/workflows/deploy-docs.yml").read_text())
     events = deploy.get("on", deploy.get(True))
     for event in ("push", "pull_request"):
