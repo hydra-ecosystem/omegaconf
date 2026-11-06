@@ -1,4 +1,5 @@
 import copy
+from dataclasses import make_dataclass
 from typing import Any, Dict, List
 
 from pytest import fixture, mark, param
@@ -56,9 +57,29 @@ def large_dict_config(large_dict: Any) -> Any:
     return OmegaConf.create(large_dict)
 
 
-@fixture(scope="module")
-def merge_data(small_dict: Any) -> Any:
-    return [OmegaConf.create(small_dict) for _ in range(5)]
+@fixture(scope="module", params=["overlap", "sparse", "nested", "structured", "list"])
+def merge_data(request: Any) -> Any:
+    shape = request.param
+    source: Any = {f"key_{i}": i for i in range(1000)}
+    overlay: Any = {f"key_{i}": -i for i in range(1000)}
+    if shape == "sparse":
+        overlay = {"key_500": -1}
+    elif shape == "nested":
+        source = {
+            f"dataset_{i}": {
+                "path": f"data/{i}.csv",
+                "options": {"seed": i, "sep": ","},
+            }
+            for i in range(100)
+        }
+        overlay = {f"dataset_{i}": {"options": {"seed": -i}} for i in range(100)}
+    elif shape == "structured":
+        source = make_dataclass(
+            "BenchmarkSchema", [(f"key_{i}", int, i) for i in range(1000)]
+        )
+    elif shape == "list":
+        source, overlay = list(range(1000)), list(range(1000, 2000))
+    return [OmegaConf.create(source), OmegaConf.create(overlay)]
 
 
 @fixture(scope="module")
@@ -94,7 +115,71 @@ def test_omegaconf_create(data_fixture: str, benchmark: Any, request: Any) -> No
     ],
 )
 def test_omegaconf_merge(merge_function: Any, merge_data: Any, benchmark: Any) -> None:
-    benchmark(merge_function, merge_data)
+    def setup() -> Any:
+        # unsafe_merge consumes its inputs; safe merge uses the same setup.
+        return tuple(copy.deepcopy(merge_data)), {}
+
+    benchmark.pedantic(
+        merge_function, setup=setup, rounds=25, warmup_rounds=5, iterations=1
+    )
+
+
+@mark.parametrize(
+    "operation",
+    [
+        "item",
+        "attribute",
+        "nested_item",
+        "nested_attribute",
+        "string",
+        "container",
+        "list",
+        "get_hit",
+        "get_miss",
+        "reference",
+        "resolver",
+        "select",
+        "structured",
+        "union",
+    ],
+)
+def test_access(operation: str, benchmark: Any) -> None:
+    OmegaConf.register_resolver("benchmark.identity", lambda value: value, replace=True)
+    cfg = OmegaConf.create(
+        {
+            "value": 7,
+            "text": "ordinary string",
+            "model": {"options": {"value": 7}},
+            "items": [7, 8, 9],
+            "reference": "${value}",
+            "resolver": "${benchmark.identity:7}",
+        }
+    )
+    seq = cfg["items"]
+    schema = make_dataclass("AccessSchema", [("value", int, 7)])
+    union_schema = make_dataclass("UnionAccessSchema", [("value", int | str, 7)])
+    typed = OmegaConf.structured(schema)
+    union = OmegaConf.structured(union_schema)
+    operations = {
+        "item": lambda: cfg["value"],
+        "attribute": lambda: cfg.value,
+        "nested_item": lambda: cfg["model"]["options"]["value"],
+        "nested_attribute": lambda: cfg.model.options.value,
+        "string": lambda: cfg["text"],
+        "container": lambda: cfg["model"],
+        "list": lambda: seq[1],
+        "get_hit": lambda: cfg.get("value", -1),
+        "get_miss": lambda: cfg.get("absent", -1),
+        "reference": lambda: cfg["reference"],
+        "resolver": lambda: cfg["resolver"],
+        "select": lambda: OmegaConf.select(cfg, "model.options.value"),
+        "structured": lambda: typed.value,
+        "union": lambda: union.value,
+    }
+    try:
+        benchmark(operations[operation])
+    finally:
+        OmegaConf.clear_resolver("benchmark.identity")
 
 
 @mark.parametrize(
