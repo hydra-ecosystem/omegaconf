@@ -28,6 +28,7 @@ from ._missing import (
     _has_missing_spelling,
 )
 from ._validation_context import _schema_validation
+from ._yaml import get_yaml_loader
 from .errors import (
     ConfigIndexError,
     ConfigTypeError,
@@ -1498,3 +1499,100 @@ def _find_eq(s: str) -> int:
         else:
             i += 1
     return -1
+
+
+def _split_top_level_commas(s: str) -> list[str] | None:
+    """
+    Split `s` on commas that are not nested inside brackets, braces,
+    parentheses, quotes, or `${...}` interpolations.
+
+    Returns None if brackets or quotes are unbalanced.
+    """
+    parts: list[str] = []
+    stack: list[str] = []
+    quote: str | None = None
+    closers = {"(": ")", "[": "]", "{": "}"}
+    start = 0
+    i = 0
+    n = len(s)
+    while i < n:
+        ch = s[i]
+        if quote is not None:
+            if ch == "\\" and quote == '"':
+                i += 2  # escaped character inside a double-quoted string
+                continue
+            if ch == quote:
+                if quote == "'" and i + 1 < n and s[i + 1] == "'":
+                    i += 2  # '' is an escaped quote in single-quoted YAML
+                    continue
+                quote = None
+            i += 1
+            continue
+        if ch in ("'", '"'):
+            quote = ch
+        elif ch == "\\":
+            i += 2  # escaped character, e.g. \( is a literal parenthesis
+            continue
+        elif ch == "$" and i + 1 < n and s[i + 1] == "{":
+            stack.append("}")
+            i += 2
+            continue
+        elif ch in closers:
+            stack.append(closers[ch])
+        elif ch in (")", "]", "}"):
+            if not stack or stack[-1] != ch:
+                return None
+            stack.pop()
+        elif ch == "," and not stack:
+            parts.append(s[start:i])
+            start = i + 1
+        i += 1
+    if quote is not None or stack:
+        return None
+    parts.append(s[start:])
+    return parts
+
+
+def _parse_tuple_literal(value: str) -> tuple[Any, ...] | None:
+    """
+    Parse an unquoted dotlist value such as ``"(1, 2.0, [3])"`` into a tuple,
+    or return None if `value` is not a tuple literal.
+
+    Used by `merge_with_dotlist` (shared by `from_dotlist` and `from_cli`) so
+    that tuple literals are typed the same way other dotlist values are: each
+    element is parsed as YAML, exactly as the elements of a list literal are.
+    Quoted values never reach this function as tuple literals because their
+    raw spelling does not start with ``(``.
+
+    ``"(x)"`` is a parenthesized value, not a tuple literal, and is left as a
+    string; ``"(x,)"`` is a one-tuple. Malformed input (unbalanced brackets or
+    quotes, empty elements) returns None so the value stays a string.
+    """
+    s = value.strip()
+    if len(s) < 2 or s[0] != "(" or s[-1] != ")":
+        return None
+    inner = s[1:-1]
+    if not inner.strip():
+        return ()
+    stripped = inner.rstrip()
+    has_trailing_comma = stripped.endswith(",")
+    if has_trailing_comma:
+        stripped = stripped[:-1]
+        if not stripped.strip():
+            return None  # "(,)" is not a tuple literal
+    parts = _split_top_level_commas(stripped)
+    if parts is None:
+        return None
+    if len(parts) == 1 and not has_trailing_comma:
+        return None  # "(x)" is not a tuple literal
+    if any(part.strip() == "" for part in parts):
+        return None  # empty element, e.g. "(1,,2)"
+    elements: list[Any] = []
+    for part in parts:
+        part = part.strip()
+        nested = _parse_tuple_literal(part)
+        if nested is not None:
+            elements.append(nested)
+        else:
+            elements.append(yaml.load(part, Loader=get_yaml_loader()))
+    return tuple(elements)
