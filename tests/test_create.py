@@ -237,6 +237,55 @@ def test_cli_passing() -> None:
 def test_dotlist(input_: List[str], expected: Dict[str, Any]) -> None:
     c = OmegaConf.from_dotlist(input_)
     assert c == expected
+    
+@mark.parametrize(
+        "input_,expected",
+    [
+            # tuple literal (issue #1441)
+        (["position_range=(-2.0,2.0)"], (-2.0, 2.0)),
+        (["a=(1, 2, 3)"], (1, 2, 3)),
+        # one-tuple needs a trailing comma
+        (["a=(1,)"], (1,)),
+        # empty tuple
+        (["a=()"], ()),
+        # elements are typed like list elements: strings, bools, null, floats
+        (["a=(hello, world)"], ("hello", "world")),
+        (["a=(true, null, 1.5)"], (True, None, 1.5)),
+        # nested tuples, lists and dicts
+        (["a=((1, 2), (3, 4))"], ((1, 2), (3, 4))),
+        (["a=([1, 2], {b: 3})"], ([1, 2], {"b": 3})),
+        # quoted values remain strings
+        (['a="(-2.0,2.0)"'], "(-2.0,2.0)"),
+        (["a='(1, 2)'"], "(1, 2)"),
+        # a parenthesized value is not a tuple literal
+        (["a=(1)"], "(1)"),
+        (["a=(hello)"], "(hello)"),
+        # malformed input stays a string
+        (["a=(1, 2))"], "(1, 2))"),
+        (["a=(1, 2"], "(1, 2"),
+        (["a=(1,,2)"], "(1,,2)"),
+        (["a=foo(1, 2)"], "foo(1, 2)"),
+    ],
+)
+def test_dotlist_tuple_literals(input_: List[str], expected: Any) -> None:
+    c = OmegaConf.from_dotlist(input_)
+    key = next(iter(c.keys()))
+    value = c[key]
+    assert value == expected
+    assert OmegaConf.is_tuple(value) == isinstance(expected, tuple)
+
+
+def test_dotlist_tuple_literal_from_cli() -> None:
+    c = OmegaConf.from_cli(["a=(1, 2)"])
+    assert c.a == (1, 2)
+    assert OmegaConf.is_tuple(c.a)
+
+
+def test_dotlist_tuple_literal_merge_with_dotlist() -> None:
+    c = OmegaConf.create({"foo": 10})
+    c.merge_with_dotlist(["a=(${foo}, 2)"])
+    assert c.a == (10, 2)
+    assert OmegaConf.is_tuple(c.a)
 
 
 def test_create_list_with_illegal_value_idx0() -> None:
