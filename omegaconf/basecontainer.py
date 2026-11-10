@@ -18,6 +18,7 @@ from ._utils import (
     _is_missing_value,
     _is_none,
     _is_special,
+_parse_tuple_literal,
     _resolve_optional,
     get_structured_config_data,
     get_type_hint,
@@ -248,8 +249,18 @@ class BaseContainer(Container, ABC):
                 value = None
             else:
                 key = arg[0:idx]
-                value = arg[idx + 1 :]
-                value = yaml.load(value, Loader=get_yaml_loader())
+                raw_value = arg[idx + 1 :]
+                # An unquoted tuple literal, e.g. "(-2.0,2.0)", parses as a
+                # string (or, when it contains ": ", as a bogus mapping) by
+                # YAML; parse it as a tuple instead, so that it becomes a
+                # TupleConfig like "[...]" becomes a ListConfig. Quoted
+                # values stay strings: their raw spelling does not start
+                # with "(".
+                tuple_value = _parse_tuple_literal(raw_value)
+                if tuple_value is not None:
+                    value = tuple_value
+else:
+    value = yaml.load(raw_value, Loader=get_yaml_loader())
             OmegaConf.update(self, key, value)
 
     def is_empty(self) -> bool:
