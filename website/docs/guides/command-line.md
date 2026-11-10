@@ -4,8 +4,9 @@ description: Parse key=value overrides and merge them with a base config.
 ---
 
 `OmegaConf.from_dotlist()` parses `key=value` strings. It builds nested
-containers from dotted paths and parses values as YAML. Merge the resulting
-config after your defaults so it wins on conflicts:
+containers from dotted paths and parses values as YAML. Tuple literals such
+as `(-2.0, 2.0)` parse into tuples; quote the value to keep it a string.
+Merge the resulting config after your defaults so it wins on conflicts:
 
 ```python
 >>> from omegaconf import OmegaConf
