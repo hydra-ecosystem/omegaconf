@@ -1,6 +1,6 @@
 {
-  "generated_on": "2026-11-10",
-  "generated_at": "2026-11-10T15:30:05Z",
+  "generated_on": "2026-11-11",
+  "generated_at": "2026-11-11T15:00:58Z",
   "repo": "hydra-ecosystem/omegaconf",
   "summary": {
     "open_total": 29,
@@ -51,7 +51,7 @@
       {
         "status": "community PR",
         "emoji": "🤝",
-        "count": 0
+        "count": 1
       },
       {
         "status": "blocked",
@@ -61,7 +61,7 @@
       {
         "status": "not started",
         "emoji": "⬜",
-        "count": 29
+        "count": 28
       },
       {
         "status": "done",
@@ -71,6 +71,26 @@
     ]
   },
   "issues": [
+    {
+      "number": 1441,
+      "title": "Support tuple literals in OmegaConf.from_dotlist()",
+      "category": "Enhancement",
+      "category_emoji": "✨",
+      "status": "community PR",
+      "status_emoji": "🤝",
+      "prs": [
+        {
+          "number": 1453,
+          "url": "https://github.com/hydra-ecosystem/omegaconf/pull/1453"
+        }
+      ],
+      "created": "2026-10-27",
+      "updated": "2026-11-10",
+      "labels": [
+        "enhancement"
+      ],
+      "url": "https://github.com/hydra-ecosystem/omegaconf/issues/1441"
+    },
     {
       "number": 91,
       "title": "Consider supporting basic operators in interpolations of numbers",
@@ -486,21 +506,6 @@
       "url": "https://github.com/hydra-ecosystem/omegaconf/issues/1419"
     },
     {
-      "number": 1441,
-      "title": "Support tuple literals in OmegaConf.from_dotlist()",
-      "category": "Enhancement",
-      "category_emoji": "✨",
-      "status": "not started",
-      "status_emoji": "⬜",
-      "prs": [],
-      "created": "2026-10-27",
-      "updated": "2026-11-10",
-      "labels": [
-        "enhancement"
-      ],
-      "url": "https://github.com/hydra-ecosystem/omegaconf/issues/1441"
-    },
-    {
       "number": 1447,
       "title": "Preserve owning-field semantics when merging updates",
       "category": "Enhancement",
@@ -864,6 +869,26 @@
     }
   ],
   "updates": [
+    {
+      "ts": "2026-11-11T15:00:58Z",
+      "kind": "pr",
+      "issue": 1441,
+      "issue_url": "https://github.com/hydra-ecosystem/omegaconf/issues/1441",
+      "title": "Support tuple literals in OmegaConf.from_dotlist()",
+      "detail": "linked #1453"
+    },
+    {
+      "ts": "2026-11-11T15:00:58Z",
+      "kind": "status",
+      "issue": 1441,
+      "issue_url": "https://github.com/hydra-ecosystem/omegaconf/issues/1441",
+      "title": "Support tuple literals in OmegaConf.from_dotlist()",
+      "detail": "not started → community PR",
+      "pr": {
+        "number": 1453,
+        "url": "https://github.com/hydra-ecosystem/omegaconf/pull/1453"
+      }
+    },
     {
       "ts": "2026-10-29T20:57:32Z",
       "kind": "closed",
@@ -2541,26 +2566,6 @@
       "issue": 612,
       "issue_url": "https://github.com/omry/omegaconf/issues/612",
       "title": "Automatic validation of resolver arguments"
-    },
-    {
-      "ts": "2026-07-20T08:01:37Z",
-      "kind": "pr",
-      "issue": 612,
-      "issue_url": "https://github.com/omry/omegaconf/issues/612",
-      "title": "Automatic validation of resolver arguments",
-      "detail": "linked #1344"
-    },
-    {
-      "ts": "2026-07-20T08:01:37Z",
-      "kind": "status",
-      "issue": 612,
-      "issue_url": "https://github.com/omry/omegaconf/issues/612",
-      "title": "Automatic validation of resolver arguments",
-      "detail": "not started → in progress",
-      "pr": {
-        "number": 1344,
-        "url": "https://github.com/omry/omegaconf/pull/1344"
-      }
     }
   ]
 }

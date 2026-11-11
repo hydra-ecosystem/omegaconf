@@ -20,7 +20,7 @@
     "1443": "2026-10-28",
     "459": "2026-09-25"
   },
-  "generated_at": "2026-11-10T15:30:05Z",
+  "generated_at": "2026-11-11T15:00:58Z",
   "issues": {
     "1024": {
       "category": "Enhancement",
@@ -309,9 +309,11 @@
       "labels": [
         "enhancement"
       ],
-      "pr_numbers": [],
+      "pr_numbers": [
+        "1453"
+      ],
       "state": "OPEN",
-      "status": "not started",
+      "status": "community PR",
       "title": "Support tuple literals in OmegaConf.from_dotlist()",
       "updated_at": "2026-11-10T04:29:06Z"
     },
