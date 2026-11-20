@@ -20,7 +20,7 @@
     "1443": "2026-10-28",
     "459": "2026-09-25"
   },
-  "generated_at": "2026-11-20T15:59:30Z",
+  "generated_at": "2026-11-20T22:37:19Z",
   "issues": {
     "1024": {
       "category": "Enhancement",
@@ -326,6 +326,16 @@
       "status": "not started",
       "title": "Preserve owning-field semantics when merging updates",
       "updated_at": "2026-10-29T08:17:11Z"
+    },
+    "1456": {
+      "category": "Bug",
+      "created_at": "2026-11-20T22:36:01Z",
+      "labels": [],
+      "pr_numbers": [],
+      "state": "OPEN",
+      "status": "not started",
+      "title": "ListConfig.index() raises AssertionError for negative or out-of-range start/end",
+      "updated_at": "2026-11-20T22:36:01Z"
     },
     "537": {
       "category": "Refactor",

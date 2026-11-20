@@ -1,27 +1,27 @@
 {
   "generated_on": "2026-11-20",
-  "generated_at": "2026-11-20T15:59:30Z",
+  "generated_at": "2026-11-20T22:37:19Z",
   "repo": "hydra-ecosystem/omegaconf",
   "summary": {
-    "open_total": 29,
+    "open_total": 30,
     "by_category": [
       {
         "category": "Bug",
         "emoji": "🐛",
-        "count": 0,
-        "percentage": 0.0
+        "count": 1,
+        "percentage": 3.3
       },
       {
         "category": "Enhancement",
         "emoji": "✨",
         "count": 25,
-        "percentage": 86.2
+        "percentage": 83.3
       },
       {
         "category": "Documentation",
         "emoji": "📄",
         "count": 1,
-        "percentage": 3.4
+        "percentage": 3.3
       },
       {
         "category": "Question",
@@ -33,13 +33,13 @@
         "category": "Refactor",
         "emoji": "🔧",
         "count": 2,
-        "percentage": 6.9
+        "percentage": 6.7
       },
       {
         "category": "Build",
         "emoji": "🏗️",
         "count": 1,
-        "percentage": 3.4
+        "percentage": 3.3
       }
     ],
     "by_status": [
@@ -61,7 +61,7 @@
       {
         "status": "not started",
         "emoji": "⬜",
-        "count": 28
+        "count": 29
       },
       {
         "status": "done",
@@ -519,6 +519,19 @@
       "url": "https://github.com/hydra-ecosystem/omegaconf/issues/1447"
     },
     {
+      "number": 1456,
+      "title": "ListConfig.index() raises AssertionError for negative or out-of-range start/end",
+      "category": "Bug",
+      "category_emoji": "🐛",
+      "status": "not started",
+      "status_emoji": "⬜",
+      "prs": [],
+      "created": "2026-11-20",
+      "updated": "2026-11-20",
+      "labels": [],
+      "url": "https://github.com/hydra-ecosystem/omegaconf/issues/1456"
+    },
+    {
       "number": 459,
       "title": "Consider deprecating assignment of strings to non-string nodes like IntegerNode / FloatNode",
       "category": "Enhancement",
@@ -869,6 +882,13 @@
     }
   ],
   "updates": [
+    {
+      "ts": "2026-11-20T22:37:19Z",
+      "kind": "new",
+      "issue": 1456,
+      "issue_url": "https://github.com/hydra-ecosystem/omegaconf/issues/1456",
+      "title": "ListConfig.index() raises AssertionError for negative or out-of-range start/end"
+    },
     {
       "ts": "2026-11-11T15:00:58Z",
       "kind": "pr",
@@ -2559,13 +2579,6 @@
       "issue": 519,
       "issue_url": "https://github.com/omry/omegaconf/issues/519",
       "title": "allow exporting to dotlist-style format"
-    },
-    {
-      "ts": "2026-07-20T09:56:27Z",
-      "kind": "closed",
-      "issue": 612,
-      "issue_url": "https://github.com/omry/omegaconf/issues/612",
-      "title": "Automatic validation of resolver arguments"
     }
   ]
 }
