@@ -812,6 +812,54 @@ def test_index_with_range() -> None:
 
 
 @mark.parametrize(
+    "start, end",
+    [
+        (0, 100),
+        (-1, 100),
+        (-3, None),
+        (None, -1),
+        (-4, -1),
+        (-100, 100),
+        (100, -100),
+        (1, -1),
+        (-2, 2),
+        (0, 0),
+    ],
+)
+def test_index_normalizes_range_like_list(start: Any, end: Any) -> None:
+    src = [10, 20, 30, 20, 50]
+    lst = OmegaConf.create(src)
+    # list.index rejects explicit None, but after clamping the None defaults
+    # are equivalent to passing 0 and len(src).
+    ref_start = 0 if start is None else start
+    ref_end = len(src) if end is None else end
+    for item in [10, 20, 50, 60]:
+        try:
+            expected = src.index(item, ref_start, ref_end)
+        except ValueError:
+            with raises(ValueError):
+                lst.index(item, start, end)
+        else:
+            assert lst.index(item, start, end) == expected
+
+
+@mark.parametrize("src", [[], [10, 20, 30, 20, 50]])
+def test_index_matches_list_over_range_grid(src: List[Any]) -> None:
+    lst = OmegaConf.create(src)
+    bounds = [0, 1, 2, -1, -2, 5, -5, 6, -6, 100, -100]
+    for item in [10, 20, 60]:
+        for start in bounds:
+            for end in bounds:
+                try:
+                    expected = src.index(item, start, end)
+                except ValueError:
+                    with raises(ValueError):
+                        lst.index(item, start, end)
+                else:
+                    assert lst.index(item, start, end) == expected
+
+
+@mark.parametrize(
     "src, item, count",
     [([], 10, 0), ([10], 10, 1), ([10, 2, 10], 10, 2), ([10, 2, 10], None, 0)],
 )

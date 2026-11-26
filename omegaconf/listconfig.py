@@ -374,12 +374,7 @@ class ListConfig(BaseContainer, MutableSequence[Any]):
         del self[:]
 
     def index(self, x: Any, start: int | None = None, end: int | None = None) -> int:
-        if start is None:
-            start = 0
-        if end is None:
-            end = len(self)
-        assert start >= 0
-        assert end <= len(self)
+        start, end, _ = slice(start, end).indices(len(self))
         found_idx = -1
         for idx in range(start, end):
             item = self[idx]
