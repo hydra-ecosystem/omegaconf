@@ -20,7 +20,7 @@
     "1443": "2026-10-28",
     "459": "2026-09-25"
   },
-  "generated_at": "2026-11-26T15:36:11Z",
+  "generated_at": "2026-11-26T17:38:47Z",
   "issues": {
     "1024": {
       "category": "Enhancement",
@@ -362,7 +362,7 @@
       "state": "OPEN",
       "status": "in progress",
       "title": "Unify structured value construction and merge behavior across typed tuples, lists and dictionaries",
-      "updated_at": "2026-11-26T15:34:45Z"
+      "updated_at": "2026-11-26T15:38:13Z"
     },
     "537": {
       "category": "Refactor",
