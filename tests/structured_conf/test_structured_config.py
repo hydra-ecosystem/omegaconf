@@ -1930,9 +1930,9 @@ class TestNestedContainers:
             param(
                 "ListOfLists",
                 "llx",
-                [[{"name": "Bond", "age": 7}]],
+                [[{"name": "Bond", "age": "bad"}]],
                 ValidationError,
-                id="assign-lld-to-llx",
+                id="assign-invalid-age-to-llx",
             ),
             param(
                 "DictOfDicts",
@@ -1958,6 +1958,16 @@ class TestNestedContainers:
 
         with raises(err_type):
             cfg[key] = value
+
+    def test_assignment_to_nested_structured_mapping(self, module: Any) -> None:
+        cls = module.NestedContainers.ListOfLists
+        cfg = OmegaConf.structured(cls)
+
+        cfg.llx = [[{"name": "Bond", "age": 7}]]
+
+        child = cfg.llx[0][0]
+        assert OmegaConf.get_type(child) is module.User
+        assert OmegaConf.to_object(cfg.llx) == [[module.User(name="Bond", age=7)]]
 
     @mark.parametrize(
         "class_name, keys, expected",

@@ -206,6 +206,8 @@ class DictConfig(BaseContainer, MutableMapping[Any, Any]):
         target_type = target._metadata.ref_type
         value_type = OmegaConf.get_type(value)
 
+        if is_structured_config(target_type) and value_type is dict:
+            return
         if is_dict(value_type) and is_dict(target_type):
             return
         if is_container_annotation(target_type) and not is_container_annotation(
