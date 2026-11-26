@@ -191,9 +191,12 @@ manager:
         # but not incompatible types
         conf.admin = 10
 
-    with raises(ValidationError):
-        # You can't assign a dict even if the field matches
-        conf.manager = {"name": "secret", "height": Height.TALL}
+    # A mapping that matches the field schema is promoted to a User config.
+    conf.manager = {"name": "secret", "height": Height.TALL}
+    manager = conf._get_node("manager")
+    assert isinstance(manager, DictConfig)
+    assert OmegaConf.get_type(manager) is User
+    assert manager == {"name": "secret", "height": Height.TALL}
 
 
 @dataclass

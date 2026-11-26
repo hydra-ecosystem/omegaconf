@@ -1156,11 +1156,17 @@ class UnionNode(Box):
         assert isinstance(content, (Node, NoneType, str))
         return content
 
-    def _set_value(self, value: Any, flags: dict[str, bool] | None = None) -> None:
+    def _set_value(
+        self,
+        value: Any,
+        flags: dict[str, bool] | None = None,
+        *,
+        defaults: Node | None = None,
+    ) -> None:
         previous_content = self.__dict__["_content"]
         previous_metadata = self.__dict__["_metadata"]
         try:
-            self._set_value_impl(value, flags)
+            self._set_value_impl(value, flags, defaults=defaults)
         except Exception as e:
             self.__dict__["_content"] = previous_content
             self.__dict__["_metadata"] = previous_metadata
@@ -1237,14 +1243,23 @@ class UnionNode(Box):
             except Exception as e:
                 self._format_and_raise(key=None, value=value, cause=e)
 
-    def _set_value_impl(self, value: Any, flags: dict[str, bool] | None = None) -> None:
+    def _set_value_impl(
+        self,
+        value: Any,
+        flags: dict[str, bool] | None = None,
+        *,
+        defaults: Node | None = None,
+    ) -> None:
         from omegaconf._utils import is_literal_annotation
         from omegaconf.listconfig import ListConfig
-        from omegaconf.omegaconf import _node_wrap
         from omegaconf.tupleconfig import TupleConfig
 
         ref_type = self._metadata.ref_type
         type_hint = self._metadata.type_hint
+
+        if isinstance(defaults, UnionNode):
+            selected_default = defaults._value()
+            defaults = selected_default if isinstance(selected_default, Node) else None
 
         value = _get_value(value)
         if _is_special(value) and not (
@@ -1269,7 +1284,9 @@ class UnionNode(Box):
                 raise ValidationError(
                     f"Value '$VALUE' of type '$VALUE_TYPE' is incompatible with type hint '{type_str(type_hint)}'"
                 )
-            self._set_structured_config_value(value=value, ref_type=selected)
+            self.__dict__["_content"] = self._construct_branch(
+                value=value, ref_type=selected, defaults=defaults, flags=flags
+            )
         elif isinstance(value, (list, tuple, ListConfig, TupleConfig)):
             sequence_candidates = [
                 t
@@ -1290,9 +1307,13 @@ class UnionNode(Box):
                 candidates=preferred_candidates,
                 fallback_candidates=fallback_candidates,
                 type_hint=type_hint,
+                defaults=defaults,
+                flags=flags,
             )
         elif isinstance(value, (dict, Container)):
-            self._set_mapping_value(value=value, type_hint=type_hint)
+            self._set_mapping_value(
+                value=value, type_hint=type_hint, defaults=defaults, flags=flags
+            )
         else:
             # An exact Literal match takes precedence over a broader scalar type.
             candidates = sorted(
@@ -1300,12 +1321,11 @@ class UnionNode(Box):
             )
             for candidate_ref_type in candidates:
                 try:
-                    self.__dict__["_content"] = _node_wrap(
+                    self.__dict__["_content"] = self._construct_branch(
                         value=value,
                         ref_type=candidate_ref_type,
-                        is_optional=False,
-                        key=self._key(),
-                        parent=self,
+                        defaults=defaults,
+                        flags=flags,
                     )
                     break
                 except ValidationError:
@@ -1315,9 +1335,14 @@ class UnionNode(Box):
                     f"Value '$VALUE' of type '$VALUE_TYPE' is incompatible with type hint '{type_str(type_hint)}'"
                 )
 
-    def _set_mapping_value(self, value: Any, type_hint: Any) -> None:
+    def _set_mapping_value(
+        self,
+        value: Any,
+        type_hint: Any,
+        defaults: Node | None = None,
+        flags: dict[str, bool] | None = None,
+    ) -> None:
         from omegaconf.dictconfig import DictConfig
-        from omegaconf.omegaconf import _node_wrap
 
         ref_type = self._metadata.ref_type
         structured_candidates = [
@@ -1330,6 +1355,8 @@ class UnionNode(Box):
                 value=value,
                 candidates=dict_candidates,
                 type_hint=type_hint,
+                defaults=defaults,
+                flags=flags,
             )
             return
 
@@ -1337,7 +1364,9 @@ class UnionNode(Box):
             value=value, candidates=structured_candidates
         )
         if selected is not None:
-            self._set_structured_config_value(value=value, ref_type=selected)
+            self.__dict__["_content"] = self._construct_branch(
+                value=value, ref_type=selected, defaults=defaults, flags=flags
+            )
             return
 
         is_explicitly_typed_dict = isinstance(value, DictConfig) and (
@@ -1350,31 +1379,39 @@ class UnionNode(Box):
                 value=value,
                 candidates=dict_candidates,
                 type_hint=type_hint,
+                defaults=defaults,
+                flags=flags,
             )
             return
 
-        content = self.__dict__["_content"]
+        content = defaults if defaults is not None else self.__dict__["_content"]
         if isinstance(content, DictConfig):
             active_ref_type = content._metadata.ref_type
             if is_structured_config(active_ref_type):
-                self._set_structured_config_value(value=value, ref_type=active_ref_type)
-                return
-            if active_ref_type in dict_candidates:
-                node = _node_wrap(
+                self.__dict__["_content"] = self._construct_branch(
                     value=value,
                     ref_type=active_ref_type,
-                    is_optional=False,
-                    key=self._key(),
-                    parent=None,
+                    defaults=defaults,
+                    flags=flags,
                 )
-                node._set_parent(self)
+                return
+            if active_ref_type in dict_candidates:
+                node = self._construct_branch(
+                    value=value,
+                    ref_type=active_ref_type,
+                    defaults=defaults,
+                    flags=flags,
+                )
                 self.__dict__["_content"] = node
                 return
 
         mapping_candidates = structured_candidates + dict_candidates
         if len(mapping_candidates) == 1:
-            self._set_structured_config_value(
-                value=value, ref_type=mapping_candidates[0]
+            self.__dict__["_content"] = self._construct_branch(
+                value=value,
+                ref_type=mapping_candidates[0],
+                defaults=defaults,
+                flags=flags,
             )
             return
 
@@ -1385,36 +1422,59 @@ class UnionNode(Box):
             f"Use a typed value to select a branch."
         )
 
-    def _set_structured_config_value(self, value: Any, ref_type: Any) -> None:
-        from omegaconf.dictconfig import DictConfig
+    def _construct_branch(
+        self,
+        value: Any,
+        ref_type: Any,
+        defaults: Node | None = None,
+        flags: dict[str, bool] | None = None,
+    ) -> Node:
         from omegaconf.omegaconf import _node_wrap, flag_override
 
-        value_is_mapping = isinstance(value, (dict, DictConfig)) and not (
-            isinstance(value, DictConfig)
-            and is_structured_config(value._metadata.object_type)
+        if defaults is not None and defaults._metadata.ref_type != ref_type:
+            defaults = None
+        if not is_structured_config(ref_type):
+            return _node_wrap(
+                value=value,
+                ref_type=ref_type,
+                is_optional=False,
+                key=self._key(),
+                parent=self,
+                flags={**(flags or {}), "convert": False},
+                defaults=defaults,
+            )
+        from omegaconf.dictconfig import DictConfig
+
+        default_convert = (
+            (defaults._metadata.flags or {}).get("convert", True)
+            if defaults is not None
+            else True
         )
         with flag_override(self, "convert", True):
-            if value_is_mapping:
-                node = _node_wrap(
-                    value=ref_type,
-                    ref_type=ref_type,
-                    is_optional=False,
-                    key=self._key(),
-                    parent=self,
-                )
-            else:
-                node = _node_wrap(
-                    value=value,
-                    ref_type=ref_type,
-                    is_optional=False,
-                    key=self._key(),
-                    parent=self,
-                )
+            if flags is None:
+                flags = self._metadata.flags
+            flags = {
+                name: setting
+                for name, setting in (flags or {}).items()
+                if name != "convert"
+            }
+            node = _node_wrap(
+                value=value,
+                ref_type=ref_type,
+                is_optional=False,
+                key=self._key(),
+                parent=self,
+                flags=flags,
+                defaults=defaults,
+            )
             assert isinstance(node, DictConfig)
-            node._set_flag("convert", True)
-            if value_is_mapping:
-                node._merge_with(value, _allow_readonly_target=True)
-        self.__dict__["_content"] = node
+            node._set_flag(
+                "convert",
+                (value._metadata.flags or {}).get("convert", default_convert)
+                if isinstance(value, DictConfig)
+                else default_convert,
+            )
+        return node
 
     def _set_container_value(
         self,
@@ -1422,9 +1482,10 @@ class UnionNode(Box):
         candidates: list[Any],
         type_hint: Any,
         fallback_candidates: list[Any] | None = None,
+        defaults: Node | None = None,
+        flags: dict[str, bool] | None = None,
     ) -> None:
         from omegaconf.listconfig import ListConfig
-        from omegaconf.omegaconf import _node_wrap
         from omegaconf.tupleconfig import TupleConfig
 
         from ._utils import (
@@ -1478,12 +1539,11 @@ class UnionNode(Box):
             for candidate_ref_type in narrow_by_metadata(candidate_types):
                 try:
                     with _conversion_warnings(False):
-                        node = _node_wrap(
+                        node = self._construct_branch(
                             value=value,
                             ref_type=candidate_ref_type,
-                            is_optional=False,
-                            key=self._key(),
-                            parent=self,
+                            defaults=defaults,
+                            flags=flags,
                         )
                     matches.append(node)
                     if len(matches) > 1:
@@ -1503,12 +1563,11 @@ class UnionNode(Box):
         elif len(matches) == 1:
             selected = matches[0]
             if _conversion_warning_mode.get() is True:
-                selected = _node_wrap(
+                selected = self._construct_branch(
                     value=value,
                     ref_type=selected._metadata.ref_type,
-                    is_optional=False,
-                    key=self._key(),
-                    parent=self,
+                    defaults=defaults,
+                    flags=flags,
                 )
             self.__dict__["_content"] = selected
         else:

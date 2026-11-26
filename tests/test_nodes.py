@@ -10,6 +10,7 @@ from typing import Any, Callable, Dict, Literal, Tuple, Type, Union
 from pytest import fixture, mark, param, raises
 
 from omegaconf import (
+    MISSING,
     AnyNode,
     BooleanNode,
     BytesNode,
@@ -1137,3 +1138,41 @@ def test_path_str_hash_collision_handling() -> None:
     assert dict_cfg.by_path.file == path_obj
     assert dict_cfg.by_string.file == path_str
     assert dict_cfg.by_path.file != dict_cfg.by_string.file
+
+
+@mark.parametrize(
+    "value", [1, 1.5, True, "text", b"bytes", Color.RED, Path("file"), None, MISSING]
+)
+def test_any_node_disabled_conversion_preserves_supported_values(value: Any) -> None:
+    node = AnyNode(value, flags={"convert": False})
+    assert node._value() == value
+    assert type(node._value()) is type(value)
+    node._set_value(value)
+    assert node._value() == value
+
+
+@mark.parametrize("value", [object(), [1], {"a": 1}])
+@mark.parametrize("allow_objects", [True, False])
+def test_any_node_disabled_conversion_keeps_object_policy(
+    value: Any, allow_objects: bool
+) -> None:
+    flags = {"convert": False, "allow_objects": allow_objects}
+    node = AnyNode(0, flags=flags)
+    if allow_objects:
+        assert AnyNode(value, flags=flags)._value() is value
+        node._set_value(value)
+        assert node._value() is value
+    else:
+        with raises(UnsupportedValueType):
+            AnyNode(value, flags=flags)
+        with raises(UnsupportedValueType):
+            node._set_value(value)
+        assert node._value() == 0
+
+
+@mark.parametrize("value", [1, "text", None, object(), [1], {"a": 1}])
+def test_interpolation_result_disabled_conversion_keeps_identity(value: Any) -> None:
+    node = InterpolationResultNode(value, flags={"convert": False, "readonly": False})
+    assert node._value() is value
+    node._set_value(value)
+    assert node._value() is value

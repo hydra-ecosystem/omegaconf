@@ -19,6 +19,7 @@ from omegaconf import (
 from omegaconf._utils import _ensure_container
 from omegaconf.base import Node
 from omegaconf.errors import (
+    ConfigKeyError,
     ConfigTypeError,
     InterpolationKeyError,
     InterpolationToMissingValueError,
@@ -414,18 +415,6 @@ def test_list_append() -> None:
             id="append_str_to_list[User]",
         ),
         param(
-            ListConfig(content=[], element_type=User),
-            {"name": "Bond", "age": 7},
-            "Invalid type assigned: dict is not a subclass of User. value: {'name': 'Bond', 'age': 7}",
-            id="list:convert_dict_to_user",
-        ),
-        param(
-            ListConfig(content=[], element_type=User),
-            {},
-            "Invalid type assigned: dict is not a subclass of User. value: {}",
-            id="list:convert_empty_dict_to_user",
-        ),
-        param(
             ListConfig(content=[], element_type=List[int]),
             123,
             "Invalid value assigned: int is not a ListConfig, "
@@ -441,6 +430,32 @@ def test_list_append() -> None:
 def test_append_invalid_element_type(lc: ListConfig, element: Any, err: Any) -> None:
     with raises(ValidationError, match=re.escape(err)):
         lc.append(element)
+
+
+def test_append_structured_mappings() -> None:
+    users = ListConfig(content=[], element_type=User)
+    users.append({"name": "Bond", "age": 7})
+    user = users._get_node(0)
+    assert isinstance(user, DictConfig)
+    assert OmegaConf.get_type(user) is User
+    assert user._get_parent() is users
+    assert user._key() == 0
+    assert user.name == "Bond"
+    assert user.age == 7
+
+    users_with_missing = ListConfig(content=[], element_type=User)
+    users_with_missing.append({})
+    missing_user = users_with_missing._get_node(0)
+    assert isinstance(missing_user, DictConfig)
+    assert OmegaConf.get_type(missing_user) is User
+    assert OmegaConf.is_missing(missing_user, "name")
+    assert OmegaConf.is_missing(missing_user, "age")
+
+    with raises(ValidationError):
+        users.append({"name": "Bond", "age": "not an integer"})
+    with raises((ConfigKeyError, ValidationError)):
+        users.append({"name": "Bond", "age": 8, "unknown": True})
+    assert len(users) == 1
 
 
 @mark.parametrize(
