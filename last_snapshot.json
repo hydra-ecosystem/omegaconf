@@ -20,7 +20,7 @@
     "1443": "2026-10-28",
     "459": "2026-09-25"
   },
-  "generated_at": "2026-11-26T12:13:30Z",
+  "generated_at": "2026-11-26T15:36:11Z",
   "issues": {
     "1024": {
       "category": "Enhancement",
@@ -344,21 +344,25 @@
       "category": "Enhancement",
       "created_at": "2026-11-26T04:05:37Z",
       "labels": [],
-      "pr_numbers": [],
+      "pr_numbers": [
+        "1461"
+      ],
       "state": "OPEN",
-      "status": "not started",
+      "status": "in progress",
       "title": "Support literal strings in structured validation and to_object()",
-      "updated_at": "2026-11-26T04:06:55Z"
+      "updated_at": "2026-11-26T12:19:55Z"
     },
     "1460": {
       "category": "Enhancement",
       "created_at": "2026-11-26T12:12:12Z",
       "labels": [],
-      "pr_numbers": [],
+      "pr_numbers": [
+        "1461"
+      ],
       "state": "OPEN",
-      "status": "not started",
-      "title": "Support raw structured mappings consistently in typed list/dict construction and assignment",
-      "updated_at": "2026-11-26T12:12:12Z"
+      "status": "in progress",
+      "title": "Unify structured value construction and merge behavior across typed tuples, lists and dictionaries",
+      "updated_at": "2026-11-26T15:34:45Z"
     },
     "537": {
       "category": "Refactor",

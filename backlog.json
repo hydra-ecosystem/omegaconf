@@ -1,6 +1,6 @@
 {
   "generated_on": "2026-11-26",
-  "generated_at": "2026-11-26T12:13:30Z",
+  "generated_at": "2026-11-26T15:36:11Z",
   "repo": "hydra-ecosystem/omegaconf",
   "summary": {
     "open_total": 32,
@@ -46,7 +46,7 @@
       {
         "status": "in progress",
         "emoji": "🔄",
-        "count": 0
+        "count": 2
       },
       {
         "status": "community PR",
@@ -61,7 +61,7 @@
       {
         "status": "not started",
         "emoji": "⬜",
-        "count": 30
+        "count": 28
       },
       {
         "status": "done",
@@ -71,6 +71,42 @@
     ]
   },
   "issues": [
+    {
+      "number": 1459,
+      "title": "Support literal strings in structured validation and to_object()",
+      "category": "Enhancement",
+      "category_emoji": "✨",
+      "status": "in progress",
+      "status_emoji": "🔄",
+      "prs": [
+        {
+          "number": 1461,
+          "url": "https://github.com/hydra-ecosystem/omegaconf/pull/1461"
+        }
+      ],
+      "created": "2026-11-26",
+      "updated": "2026-11-26",
+      "labels": [],
+      "url": "https://github.com/hydra-ecosystem/omegaconf/issues/1459"
+    },
+    {
+      "number": 1460,
+      "title": "Unify structured value construction and merge behavior across typed tuples, lists and dictionaries",
+      "category": "Enhancement",
+      "category_emoji": "✨",
+      "status": "in progress",
+      "status_emoji": "🔄",
+      "prs": [
+        {
+          "number": 1461,
+          "url": "https://github.com/hydra-ecosystem/omegaconf/pull/1461"
+        }
+      ],
+      "created": "2026-11-26",
+      "updated": "2026-11-26",
+      "labels": [],
+      "url": "https://github.com/hydra-ecosystem/omegaconf/issues/1460"
+    },
     {
       "number": 1441,
       "title": "Support tuple literals in OmegaConf.from_dotlist()",
@@ -541,32 +577,6 @@
       "url": "https://github.com/hydra-ecosystem/omegaconf/issues/1447"
     },
     {
-      "number": 1459,
-      "title": "Support literal strings in structured validation and to_object()",
-      "category": "Enhancement",
-      "category_emoji": "✨",
-      "status": "not started",
-      "status_emoji": "⬜",
-      "prs": [],
-      "created": "2026-11-26",
-      "updated": "2026-11-26",
-      "labels": [],
-      "url": "https://github.com/hydra-ecosystem/omegaconf/issues/1459"
-    },
-    {
-      "number": 1460,
-      "title": "Support raw structured mappings consistently in typed list/dict construction and assignment",
-      "category": "Enhancement",
-      "category_emoji": "✨",
-      "status": "not started",
-      "status_emoji": "⬜",
-      "prs": [],
-      "created": "2026-11-26",
-      "updated": "2026-11-26",
-      "labels": [],
-      "url": "https://github.com/hydra-ecosystem/omegaconf/issues/1460"
-    },
-    {
       "number": 459,
       "title": "Consider deprecating assignment of strings to non-string nodes like IntegerNode / FloatNode",
       "category": "Enhancement",
@@ -917,6 +927,46 @@
     }
   ],
   "updates": [
+    {
+      "ts": "2026-11-26T15:36:11Z",
+      "kind": "pr",
+      "issue": 1460,
+      "issue_url": "https://github.com/hydra-ecosystem/omegaconf/issues/1460",
+      "title": "Unify structured value construction and merge behavior across typed tuples, lists and dictionaries",
+      "detail": "linked #1461"
+    },
+    {
+      "ts": "2026-11-26T15:36:11Z",
+      "kind": "pr",
+      "issue": 1459,
+      "issue_url": "https://github.com/hydra-ecosystem/omegaconf/issues/1459",
+      "title": "Support literal strings in structured validation and to_object()",
+      "detail": "linked #1461"
+    },
+    {
+      "ts": "2026-11-26T15:36:11Z",
+      "kind": "status",
+      "issue": 1460,
+      "issue_url": "https://github.com/hydra-ecosystem/omegaconf/issues/1460",
+      "title": "Unify structured value construction and merge behavior across typed tuples, lists and dictionaries",
+      "detail": "not started → in progress",
+      "pr": {
+        "number": 1461,
+        "url": "https://github.com/hydra-ecosystem/omegaconf/pull/1461"
+      }
+    },
+    {
+      "ts": "2026-11-26T15:36:11Z",
+      "kind": "status",
+      "issue": 1459,
+      "issue_url": "https://github.com/hydra-ecosystem/omegaconf/issues/1459",
+      "title": "Support literal strings in structured validation and to_object()",
+      "detail": "not started → in progress",
+      "pr": {
+        "number": 1461,
+        "url": "https://github.com/hydra-ecosystem/omegaconf/pull/1461"
+      }
+    },
     {
       "ts": "2026-11-26T12:13:30Z",
       "kind": "new",
@@ -2586,37 +2636,6 @@
       "issue_url": "https://github.com/omry/omegaconf/issues/91",
       "title": "Consider supporting basic operators in interpolations of numbers",
       "detail": "community PR → not started"
-    },
-    {
-      "ts": "2026-07-20T14:42:52Z",
-      "kind": "closed",
-      "issue": 1020,
-      "issue_url": "https://github.com/omry/omegaconf/issues/1020",
-      "title": "Failure to merge interpolation into structured config"
-    },
-    {
-      "ts": "2026-07-20T14:31:15Z",
-      "kind": "label",
-      "issue": 1328,
-      "issue_url": "https://github.com/omry/omegaconf/issues/1328",
-      "title": "RFC: Deprecate implicit structured config interpretation for bare dataclasses/attrs",
-      "detail": "added \"RFC\", \"structured config\""
-    },
-    {
-      "ts": "2026-07-20T14:31:15Z",
-      "kind": "label",
-      "issue": 1312,
-      "issue_url": "https://github.com/omry/omegaconf/issues/1312",
-      "title": "Support more flexible merge semantics in OmegaConf.merge",
-      "detail": "added \"RFC\", \"enhancement\", \"listconfig\""
-    },
-    {
-      "ts": "2026-07-20T14:31:15Z",
-      "kind": "label",
-      "issue": 1275,
-      "issue_url": "https://github.com/omry/omegaconf/issues/1275",
-      "title": "Support Union of Structured Configs (dataclasses/attr classes)",
-      "detail": "added \"RFC\", \"enhancement\", \"structured config\""
     }
   ]
 }
