@@ -56,8 +56,10 @@ from ._utils import (
     is_primitive_dict,
     is_primitive_list,
     is_structured_config,
+    is_structured_config_frozen,
     is_tuple_annotation,
     is_union_annotation,
+    type_hint_contains_none_literal,
     type_str,
 )
 from ._yaml import _DEFAULT_MAX_YAML_EXPANDED_NODES, get_yaml_loader
@@ -1906,9 +1908,99 @@ def _node_wrap(
     value: Any,
     key: Any,
     ref_type: Any = Any,
+    flags: dict[str, bool] | None = None,
+    defaults: DictConfig | None = None,
 ) -> Node:
+    default_flags = (
+        copy.deepcopy(defaults._metadata.flags or {}) if defaults is not None else {}
+    )
+    if isinstance(value, Node):
+        if (
+            (_schema_validation.get() is not None or defaults is not None)
+            and ref_type is Any
+            and isinstance(value, BaseContainer)
+        ):
+            ref_type = value._metadata.ref_type
+            is_optional = value._metadata.optional
+        copy_compatible = (
+            defaults is None
+            and _schema_validation.get() is None
+            and (ref_type is Any or value._metadata.ref_type == ref_type)
+        )
+        source_flags = (
+            copy.deepcopy(value._metadata.flags or {})
+            if _schema_validation.get() is None
+            else {}
+        )
+        if (
+            not copy_compatible
+            and isinstance(value, UnionNode)
+            and _schema_validation.get() is None
+        ):
+            selected = value._value()
+            if isinstance(selected, Node):
+                source_flags.update(selected._metadata.flags or {})
+                union_flags = value._metadata.flags or {}
+                if "convert" in union_flags:
+                    source_flags["convert"] = union_flags["convert"]
+        flags = {**default_flags, **source_flags, **(flags or {})}
+        if copy_compatible:
+            node = copy.deepcopy(value)
+            if ref_type is not Any:
+                node._metadata.optional = is_optional
+            node._set_parent(parent)
+            node._set_key(key)
+            for flag, flag_value in flags.items():
+                if flag != "convert" or not isinstance(node, UnionNode):
+                    node._set_flag(flag, flag_value)
+            if isinstance(node, BaseContainer):
+                node._re_parent()
+            if isinstance(node, UnionNode):
+                node._set_flag("convert", False)
+            if is_structured_config_frozen(ref_type):
+                node._set_flag("readonly", True)
+            if (
+                isinstance(node, ValueNode)
+                and not node._is_interpolation()
+                and not node._is_missing()
+            ):
+                node.validate_and_convert(node._value())
+            if (
+                node._is_none()
+                and not is_optional
+                and not type_hint_contains_none_literal(ref_type)
+            ):
+                raise ValidationError(
+                    f"Value None (NoneType) is incompatible with type hint '{ref_type}'"
+                )
+            return node
+        value = _get_value(value)
+    elif defaults is not None:
+        flags = {**default_flags, **(flags or {})}
+
     node: Node
-    if is_dict_annotation(ref_type) or (is_primitive_dict(value) and ref_type is Any):
+    if defaults is not None:
+        if ref_type is Any and isinstance(value, DictConfig):
+            key_type, element_type = (
+                value._metadata.key_type,
+                value._metadata.element_type,
+            )
+        else:
+            key_type, element_type = get_dict_key_value_types(ref_type)
+        node = DictConfig(
+            defaults,
+            key=key,
+            parent=parent,
+            ref_type=ref_type,
+            is_optional=is_optional,
+            key_type=key_type,
+            element_type=element_type,
+            flags=flags,
+        )
+        node._construct_from_mapping(value)
+    elif is_dict_annotation(ref_type) or (
+        (is_primitive_dict(value) or isinstance(value, DictConfig)) and ref_type is Any
+    ):
         key_type, element_type = get_dict_key_value_types(ref_type)
         node = DictConfig(
             content=value,
@@ -1918,16 +2010,22 @@ def _node_wrap(
             is_optional=is_optional,
             key_type=key_type,
             element_type=element_type,
+            flags=flags,
         )
-    elif is_tuple_annotation(ref_type) or (type(value) is tuple and ref_type is Any):
+    elif is_tuple_annotation(ref_type) or (
+        (type(value) is tuple or isinstance(value, TupleConfig)) and ref_type is Any
+    ):
         node = TupleConfig(
             content=value,
             key=key,
             parent=parent,
             is_optional=is_optional,
             ref_type=ref_type if ref_type is not Any else Tuple[Any, ...],
+            flags=flags,
         )
-    elif is_list_annotation(ref_type) or (type(value) is list and ref_type is Any):
+    elif is_list_annotation(ref_type) or (
+        (type(value) is list or isinstance(value, ListConfig)) and ref_type is Any
+    ):
         element_type = get_list_element_type(ref_type)
         node = ListConfig(
             content=value,
@@ -1936,36 +2034,23 @@ def _node_wrap(
             is_optional=is_optional,
             element_type=element_type,
             ref_type=ref_type,
+            flags=flags,
         )
     elif is_union_annotation(ref_type):
         node = UnionNode(
-            content=value,
+            content=MISSING,
             ref_type=ref_type,
             is_optional=is_optional,
             key=key,
             parent=parent,
         )
+        # UnionNode disables conversion while selecting and validating a branch.
+        for flag, flag_value in (flags or {}).items():
+            if flag != "convert":
+                node._set_flag(flag, flag_value)
+        node._set_value(value)
     elif is_structured_config(ref_type) or is_structured_config(value):
         key_type, element_type = get_dict_key_value_types(value)
-        if (
-            _schema_validation.get() is not None
-            and is_structured_config(ref_type)
-            and (
-                is_primitive_dict(value)
-                or isinstance(value, DictConfig)
-                and value._metadata.object_type is dict
-            )
-        ):
-            node = DictConfig(
-                content=ref_type,
-                parent=parent,
-                key=key,
-                ref_type=ref_type,
-                is_optional=is_optional,
-            )
-            node._set_flag("readonly", False)
-            node._merge_with(value, _allow_readonly_target=True)
-            return node
         node = DictConfig(
             ref_type=ref_type,
             is_optional=is_optional,
@@ -1974,6 +2059,7 @@ def _node_wrap(
             parent=parent,
             key_type=key_type,
             element_type=element_type,
+            flags=flags,
         )
     elif is_literal_annotation(ref_type):
         node = LiteralNode(
@@ -1982,11 +2068,12 @@ def _node_wrap(
             key=key,
             parent=parent,
             is_optional=is_optional,
+            flags=flags,
         )
     elif ref_type is NoneType:
-        node = NoneNode(value=value, key=key, parent=parent)
+        node = NoneNode(value=value, key=key, parent=parent, flags=flags)
     elif ref_type == Any or ref_type is None:
-        node = AnyNode(value=value, key=key, parent=parent)
+        node = AnyNode(value=value, key=key, parent=parent, flags=flags)
     elif isinstance(ref_type, type) and issubclass(ref_type, Enum):
         node = EnumNode(
             enum_type=ref_type,
@@ -1994,19 +2081,56 @@ def _node_wrap(
             key=key,
             parent=parent,
             is_optional=is_optional,
+            flags=flags,
         )
     elif ref_type == int:
-        node = IntegerNode(value=value, key=key, parent=parent, is_optional=is_optional)
+        node = IntegerNode(
+            value=value,
+            key=key,
+            parent=parent,
+            is_optional=is_optional,
+            flags=flags,
+        )
     elif ref_type == float:
-        node = FloatNode(value=value, key=key, parent=parent, is_optional=is_optional)
+        node = FloatNode(
+            value=value,
+            key=key,
+            parent=parent,
+            is_optional=is_optional,
+            flags=flags,
+        )
     elif ref_type == bool:
-        node = BooleanNode(value=value, key=key, parent=parent, is_optional=is_optional)
+        node = BooleanNode(
+            value=value,
+            key=key,
+            parent=parent,
+            is_optional=is_optional,
+            flags=flags,
+        )
     elif ref_type == str:
-        node = StringNode(value=value, key=key, parent=parent, is_optional=is_optional)
+        node = StringNode(
+            value=value,
+            key=key,
+            parent=parent,
+            is_optional=is_optional,
+            flags=flags,
+        )
     elif ref_type == bytes:
-        node = BytesNode(value=value, key=key, parent=parent, is_optional=is_optional)
+        node = BytesNode(
+            value=value,
+            key=key,
+            parent=parent,
+            is_optional=is_optional,
+            flags=flags,
+        )
     elif ref_type == pathlib.Path:
-        node = PathNode(value=value, key=key, parent=parent, is_optional=is_optional)
+        node = PathNode(
+            value=value,
+            key=key,
+            parent=parent,
+            is_optional=is_optional,
+            flags=flags,
+        )
     else:
         if parent is not None and parent._get_flag("allow_objects") is True:
             if type(value) in (list, tuple):
