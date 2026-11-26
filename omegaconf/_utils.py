@@ -531,6 +531,8 @@ def get_attr_data(
     obj: Any,
     allow_objects: bool | None = None,
     parent: "BaseContainer | None" = None,
+    *,
+    skip_defaults: set[str] | None = None,
 ) -> dict[str, Any]:
     from omegaconf.base import Node
     from omegaconf.omegaconf import OmegaConf, _maybe_wrap
@@ -554,7 +556,9 @@ def get_attr_data(
         name = attrib.name
         is_optional, type_ = _resolve_optional(resolved_hints[name])
         type_ = _resolve_forward(type_, obj.__module__)
-        if _schema_validation.get() is not None and is_type:
+        if is_type and (
+            _schema_validation.get() is not None or name in (skip_defaults or ())
+        ):
             value = MISSING
         elif not is_type:
             value = getattr(obj, name)
@@ -611,6 +615,8 @@ def get_dataclass_data(
     obj: Any,
     allow_objects: bool | None = None,
     parent: "BaseContainer | None" = None,
+    *,
+    skip_defaults: set[str] | None = None,
 ) -> dict[str, Any]:
     from omegaconf.base import Node
     from omegaconf.omegaconf import MISSING, OmegaConf, _maybe_wrap
@@ -630,7 +636,11 @@ def get_dataclass_data(
         is_optional, type_ = _resolve_optional(resolved_hints[field.name])
         type_ = _resolve_forward(type_, obj.__module__)
 
-        if _schema_validation.get() is not None:
+        if (
+            _schema_validation.get() is not None
+            or is_type
+            and name in (skip_defaults or ())
+        ):
             value = MISSING if is_type else getattr(obj, name)
         else:
             has_default = field.default != dataclasses.MISSING
@@ -748,11 +758,17 @@ def get_structured_config_data(
     obj: Any,
     allow_objects: bool | None = None,
     parent: "BaseContainer | None" = None,
+    *,
+    skip_defaults: set[str] | None = None,
 ) -> dict[str, Any]:
     if is_dataclass(obj):
-        return get_dataclass_data(obj, allow_objects=allow_objects, parent=parent)
+        return get_dataclass_data(
+            obj, allow_objects=allow_objects, parent=parent, skip_defaults=skip_defaults
+        )
     elif is_attr_class(obj):
-        return get_attr_data(obj, allow_objects=allow_objects, parent=parent)
+        return get_attr_data(
+            obj, allow_objects=allow_objects, parent=parent, skip_defaults=skip_defaults
+        )
     else:
         raise ValueError(f"Unsupported type: {type(obj).__name__}")
 

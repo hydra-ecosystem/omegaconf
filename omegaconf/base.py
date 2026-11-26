@@ -1389,31 +1389,27 @@ class UnionNode(Box):
         from omegaconf.dictconfig import DictConfig
         from omegaconf.omegaconf import _node_wrap, flag_override
 
-        value_is_mapping = isinstance(value, (dict, DictConfig)) and not (
-            isinstance(value, DictConfig)
-            and is_structured_config(value._metadata.object_type)
-        )
         with flag_override(self, "convert", True):
-            if value_is_mapping:
-                node = _node_wrap(
-                    value=ref_type,
-                    ref_type=ref_type,
-                    is_optional=False,
-                    key=self._key(),
-                    parent=self,
-                )
-            else:
-                node = _node_wrap(
-                    value=value,
-                    ref_type=ref_type,
-                    is_optional=False,
-                    key=self._key(),
-                    parent=self,
-                )
+            flags = {
+                name: setting
+                for name, setting in (self._metadata.flags or {}).items()
+                if name != "convert"
+            }
+            node = _node_wrap(
+                value=value,
+                ref_type=ref_type,
+                is_optional=False,
+                key=self._key(),
+                parent=self,
+                flags=flags,
+            )
             assert isinstance(node, DictConfig)
-            node._set_flag("convert", True)
-            if value_is_mapping:
-                node._merge_with(value, _allow_readonly_target=True)
+            node._set_flag(
+                "convert",
+                (value._metadata.flags or {}).get("convert", True)
+                if isinstance(value, DictConfig)
+                else True,
+            )
         self.__dict__["_content"] = node
 
     def _set_container_value(

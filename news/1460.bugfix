@@ -1,0 +1,1 @@
+Apply declared schemas and supported conversions consistently during typed-container construction. Preserve defaults, frozen settings, and supplied node flags before validation; ordinary merge flag precedence is unchanged.
