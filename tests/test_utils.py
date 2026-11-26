@@ -31,6 +31,7 @@ from omegaconf._utils import (  # _normalize_ref_type,
     split_key,
 )
 from omegaconf.errors import (
+    ConfigKeyError,
     ConfigValueError,
     GrammarParseError,
     UnsupportedValueType,
@@ -220,7 +221,18 @@ def test_node_wrap(
             DictConfig(content={"foo": "bar"}),
             id="dict_to_any",
         ),
-        param(Plugin, {"foo": "bar"}, ValidationError, id="dict_to_plugin"),
+        param(
+            Plugin,
+            {"name": "plugin"},
+            DictConfig(content=Plugin(name="plugin")),
+            id="dict_to_plugin",
+        ),
+        param(
+            Plugin,
+            {"name": "plugin", "unknown": "value"},
+            ConfigKeyError,
+            id="dict_to_plugin_unknown_field",
+        ),
         # Structured Config
         param(Plugin, Plugin(), DictConfig(content=Plugin()), id="DictConfig[Plugin]"),
         param(Any, Plugin(), DictConfig(content=Plugin()), id="plugin_to_any"),

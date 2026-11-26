@@ -206,6 +206,8 @@ class DictConfig(BaseContainer, MutableMapping[Any, Any]):
         target_type = target._metadata.ref_type
         value_type = OmegaConf.get_type(value)
 
+        if key is not None and is_structured_config(target_type) and value_type is dict:
+            return
         if is_dict(value_type) and is_dict(target_type):
             return
         if is_container_annotation(target_type) and not is_container_annotation(
@@ -718,6 +720,17 @@ class DictConfig(BaseContainer, MutableMapping[Any, Any]):
             flags = {}
 
         assert not isinstance(value, ValueNode)
+        if is_structured_config(self._metadata.ref_type) and (
+            isinstance(value, dict)
+            or isinstance(value, DictConfig)
+            and value._metadata.object_type is dict
+        ):
+            # Construct the schema first, then construct each supplied field under
+            # its destination annotation. Ordinary merge keeps its own precedence.
+            if not is_structured_config(self._metadata.object_type):
+                self._set_value(self._metadata.ref_type, flags=flags)
+            self._construct_from_mapping(value)
+            return
         self._validate_set(key=None, value=value)
 
         if _is_none(value, resolve=True):
@@ -740,25 +753,76 @@ class DictConfig(BaseContainer, MutableMapping[Any, Any]):
                     )
                     with flag_override(self, ["struct", "readonly"], False):
                         for k, v in data.items():
-                            self.__setitem__(k, v)
+                            self._wrap_value_and_set(k, v, v._metadata.type_hint)
                     self._metadata.object_type = get_type_of(value)
 
-            elif isinstance(value, DictConfig):
-                self._metadata.flags = copy.deepcopy(flags)
+            elif isinstance(value, (DictConfig, dict)):
+                if isinstance(value, DictConfig):
+                    self._metadata.flags = copy.deepcopy(flags)
+                    items = value.__dict__["_content"].items()
+                else:
+                    items = value.items()
                 with flag_override(self, ["struct", "readonly"], False):
-                    for k, v in value.__dict__["_content"].items():
-                        self.__setitem__(k, v)
-                self._metadata.object_type = value._metadata.object_type
-
-            elif isinstance(value, dict):
-                with flag_override(self, ["struct", "readonly"], False):
-                    for k, v in value.items():
-                        self.__setitem__(k, v)
-                self._metadata.object_type = dict
+                    for k, v in items:
+                        try:
+                            k = self._validate_and_normalize_key(k)
+                            self._validate_non_ambiguous_key(k)
+                            self._wrap_value_and_set(k, v, self._metadata.element_type)
+                        except Exception as e:
+                            self._format_and_raise(key=k, value=_get_value(v), cause=e)
+                self._metadata.object_type = (
+                    value._metadata.object_type
+                    if isinstance(value, DictConfig)
+                    else dict
+                )
 
             else:  # pragma: no cover
                 msg = f"Unsupported value type: {value}"
                 raise ValidationError(msg)
+
+    def _construct_from_mapping(self, value: "DictConfig | dict[Any, Any]") -> None:
+        """Construct supplied keys while retaining this schema's omitted defaults."""
+        items = (
+            value.__dict__["_content"].items()
+            if isinstance(value, DictConfig)
+            else value.items()
+        )
+        for key, item in items:
+            try:
+                key = self._validate_and_normalize_key(key)
+                self._validate_non_ambiguous_key(key)
+                target = self._get_node(key, validate_access=False)
+                if (
+                    self._is_typed()
+                    and target is None
+                    and self._get_node_flag("struct") is not False
+                ):
+                    raise ConfigKeyError(
+                        f"Key '{key}' not in '{self._metadata.ref_type.__name__}'"
+                    )
+                if target is not None and _is_missing_value(item):
+                    continue
+                type_hint = (
+                    target._metadata.type_hint
+                    if self._is_typed() and target is not None
+                    else self._metadata.element_type
+                )
+                defaults = (
+                    target
+                    if isinstance(target, DictConfig)
+                    and not target._is_none()
+                    and not target._is_missing()
+                    and not target._is_interpolation()
+                    and (
+                        isinstance(item, dict)
+                        or isinstance(item, DictConfig)
+                        and item._metadata.object_type is dict
+                    )
+                    else None
+                )
+                self._wrap_value_and_set(key, item, type_hint, defaults=defaults)
+            except Exception as e:
+                self._format_and_raise(key=key, value=_get_value(item), cause=e)
 
     @staticmethod
     def _dict_conf_eq(d1: "DictConfig", d2: "DictConfig") -> bool:
