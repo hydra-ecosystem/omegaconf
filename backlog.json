@@ -1,27 +1,27 @@
 {
   "generated_on": "2026-11-26",
-  "generated_at": "2026-11-26T04:06:53Z",
+  "generated_at": "2026-11-26T12:13:30Z",
   "repo": "hydra-ecosystem/omegaconf",
   "summary": {
-    "open_total": 31,
+    "open_total": 32,
     "by_category": [
       {
         "category": "Bug",
         "emoji": "🐛",
         "count": 1,
-        "percentage": 3.2
+        "percentage": 3.1
       },
       {
         "category": "Enhancement",
         "emoji": "✨",
-        "count": 26,
-        "percentage": 83.9
+        "count": 27,
+        "percentage": 84.4
       },
       {
         "category": "Documentation",
         "emoji": "📄",
         "count": 1,
-        "percentage": 3.2
+        "percentage": 3.1
       },
       {
         "category": "Question",
@@ -33,13 +33,13 @@
         "category": "Refactor",
         "emoji": "🔧",
         "count": 2,
-        "percentage": 6.5
+        "percentage": 6.2
       },
       {
         "category": "Build",
         "emoji": "🏗️",
         "count": 1,
-        "percentage": 3.2
+        "percentage": 3.1
       }
     ],
     "by_status": [
@@ -61,7 +61,7 @@
       {
         "status": "not started",
         "emoji": "⬜",
-        "count": 29
+        "count": 30
       },
       {
         "status": "done",
@@ -109,7 +109,7 @@
         }
       ],
       "created": "2026-11-20",
-      "updated": "2026-11-20",
+      "updated": "2026-11-26",
       "labels": [],
       "url": "https://github.com/hydra-ecosystem/omegaconf/issues/1456"
     },
@@ -542,7 +542,7 @@
     },
     {
       "number": 1459,
-      "title": "Support opt-in literal strings during structured input validation and to_object() conversion",
+      "title": "Support literal strings in structured validation and to_object()",
       "category": "Enhancement",
       "category_emoji": "✨",
       "status": "not started",
@@ -552,6 +552,19 @@
       "updated": "2026-11-26",
       "labels": [],
       "url": "https://github.com/hydra-ecosystem/omegaconf/issues/1459"
+    },
+    {
+      "number": 1460,
+      "title": "Support raw structured mappings consistently in typed list/dict construction and assignment",
+      "category": "Enhancement",
+      "category_emoji": "✨",
+      "status": "not started",
+      "status_emoji": "⬜",
+      "prs": [],
+      "created": "2026-11-26",
+      "updated": "2026-11-26",
+      "labels": [],
+      "url": "https://github.com/hydra-ecosystem/omegaconf/issues/1460"
     },
     {
       "number": 459,
@@ -904,6 +917,13 @@
     }
   ],
   "updates": [
+    {
+      "ts": "2026-11-26T12:13:30Z",
+      "kind": "new",
+      "issue": 1460,
+      "issue_url": "https://github.com/hydra-ecosystem/omegaconf/issues/1460",
+      "title": "Support raw structured mappings consistently in typed list/dict construction and assignment"
+    },
     {
       "ts": "2026-11-26T04:06:53Z",
       "kind": "pr",
@@ -2597,14 +2617,6 @@
       "issue_url": "https://github.com/omry/omegaconf/issues/1275",
       "title": "Support Union of Structured Configs (dataclasses/attr classes)",
       "detail": "added \"RFC\", \"enhancement\", \"structured config\""
-    },
-    {
-      "ts": "2026-07-20T14:31:15Z",
-      "kind": "label",
-      "issue": 1274,
-      "issue_url": "https://github.com/omry/omegaconf/issues/1274",
-      "title": "Python 3.10 minimum: remove version guards and modernize type annotations",
-      "detail": "added \"maintenance\""
     }
   ]
 }
