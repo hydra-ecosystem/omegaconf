@@ -20,7 +20,7 @@
     "1443": "2026-10-28",
     "459": "2026-09-25"
   },
-  "generated_at": "2026-11-25T17:53:51Z",
+  "generated_at": "2026-11-26T04:06:53Z",
   "issues": {
     "1024": {
       "category": "Enhancement",
@@ -331,11 +331,24 @@
       "category": "Bug",
       "created_at": "2026-11-20T22:36:01Z",
       "labels": [],
+      "pr_numbers": [
+        "1457",
+        "1458"
+      ],
+      "state": "OPEN",
+      "status": "community PR",
+      "title": "ListConfig.index() raises AssertionError for negative or out-of-range start/end",
+      "updated_at": "2026-11-20T22:36:01Z"
+    },
+    "1459": {
+      "category": "Enhancement",
+      "created_at": "2026-11-26T04:05:37Z",
+      "labels": [],
       "pr_numbers": [],
       "state": "OPEN",
       "status": "not started",
-      "title": "ListConfig.index() raises AssertionError for negative or out-of-range start/end",
-      "updated_at": "2026-11-20T22:36:01Z"
+      "title": "Support opt-in literal strings during structured input validation and to_object() conversion",
+      "updated_at": "2026-11-26T04:05:37Z"
     },
     "537": {
       "category": "Refactor",

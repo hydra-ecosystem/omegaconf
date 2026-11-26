@@ -1,27 +1,27 @@
 {
-  "generated_on": "2026-11-25",
-  "generated_at": "2026-11-25T17:53:51Z",
+  "generated_on": "2026-11-26",
+  "generated_at": "2026-11-26T04:06:53Z",
   "repo": "hydra-ecosystem/omegaconf",
   "summary": {
-    "open_total": 30,
+    "open_total": 31,
     "by_category": [
       {
         "category": "Bug",
         "emoji": "🐛",
         "count": 1,
-        "percentage": 3.3
+        "percentage": 3.2
       },
       {
         "category": "Enhancement",
         "emoji": "✨",
-        "count": 25,
-        "percentage": 83.3
+        "count": 26,
+        "percentage": 83.9
       },
       {
         "category": "Documentation",
         "emoji": "📄",
         "count": 1,
-        "percentage": 3.3
+        "percentage": 3.2
       },
       {
         "category": "Question",
@@ -33,13 +33,13 @@
         "category": "Refactor",
         "emoji": "🔧",
         "count": 2,
-        "percentage": 6.7
+        "percentage": 6.5
       },
       {
         "category": "Build",
         "emoji": "🏗️",
         "count": 1,
-        "percentage": 3.3
+        "percentage": 3.2
       }
     ],
     "by_status": [
@@ -51,7 +51,7 @@
       {
         "status": "community PR",
         "emoji": "🤝",
-        "count": 1
+        "count": 2
       },
       {
         "status": "blocked",
@@ -90,6 +90,28 @@
         "enhancement"
       ],
       "url": "https://github.com/hydra-ecosystem/omegaconf/issues/1441"
+    },
+    {
+      "number": 1456,
+      "title": "ListConfig.index() raises AssertionError for negative or out-of-range start/end",
+      "category": "Bug",
+      "category_emoji": "🐛",
+      "status": "community PR",
+      "status_emoji": "🤝",
+      "prs": [
+        {
+          "number": 1457,
+          "url": "https://github.com/hydra-ecosystem/omegaconf/pull/1457"
+        },
+        {
+          "number": 1458,
+          "url": "https://github.com/hydra-ecosystem/omegaconf/pull/1458"
+        }
+      ],
+      "created": "2026-11-20",
+      "updated": "2026-11-20",
+      "labels": [],
+      "url": "https://github.com/hydra-ecosystem/omegaconf/issues/1456"
     },
     {
       "number": 91,
@@ -519,17 +541,17 @@
       "url": "https://github.com/hydra-ecosystem/omegaconf/issues/1447"
     },
     {
-      "number": 1456,
-      "title": "ListConfig.index() raises AssertionError for negative or out-of-range start/end",
-      "category": "Bug",
-      "category_emoji": "🐛",
+      "number": 1459,
+      "title": "Support opt-in literal strings during structured input validation and to_object() conversion",
+      "category": "Enhancement",
+      "category_emoji": "✨",
       "status": "not started",
       "status_emoji": "⬜",
       "prs": [],
-      "created": "2026-11-20",
-      "updated": "2026-11-20",
+      "created": "2026-11-26",
+      "updated": "2026-11-26",
       "labels": [],
-      "url": "https://github.com/hydra-ecosystem/omegaconf/issues/1456"
+      "url": "https://github.com/hydra-ecosystem/omegaconf/issues/1459"
     },
     {
       "number": 459,
@@ -882,6 +904,33 @@
     }
   ],
   "updates": [
+    {
+      "ts": "2026-11-26T04:06:53Z",
+      "kind": "pr",
+      "issue": 1456,
+      "issue_url": "https://github.com/hydra-ecosystem/omegaconf/issues/1456",
+      "title": "ListConfig.index() raises AssertionError for negative or out-of-range start/end",
+      "detail": "linked #1457, #1458"
+    },
+    {
+      "ts": "2026-11-26T04:06:53Z",
+      "kind": "status",
+      "issue": 1456,
+      "issue_url": "https://github.com/hydra-ecosystem/omegaconf/issues/1456",
+      "title": "ListConfig.index() raises AssertionError for negative or out-of-range start/end",
+      "detail": "not started → community PR",
+      "pr": {
+        "number": 1457,
+        "url": "https://github.com/hydra-ecosystem/omegaconf/pull/1457"
+      }
+    },
+    {
+      "ts": "2026-11-26T04:06:53Z",
+      "kind": "new",
+      "issue": 1459,
+      "issue_url": "https://github.com/hydra-ecosystem/omegaconf/issues/1459",
+      "title": "Support opt-in literal strings during structured input validation and to_object() conversion"
+    },
     {
       "ts": "2026-11-20T22:37:19Z",
       "kind": "new",
@@ -2556,29 +2605,6 @@
       "issue_url": "https://github.com/omry/omegaconf/issues/1274",
       "title": "Python 3.10 minimum: remove version guards and modernize type annotations",
       "detail": "added \"maintenance\""
-    },
-    {
-      "ts": "2026-07-20T14:31:15Z",
-      "kind": "label",
-      "issue": 1271,
-      "issue_url": "https://github.com/omry/omegaconf/issues/1271",
-      "title": "Support Union[Literal[...], other_type] annotations in structured configs",
-      "detail": "added \"enhancement\", \"structured config\""
-    },
-    {
-      "ts": "2026-07-20T14:31:15Z",
-      "kind": "label",
-      "issue": 1263,
-      "issue_url": "https://github.com/omry/omegaconf/issues/1263",
-      "title": "RFC: Revert list_merge_mode before stable 2.4",
-      "detail": "added \"RFC\", \"listconfig\", \"maintenance\""
-    },
-    {
-      "ts": "2026-07-20T13:20:32Z",
-      "kind": "closed",
-      "issue": 519,
-      "issue_url": "https://github.com/omry/omegaconf/issues/519",
-      "title": "allow exporting to dotlist-style format"
     }
   ]
 }
