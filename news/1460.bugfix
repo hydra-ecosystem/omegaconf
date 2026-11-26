@@ -1,0 +1,1 @@
+Apply declared schemas consistently to mappings in typed containers and structured fields, preserving defaults, frozen settings, and node flags during construction, assignment, merging, and copying.

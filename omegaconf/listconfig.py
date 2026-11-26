@@ -93,8 +93,6 @@ class ListConfig(BaseContainer, MutableSequence[Any]):
     def _validate_set(self, key: Any, value: Any) -> None:
         from omegaconf import OmegaConf
 
-        from ._utils import _schema_validation
-
         self._validate_get(key, value)
 
         if self._get_flag("readonly"):
@@ -124,12 +122,7 @@ class ListConfig(BaseContainer, MutableSequence[Any]):
                 isinstance(value, BaseContainer) and _is_none(value)
             )
             value_type = OmegaConf.get_type(value)
-            if (
-                _schema_validation.get() is not None
-                and is_structured_config(target_type)
-                and value_type is dict
-            ):
-                # The shared schema-only wrapping/merge path validates partial mappings.
+            if is_structured_config(target_type) and value_type is dict:
                 return
 
             if (

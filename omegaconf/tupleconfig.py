@@ -19,7 +19,7 @@ from ._utils import (
     normalize_tuple_annotation,
 )
 from .base import Box, ContainerMetadata, Node
-from .basecontainer import BaseContainer
+from .basecontainer import BaseContainer, _deep_update_type_hint
 from .errors import (
     ConfigAttributeError,
     ConfigTypeError,
@@ -469,9 +469,10 @@ class TupleConfig(BaseContainer, Sequence[Any]):
     def _set_value_impl(self, value: Any, flags: dict[str, bool] | None = None) -> None:
         from omegaconf import MISSING
         from omegaconf.listconfig import ListConfig
-        from omegaconf.omegaconf import _maybe_wrap, _node_wrap
+        from omegaconf.omegaconf import _node_wrap
 
         from ._utils import _schema_validation
+        from .nodes import ValueNode
 
         value = _get_value(value)
         source_is_list = isinstance(value, (list, ListConfig))
@@ -517,40 +518,50 @@ class TupleConfig(BaseContainer, Sequence[Any]):
 
         content: list[Node] = []
         self.__dict__["_content"] = content
+
         for index, item in enumerate(values):
             if get_value_kind(item) is ValueKind.MANDATORY_MISSING:
                 raise ValidationError("TupleConfig elements cannot be missing")
             if isinstance(item, Node):
                 item = copy.deepcopy(item)
-            optional, item_type = _resolve_optional(self._item_type(index))
-            if _schema_validation.get() is not None and isinstance(item, Node):
-                # Source nodes carry their own container annotations. Rebuild
-                # them with the tuple item's destination annotation so shared
-                # validators check keys, values, and structured fields against
-                # the destination schema.
-                if item_type is Any:
-                    node = _maybe_wrap(
-                        ref_type=item_type,
-                        key=index,
-                        value=item,
-                        is_optional=optional,
-                        parent=self,
+            item_annotation = self._item_type(index)
+            optional, item_type = _resolve_optional(item_annotation)
+            if (
+                isinstance(item, Node)
+                and _schema_validation.get() is None
+                and (
+                    item_type is Any
+                    or (
+                        item._metadata.ref_type == item_type
+                        and (
+                            item._metadata.optional is optional
+                            or isinstance(item, ValueNode)
+                        )
                     )
-                else:
-                    node = _node_wrap(
-                        ref_type=item_type,
-                        key=index,
-                        value=_get_value(item),
-                        is_optional=optional,
-                        parent=self,
-                    )
+                )
+            ):
+                node = item
+                _deep_update_type_hint(node, item_annotation)
+                node._set_parent(self)
+                node._set_key(index)
+                if isinstance(node, BaseContainer):
+                    node._re_parent()
             else:
-                node = _maybe_wrap(
+                # Use the destination constructor for raw values and copied
+                # source nodes. This keeps tuple conversion consistent with
+                # typed list and dictionary construction.
+                node = _node_wrap(
                     ref_type=item_type,
                     key=index,
-                    value=item,
+                    value=_get_value(item) if isinstance(item, Node) else item,
                     is_optional=optional,
                     parent=self,
+                    flags=(
+                        copy.deepcopy(item._metadata.flags or {})
+                        if isinstance(item, (ValueNode, BaseContainer))
+                        and _schema_validation.get() is None
+                        else None
+                    ),
                 )
             content.append(node)
         self._metadata.object_type = tuple

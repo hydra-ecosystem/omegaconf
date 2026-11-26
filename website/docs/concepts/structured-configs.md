@@ -50,9 +50,42 @@ A field can be annotated with another structured config class. Use a
 
 ```
 
+A mapping assigned to a structured field uses that field's schema and defaults:
+
+```python
+>>> app.server = {"port": 8080}
+>>> OmegaConf.to_object(app).server
+Server(host='localhost', port=8080)
+
+```
+
 Structured configs reject unknown fields. A field can be
 [missing](./missing-values) until supplied. The generated
 [Python API](../reference/python-api) documents `OmegaConf.structured()`.
+
+## Structured values in typed containers
+
+When a list, dictionary, or tuple declares a structured value type, its
+mapping values are validated against that schema. This applies to
+construction, insertion or replacement where supported, and merging.
+Schema defaults fill omitted fields, and unknown fields or invalid values
+raise validation errors.
+
+```python
+>>> servers = OmegaConf.typed_list([{"port": 8080}], element_type=Server)
+>>> OmegaConf.to_object(servers)
+[Server(host='localhost', port=8080)]
+>>> named = OmegaConf.typed_dict(
+...     {"primary": {"port": 8443}}, key_type=str, element_type=Server
+... )
+>>> OmegaConf.to_object(named)
+{'primary': Server(host='localhost', port=8443)}
+
+```
+
+Nested containers use their declared value types too. Frozen schemas retain
+their read-only protection. Supplying an existing structured value preserves
+its values without rerunning its unused default factories.
 
 In 2.4, assigning a value that requires implicit conversion emits a
 `FutureWarning`. Assign a value of the declared type, or use
