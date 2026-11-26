@@ -1,0 +1,1 @@
+``ListConfig.index()`` now normalizes negative and out-of-range ``start``/``end`` bounds like ``list.index()`` instead of raising an ``AssertionError``.
