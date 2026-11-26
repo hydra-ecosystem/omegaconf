@@ -2,7 +2,7 @@ from typing import Any, Union
 
 from pytest import mark, param, raises
 
-from omegaconf import DictConfig, ListConfig, OmegaConf, ValidationError
+from omegaconf import DictConfig, ListConfig, OmegaConf
 from omegaconf._utils import _ensure_container, is_primitive_container
 from omegaconf.errors import (
     ConfigAttributeError,
@@ -10,7 +10,7 @@ from omegaconf.errors import (
     ConfigTypeError,
     InterpolationResolutionError,
 )
-from tests import Group, Package, User
+from tests import Group, Module, Package, User
 
 
 @mark.parametrize(
@@ -160,14 +160,6 @@ def test_update(cfg: Any, key: str, value: Any, expected: Any) -> None:
             {"modules": [{"name": "foo", "classes": "???"}]},
             id="structured_list:merge",
         ),
-        param(
-            Package,
-            "modules",
-            [{"name": "foo"}],
-            False,
-            raises(ValidationError),
-            id="structured_list:set",
-        ),
     ],
 )
 def test_update_merge_set(
@@ -180,6 +172,22 @@ def test_update_merge_set(
     else:
         with expected:
             OmegaConf.update(cfg, key, value, merge=merge)
+
+
+def test_update_set_structured_list_promotes_mapping() -> None:
+    cfg = OmegaConf.structured(Package)
+
+    OmegaConf.update(cfg, "modules", [{"name": "foo"}], merge=False)
+
+    modules = cfg._get_node("modules")
+    assert isinstance(modules, ListConfig)
+    module = modules._get_node(0)
+    assert isinstance(module, DictConfig)
+    assert OmegaConf.get_type(module) is Module
+    assert module._metadata.ref_type is Module
+    assert module.name == "foo"
+    assert OmegaConf.is_missing(module, "classes")
+    assert cfg == {"modules": [{"name": "foo", "classes": "???"}]}
 
 
 def test_update_list_make_dict() -> None:

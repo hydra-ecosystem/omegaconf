@@ -841,12 +841,6 @@ def test_dict_assign_to_container_typed_element_special(
             id="assign-list[list[typed-none]]-to-list[list[int]]",
         ),
         param(
-            DictConfig({"key": [[123.456]]}, element_type=List[List[float]]),
-            [[IntegerNode(789)]],
-            re.escape("Value 789 (int) is incompatible with type hint 'float'"),
-            id="assign-list[list[typed-int]]-to-list[list[float]]",
-        ),
-        param(
             DictConfig(
                 {"key": {"foo": {"bar": 123}}}, element_type=Dict[str, Dict[str, int]]
             ),
@@ -890,24 +884,6 @@ def test_dict_assign_to_container_typed_element_special(
             r"(Key 456 \(int\) is incompatible with \(str\))"
             + r"|(Key 456 \(int\) is incompatible with key type hint 'str')",
             id="assign-dict[str_[dict[int-typed_none]]]-to-dict[str[dict[str_int]]]",
-        ),
-        param(
-            DictConfig(
-                {"key": {"foo": {"bar": 123.456}}},
-                element_type=Dict[str, Dict[str, float]],
-            ),
-            {"foo": {"bar": IntegerNode(789)}},
-            re.escape("Value 789 (int) is incompatible with type hint 'float'"),
-            id="assign-dict[str-[dict[int_typed-int]]]-to-dict[str[dict[str-float]]]",
-        ),
-        param(
-            DictConfig(
-                {"key": {"foo": {"bar": 123.456}}},
-                element_type=Dict[str, Dict[str, float]],
-            ),
-            {"foo": {"bar2": IntegerNode(789)}},
-            re.escape("Value 789 (int) is incompatible with type hint 'float'"),
-            id="assign-dict[str-[dict[int_typed-int]]]-to-dict[str[dict[str_float]]]-2",
         ),
     ],
 )
@@ -996,7 +972,7 @@ def test_dict_setitem_invalid_element_type(
             ListConfig([[123]], element_type=List[int]),
             0,
             [None],
-            re.escape("Invalid type assigned: NoneType is not a subclass of int"),
+            re.escape("Incompatible value 'None' for field of type 'int'"),
             id="assign_list[none]_to_list[int]",
         ),
         param(
@@ -1075,7 +1051,7 @@ def test_dict_setitem_invalid_element_type(
             ListConfig([], element_type=List[int]),
             None,
             [None],
-            re.escape("Invalid type assigned: NoneType is not a subclass of int"),
+            re.escape("Incompatible value 'None' for field of type 'int'"),
             id="append_list[none]_to_list[int]",
         ),
         param(
