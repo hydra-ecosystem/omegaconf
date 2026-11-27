@@ -5,3 +5,6 @@ from contextvars import ContextVar
 _schema_validation: ContextVar[bool | None] = ContextVar(
     "schema_validation", default=None
 )
+
+# Scoped to from_input, including construction, merge and object export.
+_literal_input: ContextVar[bool] = ContextVar("literal_input", default=False)
