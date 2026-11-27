@@ -20,7 +20,7 @@
     "1443": "2026-10-28",
     "459": "2026-09-25"
   },
-  "generated_at": "2026-11-26T17:38:47Z",
+  "generated_at": "2026-11-27T06:30:52Z",
   "issues": {
     "1024": {
       "category": "Enhancement",
@@ -344,11 +344,9 @@
       "category": "Enhancement",
       "created_at": "2026-11-26T04:05:37Z",
       "labels": [],
-      "pr_numbers": [
-        "1461"
-      ],
+      "pr_numbers": [],
       "state": "OPEN",
-      "status": "in progress",
+      "status": "not started",
       "title": "Support literal strings in structured validation and to_object()",
       "updated_at": "2026-11-26T12:19:55Z"
     },
@@ -356,13 +354,11 @@
       "category": "Enhancement",
       "created_at": "2026-11-26T12:12:12Z",
       "labels": [],
-      "pr_numbers": [
-        "1461"
-      ],
+      "pr_numbers": [],
       "state": "OPEN",
-      "status": "in progress",
-      "title": "Unify structured value construction and merge behavior across typed tuples, lists and dictionaries",
-      "updated_at": "2026-11-26T15:38:13Z"
+      "status": "not started",
+      "title": "Typed tuple construction does not enforce nested element types",
+      "updated_at": "2026-11-27T06:29:40Z"
     },
     "537": {
       "category": "Refactor",

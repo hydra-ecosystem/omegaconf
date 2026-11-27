@@ -1,6 +1,6 @@
 {
-  "generated_on": "2026-11-26",
-  "generated_at": "2026-11-26T17:38:47Z",
+  "generated_on": "2026-11-27",
+  "generated_at": "2026-11-27T06:30:52Z",
   "repo": "hydra-ecosystem/omegaconf",
   "summary": {
     "open_total": 32,
@@ -46,7 +46,7 @@
       {
         "status": "in progress",
         "emoji": "🔄",
-        "count": 2
+        "count": 0
       },
       {
         "status": "community PR",
@@ -61,7 +61,7 @@
       {
         "status": "not started",
         "emoji": "⬜",
-        "count": 28
+        "count": 30
       },
       {
         "status": "done",
@@ -71,42 +71,6 @@
     ]
   },
   "issues": [
-    {
-      "number": 1459,
-      "title": "Support literal strings in structured validation and to_object()",
-      "category": "Enhancement",
-      "category_emoji": "✨",
-      "status": "in progress",
-      "status_emoji": "🔄",
-      "prs": [
-        {
-          "number": 1461,
-          "url": "https://github.com/hydra-ecosystem/omegaconf/pull/1461"
-        }
-      ],
-      "created": "2026-11-26",
-      "updated": "2026-11-26",
-      "labels": [],
-      "url": "https://github.com/hydra-ecosystem/omegaconf/issues/1459"
-    },
-    {
-      "number": 1460,
-      "title": "Unify structured value construction and merge behavior across typed tuples, lists and dictionaries",
-      "category": "Enhancement",
-      "category_emoji": "✨",
-      "status": "in progress",
-      "status_emoji": "🔄",
-      "prs": [
-        {
-          "number": 1461,
-          "url": "https://github.com/hydra-ecosystem/omegaconf/pull/1461"
-        }
-      ],
-      "created": "2026-11-26",
-      "updated": "2026-11-26",
-      "labels": [],
-      "url": "https://github.com/hydra-ecosystem/omegaconf/issues/1460"
-    },
     {
       "number": 1441,
       "title": "Support tuple literals in OmegaConf.from_dotlist()",
@@ -577,6 +541,32 @@
       "url": "https://github.com/hydra-ecosystem/omegaconf/issues/1447"
     },
     {
+      "number": 1459,
+      "title": "Support literal strings in structured validation and to_object()",
+      "category": "Enhancement",
+      "category_emoji": "✨",
+      "status": "not started",
+      "status_emoji": "⬜",
+      "prs": [],
+      "created": "2026-11-26",
+      "updated": "2026-11-26",
+      "labels": [],
+      "url": "https://github.com/hydra-ecosystem/omegaconf/issues/1459"
+    },
+    {
+      "number": 1460,
+      "title": "Typed tuple construction does not enforce nested element types",
+      "category": "Enhancement",
+      "category_emoji": "✨",
+      "status": "not started",
+      "status_emoji": "⬜",
+      "prs": [],
+      "created": "2026-11-26",
+      "updated": "2026-11-27",
+      "labels": [],
+      "url": "https://github.com/hydra-ecosystem/omegaconf/issues/1460"
+    },
+    {
       "number": 459,
       "title": "Consider deprecating assignment of strings to non-string nodes like IntegerNode / FloatNode",
       "category": "Enhancement",
@@ -927,6 +917,38 @@
     }
   ],
   "updates": [
+    {
+      "ts": "2026-11-27T06:30:52Z",
+      "kind": "pr",
+      "issue": 1460,
+      "issue_url": "https://github.com/hydra-ecosystem/omegaconf/issues/1460",
+      "title": "Typed tuple construction does not enforce nested element types",
+      "detail": "unlinked #1461"
+    },
+    {
+      "ts": "2026-11-27T06:30:52Z",
+      "kind": "pr",
+      "issue": 1459,
+      "issue_url": "https://github.com/hydra-ecosystem/omegaconf/issues/1459",
+      "title": "Support literal strings in structured validation and to_object()",
+      "detail": "unlinked #1461"
+    },
+    {
+      "ts": "2026-11-27T06:30:52Z",
+      "kind": "status",
+      "issue": 1460,
+      "issue_url": "https://github.com/hydra-ecosystem/omegaconf/issues/1460",
+      "title": "Typed tuple construction does not enforce nested element types",
+      "detail": "in progress → not started"
+    },
+    {
+      "ts": "2026-11-27T06:30:52Z",
+      "kind": "status",
+      "issue": 1459,
+      "issue_url": "https://github.com/hydra-ecosystem/omegaconf/issues/1459",
+      "title": "Support literal strings in structured validation and to_object()",
+      "detail": "in progress → not started"
+    },
     {
       "ts": "2026-11-26T15:36:11Z",
       "kind": "pr",
@@ -2606,36 +2628,6 @@
       "issue_url": "https://github.com/omry/omegaconf/issues/91",
       "title": "Consider supporting basic operators in interpolations of numbers",
       "detail": "unlinked #1229"
-    },
-    {
-      "ts": "2026-07-20T17:01:59Z",
-      "kind": "closed",
-      "issue": 580,
-      "issue_url": "https://github.com/omry/omegaconf/issues/580",
-      "title": "_ensure_container does not set flags if target is already a DictConfig/ListConfig"
-    },
-    {
-      "ts": "2026-07-20T17:01:59Z",
-      "kind": "closed",
-      "issue": 1058,
-      "issue_url": "https://github.com/omry/omegaconf/issues/1058",
-      "title": "structured config types are discarded on list merge"
-    },
-    {
-      "ts": "2026-07-20T17:01:59Z",
-      "kind": "label",
-      "issue": 1340,
-      "issue_url": "https://github.com/omry/omegaconf/issues/1340",
-      "title": "Inherited flag cache is not invalidated through container-valued unions",
-      "detail": "added \"bug\", \"priority_high\", \"structured config\""
-    },
-    {
-      "ts": "2026-07-20T17:01:59Z",
-      "kind": "status",
-      "issue": 91,
-      "issue_url": "https://github.com/omry/omegaconf/issues/91",
-      "title": "Consider supporting basic operators in interpolations of numbers",
-      "detail": "community PR → not started"
     }
   ]
 }
