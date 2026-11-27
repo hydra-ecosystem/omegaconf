@@ -1,0 +1,1 @@
+Add experimental, non-mutating key and recursive value escape/unescape helpers and ``from_input()`` for escaped structured input validation. Export escaped missing-value text as plain strings when constructing structured objects.

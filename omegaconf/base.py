@@ -1601,8 +1601,8 @@ class UnionNode(Box):
         return res
 
 
-def _copy_with_parent(node: Node) -> Node:
-    """Copy a writable private graph, retaining only copied ancestor context."""
+def _copy_with_parent(node: Node, *, preserve_readonly: bool = False) -> Node:
+    """Copy a private graph, retaining only copied ancestor context."""
     chain = [node]
     while (parent := chain[-1]._get_parent()) is not None:
         chain.append(parent)
@@ -1635,7 +1635,8 @@ def _copy_with_parent(node: Node) -> Node:
         assert isinstance(result, Box)
         child._set_parent(result)
         result = child
-    for cloned in memo.values():
-        if isinstance(cloned, Node):
-            cloned._set_flag("readonly", False)
+    if not preserve_readonly:
+        for cloned in memo.values():
+            if isinstance(cloned, Node):
+                cloned._set_flag("readonly", False)
     return result
