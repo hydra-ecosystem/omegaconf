@@ -21,6 +21,7 @@ from omegaconf._utils import (
     is_primitive_container,
     type_str,
 )
+from omegaconf._validation_context import _literal_input
 from omegaconf.base import Box, DictKeyType, Metadata, Node
 from omegaconf.errors import ReadonlyConfigError, UnsupportedValueType, ValidationError
 
@@ -96,7 +97,17 @@ class ValueNode(Node):
             self._strict_validate_type(value)
             return value
         else:
-            return self._validate_and_convert_impl(value)
+            converted = self._validate_and_convert_impl(value)
+            if (
+                _literal_input.get() is True
+                and isinstance(converted, str)
+                and not isinstance(converted, Enum)
+                and (not isinstance(value, str) or isinstance(value, Enum))
+            ):
+                from .experimental import _escape_string
+
+                converted = _decode_missing_escape(_escape_string(converted))
+            return converted
 
     @abstractmethod
     def _validate_and_convert_impl(self, value: Any) -> Any: ...

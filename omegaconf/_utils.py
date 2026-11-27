@@ -27,7 +27,7 @@ from ._missing import (
     _EscapedMissing,
     _has_missing_spelling,
 )
-from ._validation_context import _schema_validation
+from ._validation_context import _literal_input, _schema_validation
 from .errors import (
     ConfigIndexError,
     ConfigTypeError,
@@ -749,12 +749,18 @@ def get_structured_config_data(
     allow_objects: bool | None = None,
     parent: "BaseContainer | None" = None,
 ) -> dict[str, Any]:
-    if is_dataclass(obj):
-        return get_dataclass_data(obj, allow_objects=allow_objects, parent=parent)
-    elif is_attr_class(obj):
-        return get_attr_data(obj, allow_objects=allow_objects, parent=parent)
-    else:
-        raise ValueError(f"Unsupported type: {type(obj).__name__}")
+    # Raw structured caller values are rejected by from_input. Values built
+    # here belong to the schema, including defaults created during merge.
+    token = _literal_input.set(False if _literal_input.get() is not None else None)
+    try:
+        if is_dataclass(obj):
+            return get_dataclass_data(obj, allow_objects=allow_objects, parent=parent)
+        elif is_attr_class(obj):
+            return get_attr_data(obj, allow_objects=allow_objects, parent=parent)
+        else:
+            raise ValueError(f"Unsupported type: {type(obj).__name__}")
+    finally:
+        _literal_input.reset(token)
 
 
 class ValueKind(Enum):
