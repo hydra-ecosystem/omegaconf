@@ -1423,9 +1423,11 @@ class UnionNode(Box):
         type_hint: Any,
         fallback_candidates: list[Any] | None = None,
     ) -> None:
+        from omegaconf.basecontainer import _deep_update_type_hint
         from omegaconf.listconfig import ListConfig
-        from omegaconf.omegaconf import _node_wrap
-        from omegaconf.tupleconfig import TupleConfig
+        from omegaconf.nodes import ValueNode
+        from omegaconf.omegaconf import _node_wrap, flag_override
+        from omegaconf.tupleconfig import TupleConfig, _normalize_tuple_input
 
         from ._utils import (
             get_dict_key_value_types,
@@ -1473,18 +1475,68 @@ class UnionNode(Box):
                     ]
             return meta_candidates or candidate_types
 
+        def construct(candidate_ref_type: Any) -> Node:
+            if is_list_annotation(candidate_ref_type) and (
+                isinstance(value, (list, ListConfig))
+                or isinstance(value, (tuple, TupleConfig))
+                and _schema_validation.get() is None
+            ):
+                if isinstance(value, Node) or _schema_validation.get() is not None:
+                    node = ListConfig(
+                        content=(
+                            copy.deepcopy(value)._value()
+                            if isinstance(value, Node)
+                            else value
+                        ),
+                        flags=(
+                            copy.deepcopy(value._metadata.flags)
+                            if isinstance(value, Node)
+                            else None
+                        ),
+                        is_optional=False,
+                        key=self._key(),
+                        parent=self,
+                    )
+                else:
+                    node = _normalize_tuple_input(
+                        value, candidate_ref_type, self, self._key()
+                    )
+                    assert isinstance(node, ListConfig)
+                element_type = get_list_element_type(candidate_ref_type)
+                for index in range(len(node)):
+                    child = node._get_node(index)
+                    if isinstance(child, ValueNode):
+                        flags = child._metadata.flags or {}
+                        with flag_override(node, list(flags), list(flags.values())):
+                            node._wrap_value_and_set(
+                                index, child._value(), element_type
+                            )
+                        child = node._get_node(index)
+                        assert isinstance(child, Node)
+                        child._set_flag(list(flags), list(flags.values()))
+                _deep_update_type_hint(node, candidate_ref_type)
+                if (
+                    isinstance(value, TupleConfig)
+                    and _conversion_warning_mode.get() is True
+                ):
+                    from ._conversion_warnings import _warn_implicit_conversion
+
+                    _warn_implicit_conversion(tuple, list, self._get_full_key(None))
+                return node
+            return _node_wrap(
+                value=value,
+                ref_type=candidate_ref_type,
+                is_optional=False,
+                key=self._key(),
+                parent=self,
+            )
+
         def find_matches(candidate_types: list[Any]) -> list[Node]:
             matches: list[Node] = []
             for candidate_ref_type in narrow_by_metadata(candidate_types):
                 try:
                     with _conversion_warnings(False):
-                        node = _node_wrap(
-                            value=value,
-                            ref_type=candidate_ref_type,
-                            is_optional=False,
-                            key=self._key(),
-                            parent=self,
-                        )
+                        node = construct(candidate_ref_type)
                     matches.append(node)
                     if len(matches) > 1:
                         break
@@ -1503,13 +1555,7 @@ class UnionNode(Box):
         elif len(matches) == 1:
             selected = matches[0]
             if _conversion_warning_mode.get() is True:
-                selected = _node_wrap(
-                    value=value,
-                    ref_type=selected._metadata.ref_type,
-                    is_optional=False,
-                    key=self._key(),
-                    parent=self,
-                )
+                selected = construct(selected._metadata.ref_type)
             self.__dict__["_content"] = selected
         else:
             matching_types = ", ".join(type_str(n._metadata.ref_type) for n in matches)
