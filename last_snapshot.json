@@ -20,7 +20,7 @@
     "1443": "2026-10-28",
     "459": "2026-09-25"
   },
-  "generated_at": "2026-11-27T06:48:23Z",
+  "generated_at": "2026-11-27T06:59:24Z",
   "issues": {
     "1024": {
       "category": "Enhancement",
@@ -358,7 +358,17 @@
       "state": "OPEN",
       "status": "not started",
       "title": "Typed tuple construction does not enforce nested element types",
-      "updated_at": "2026-11-27T06:29:40Z"
+      "updated_at": "2026-11-27T06:58:46Z"
+    },
+    "1462": {
+      "category": "Enhancement",
+      "created_at": "2026-11-27T06:58:03Z",
+      "labels": [],
+      "pr_numbers": [],
+      "state": "OPEN",
+      "status": "not started",
+      "title": "Structured merges discard explicit descendant node flags",
+      "updated_at": "2026-11-27T06:58:03Z"
     },
     "537": {
       "category": "Refactor",

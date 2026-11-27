@@ -302,3 +302,4 @@
 {"ts": "2026-11-27T06:30:52Z", "kind": "status", "issue": 1460, "issue_url": "https://github.com/hydra-ecosystem/omegaconf/issues/1460", "title": "Typed tuple construction does not enforce nested element types", "detail": "in progress → not started"}
 {"ts": "2026-11-27T06:30:52Z", "kind": "pr", "issue": 1459, "issue_url": "https://github.com/hydra-ecosystem/omegaconf/issues/1459", "title": "Support literal strings in structured validation and to_object()", "detail": "unlinked #1461"}
 {"ts": "2026-11-27T06:30:52Z", "kind": "pr", "issue": 1460, "issue_url": "https://github.com/hydra-ecosystem/omegaconf/issues/1460", "title": "Typed tuple construction does not enforce nested element types", "detail": "unlinked #1461"}
+{"ts": "2026-11-27T06:59:24Z", "kind": "new", "issue": 1462, "issue_url": "https://github.com/hydra-ecosystem/omegaconf/issues/1462", "title": "Structured merges discard explicit descendant node flags"}

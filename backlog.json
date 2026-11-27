@@ -1,27 +1,27 @@
 {
   "generated_on": "2026-11-27",
-  "generated_at": "2026-11-27T06:48:23Z",
+  "generated_at": "2026-11-27T06:59:24Z",
   "repo": "hydra-ecosystem/omegaconf",
   "summary": {
-    "open_total": 32,
+    "open_total": 33,
     "by_category": [
       {
         "category": "Bug",
         "emoji": "🐛",
         "count": 1,
-        "percentage": 3.1
+        "percentage": 3.0
       },
       {
         "category": "Enhancement",
         "emoji": "✨",
-        "count": 27,
-        "percentage": 84.4
+        "count": 28,
+        "percentage": 84.8
       },
       {
         "category": "Documentation",
         "emoji": "📄",
         "count": 1,
-        "percentage": 3.1
+        "percentage": 3.0
       },
       {
         "category": "Question",
@@ -33,13 +33,13 @@
         "category": "Refactor",
         "emoji": "🔧",
         "count": 2,
-        "percentage": 6.2
+        "percentage": 6.1
       },
       {
         "category": "Build",
         "emoji": "🏗️",
         "count": 1,
-        "percentage": 3.1
+        "percentage": 3.0
       }
     ],
     "by_status": [
@@ -61,7 +61,7 @@
       {
         "status": "not started",
         "emoji": "⬜",
-        "count": 30
+        "count": 31
       },
       {
         "status": "done",
@@ -567,6 +567,19 @@
       "url": "https://github.com/hydra-ecosystem/omegaconf/issues/1460"
     },
     {
+      "number": 1462,
+      "title": "Structured merges discard explicit descendant node flags",
+      "category": "Enhancement",
+      "category_emoji": "✨",
+      "status": "not started",
+      "status_emoji": "⬜",
+      "prs": [],
+      "created": "2026-11-27",
+      "updated": "2026-11-27",
+      "labels": [],
+      "url": "https://github.com/hydra-ecosystem/omegaconf/issues/1462"
+    },
+    {
       "number": 459,
       "title": "Consider deprecating assignment of strings to non-string nodes like IntegerNode / FloatNode",
       "category": "Enhancement",
@@ -917,6 +930,13 @@
     }
   ],
   "updates": [
+    {
+      "ts": "2026-11-27T06:59:24Z",
+      "kind": "new",
+      "issue": 1462,
+      "issue_url": "https://github.com/hydra-ecosystem/omegaconf/issues/1462",
+      "title": "Structured merges discard explicit descendant node flags"
+    },
     {
       "ts": "2026-11-27T06:30:52Z",
       "kind": "pr",
@@ -2620,14 +2640,6 @@
       "issue_url": "https://github.com/omry/omegaconf/issues/1338",
       "title": "Consider a compatibility mode for legacy tuple-to-list conversion",
       "detail": "added \"RFC\""
-    },
-    {
-      "ts": "2026-07-20T17:01:59Z",
-      "kind": "pr",
-      "issue": 91,
-      "issue_url": "https://github.com/omry/omegaconf/issues/91",
-      "title": "Consider supporting basic operators in interpolations of numbers",
-      "detail": "unlinked #1229"
     }
   ]
 }
