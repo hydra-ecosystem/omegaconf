@@ -1,21 +1,175 @@
-"""Private experimental operations, without a compatibility guarantee."""
+"""Experimental operations, without a compatibility guarantee."""
 
+import re
+from collections.abc import Callable
+from enum import Enum
 from typing import Any, Iterator
 
-from . import Container, OmegaConf
+from . import Container, OmegaConf, TupleConfig, read_write
 from ._impl import _is_recursive_container
+from ._key_path import _escape_key, _unescape_key
+from ._missing import _EscapedMissing, _has_missing_spelling
 from ._utils import (
     _get_value,
+    _is_missing_literal,
     _is_special,
     _schema_validation,
     is_primitive_dict,
+    is_structured_config,
 )
 from .base import Node, UnionNode, _copy_with_parent
 from .basecontainer import BaseContainer
 from .errors import ValidationError
 from .nodes import ValueNode
 
-__all__: list[str] = []
+__all__ = ["escape_key", "unescape_key", "escape_value", "unescape_value", "from_input"]
+
+_INTERPOLATION_OPEN = re.compile(r"(?<!\\)(\\*)\$\{")
+
+
+def escape_key(key: str) -> str:
+    r"""Escape one literal key segment for a config path (experimental).
+
+    For example, ``a.b`` becomes ``a\.b``. This is for path syntax, not for
+    renaming stored mapping keys. Select an empty key with ``[]``.
+    """
+    return _escape_key(key)
+
+
+def unescape_key(key: str) -> str:
+    """Decode recognized escapes in one key segment (experimental).
+
+    This does not split a path. Unknown escapes retain their backslash.
+    """
+    return _unescape_key(key)
+
+
+def _escape_string(value: str) -> str:
+    if _has_missing_spelling(value):
+        return "\\" + value
+    return _INTERPOLATION_OPEN.sub(lambda match: match[1] * 2 + r"\${", value)
+
+
+def _unescape_string(value: str) -> str:
+    if isinstance(value, _EscapedMissing):
+        return str(value)
+    if value.startswith("\\") and _has_missing_spelling(value):
+        return value[1:]
+    return _INTERPOLATION_OPEN.sub(
+        lambda match: (
+            "\\" * ((len(match[1]) - 1) // 2) + "${" if len(match[1]) % 2 else match[0]
+        ),
+        value,
+    )
+
+
+def _transform_value(value: Any, transform: Callable[[str], str]) -> Any:
+    if _is_recursive_container(value):
+        raise ValidationError("Cannot transform a recursive input container")
+
+    def visit(item: Any) -> Any:
+        if is_structured_config(item):
+            raise ValidationError("Cannot transform raw structured config objects")
+        if isinstance(item, Node):
+            # Copy ancestor context too, so a returned subtree has no live
+            # parent or relative-interpolation dependency on the source graph.
+            result = _copy_with_parent(item, preserve_readonly=True)
+            for node in _nodes(result):
+                content = node._value()
+                if is_structured_config(content):
+                    raise ValidationError(
+                        "Cannot transform raw structured config objects"
+                    )
+                if (
+                    isinstance(content, str)
+                    and not isinstance(content, Enum)
+                    and not node._is_missing()
+                ):
+                    # Missing escapes are decoded on storage. Restore the
+                    # storage spelling before applying a syntax transform.
+                    if isinstance(content, _EscapedMissing):
+                        content = "\\" + str(content)
+                    transformed = transform(content)
+                    if _is_missing_literal(transformed) and isinstance(
+                        node._get_parent_container(), TupleConfig
+                    ):
+                        raise ValidationError("TupleConfig elements cannot be missing")
+                    with read_write(node):
+                        node._set_value(transformed)
+                elif isinstance(node, ValueNode) and isinstance(
+                    content, (dict, list, tuple)
+                ):
+                    with read_write(node):
+                        node._set_value(_transform_value(content, transform))
+            return result
+        if isinstance(item, dict):
+            return {key: visit(child) for key, child in item.items()}
+        if isinstance(item, (list, tuple)):
+            children = [visit(child) for child in item]
+            return tuple(children) if isinstance(item, tuple) else children
+        if isinstance(item, str) and not isinstance(item, Enum):
+            return transform(item)
+        return item
+
+    return visit(value)
+
+
+def escape_value(value: Any) -> Any:
+    r"""Escape string values for one OmegaConf interpretation (experimental).
+
+    Recursively copies dicts, lists, tuples and config nodes, escaping ``${``
+    and literal missing-value spellings while preserving backslashes.
+    Stored mapping keys and ordinary non-string values remain unchanged. Raw
+    dataclass and attrs classes or instances are rejected, including when
+    nested in containers. Config copies preserve node types, flags and copied
+    ancestor context without resolving expressions. Existing missing nodes
+    remain missing; escape caller text before constructing its first config to
+    preserve a literal ``???``.
+
+    Config transforms retain typed validation and can raise normal validation
+    errors when the transformed value is incompatible with its node.
+
+    Escaping adds one layer; it is not idempotent. Subsequent resolution or
+    reconstruction of decoded strings can interpret them again.
+    """
+    return _transform_value(value, _escape_string)
+
+
+def unescape_value(value: Any) -> Any:
+    """Remove one value-escape layer without resolving it (experimental).
+
+    Recursively copies native containers and config nodes, preserving stored
+    mapping keys. A config result retains its node types and flags. Unescaped
+    expressions become active on subsequent reads; malformed decoded text or
+    incompatible typed values can raise normal config validation errors. Raw
+    dataclass and attrs classes or instances are rejected, including when
+    nested in containers. Config transforms retain typed validation and can
+    raise normal validation errors when the transformed value is incompatible
+    with its node.
+    """
+    return _transform_value(value, _unescape_string)
+
+
+def from_input(schema: Any, arguments: Any) -> Any:
+    """Escape caller arguments, validate against schema, and export objects.
+
+    This experimental helper composes ``escape_value(arguments)``,
+    ``OmegaConf.merge(OmegaConf.structured(schema), ...)`` and
+    ``OmegaConf.to_object()``. Both inputs remain unchanged. Defaults, normal
+    conversion, required fields and unknown-field checks still apply.
+
+    Raw dataclass and attrs classes or instances are unsupported in caller
+    arguments, including when nested. Pass structured caller values as ordinary
+    containers. The schema may still be a structured class or instance.
+
+    Only caller arguments are escaped. Trusted schema defaults retain normal
+    interpolation behavior. A trusted resolver that returns decoded caller
+    strings in a new typed container may cause another interpretation; this
+    helper does not guarantee literal behavior across such forwarding.
+    """
+    return OmegaConf.to_object(
+        OmegaConf.merge(OmegaConf.structured(schema), escape_value(arguments))
+    )
 
 
 def _nodes(node: Node) -> Iterator[Node]:
