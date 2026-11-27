@@ -9,10 +9,20 @@ from ._utils import (
     _get_value,
     _is_missing_literal,
     _is_none,
+    _is_special,
     _resolve_optional,
     format_and_raise,
+    get_dict_key_value_types,
+    get_list_element_type,
     get_tuple_item_types,
+    get_type_hint,
     get_value_kind,
+    is_container_annotation,
+    is_dict_annotation,
+    is_list_annotation,
+    is_structured_config,
+    is_tuple_annotation,
+    is_union_annotation,
     is_valid_value_annotation,
     is_variadic_tuple_annotation,
     make_tuple_annotation,
@@ -29,6 +39,49 @@ from .errors import (
     MissingMandatoryValue,
     ValidationError,
 )
+
+
+def _normalize_tuple_input(value: Any, annotation: Any, parent: Box, key: Any) -> Any:
+    """Build raw container shapes without rebuilding existing nodes."""
+    from .dictconfig import DictConfig
+    from .listconfig import ListConfig
+    from .omegaconf import _node_wrap, flag_override
+
+    if isinstance(value, Node):
+        return value
+    optional, ref_type = _resolve_optional(annotation)
+    if (
+        is_union_annotation(ref_type)
+        and isinstance(value, (list, tuple, dict))
+        or is_tuple_annotation(ref_type)
+        and isinstance(value, (list, tuple))
+    ):
+        return _node_wrap(
+            value=value,
+            ref_type=ref_type,
+            is_optional=optional,
+            parent=parent,
+            key=key,
+        )
+    if is_list_annotation(ref_type) and isinstance(value, (list, tuple)):
+        node = ListConfig([], parent=parent, key=key)
+        element_type = get_list_element_type(ref_type)
+        with flag_override(node, ["struct", "readonly"], False):
+            for index, item in enumerate(value):
+                node.append(_normalize_tuple_input(item, element_type, node, index))
+        if isinstance(value, tuple) and _conversion_warning_mode.get() is True:
+            _warn_implicit_conversion(tuple, list, node._get_full_key(None))
+        return node
+    if is_dict_annotation(ref_type) and isinstance(value, dict):
+        node = DictConfig({}, parent=parent, key=key)
+        _, element_type = get_dict_key_value_types(ref_type)
+        with flag_override(node, ["struct", "readonly"], False):
+            for child_key, item in value.items():
+                node[child_key] = _normalize_tuple_input(
+                    item, element_type, node, child_key
+                )
+        return node
+    return value
 
 
 class TupleConfig(BaseContainer, Sequence[Any]):
@@ -469,9 +522,11 @@ class TupleConfig(BaseContainer, Sequence[Any]):
     def _set_value_impl(self, value: Any, flags: dict[str, bool] | None = None) -> None:
         from omegaconf import MISSING
         from omegaconf.listconfig import ListConfig
-        from omegaconf.omegaconf import _maybe_wrap, _node_wrap
+        from omegaconf.nodes import ValueNode
+        from omegaconf.omegaconf import _maybe_wrap, _node_wrap, flag_override
 
         from ._utils import _schema_validation
+        from .basecontainer import _deep_update_subnode
 
         value = _get_value(value)
         source_is_list = isinstance(value, (list, ListConfig))
@@ -503,7 +558,7 @@ class TupleConfig(BaseContainer, Sequence[Any]):
             )
 
         values = (
-            list(value._iter_ex(resolve=False))
+            [value._get_node(index) for index in range(len(value))]
             if isinstance(value, (ListConfig, TupleConfig))
             else list(value)
         )
@@ -522,7 +577,8 @@ class TupleConfig(BaseContainer, Sequence[Any]):
                 raise ValidationError("TupleConfig elements cannot be missing")
             if isinstance(item, Node):
                 item = copy.deepcopy(item)
-            optional, item_type = _resolve_optional(self._item_type(index))
+            type_hint = self._item_type(index)
+            optional, item_type = _resolve_optional(type_hint)
             if _schema_validation.get() is not None and isinstance(item, Node):
                 # Source nodes carry their own container annotations. Rebuild
                 # them with the tuple item's destination annotation so shared
@@ -545,14 +601,37 @@ class TupleConfig(BaseContainer, Sequence[Any]):
                         parent=self,
                     )
             else:
-                node = _maybe_wrap(
-                    ref_type=item_type,
-                    key=index,
-                    value=item,
-                    is_optional=optional,
-                    parent=self,
+                # Retain source nodes for retyping. Raw inputs must use the
+                # destination container shape before tuple restrictions apply.
+                if _schema_validation.get() is None:
+                    item = _normalize_tuple_input(item, type_hint, self, index)
+                item_flags = (
+                    (item._metadata.flags or {}) if isinstance(item, ValueNode) else {}
                 )
+                with flag_override(self, list(item_flags), list(item_flags.values())):
+                    node = _maybe_wrap(
+                        ref_type=(
+                            Any
+                            if (
+                                is_container_annotation(item_type)
+                                or is_structured_config(item_type)
+                            )
+                            and not _is_special(item)
+                            else item_type
+                        ),
+                        key=index,
+                        value=_get_value(item) if isinstance(item, ValueNode) else item,
+                        is_optional=optional,
+                        parent=self,
+                    )
+                node._set_flag(list(item_flags), list(item_flags.values()))
             content.append(node)
+            if (
+                _schema_validation.get() is None
+                and item_type is not Any
+                and get_type_hint(node) != type_hint
+            ):
+                _deep_update_subnode(self, index, type_hint)
         self._metadata.object_type = tuple
         if _conversion_warning_mode.get() is True and source_is_list:
             _warn_implicit_conversion(list, tuple, self._get_full_key(None))
