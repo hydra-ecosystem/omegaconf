@@ -9,10 +9,14 @@ from ._utils import (
     _get_value,
     _is_missing_literal,
     _is_none,
+    _is_special,
     _resolve_optional,
     format_and_raise,
     get_tuple_item_types,
+    get_type_hint,
     get_value_kind,
+    is_container_annotation,
+    is_structured_config,
     is_valid_value_annotation,
     is_variadic_tuple_annotation,
     make_tuple_annotation,
@@ -472,6 +476,7 @@ class TupleConfig(BaseContainer, Sequence[Any]):
         from omegaconf.omegaconf import _maybe_wrap, _node_wrap
 
         from ._utils import _schema_validation
+        from .basecontainer import _deep_update_subnode
 
         value = _get_value(value)
         source_is_list = isinstance(value, (list, ListConfig))
@@ -522,7 +527,8 @@ class TupleConfig(BaseContainer, Sequence[Any]):
                 raise ValidationError("TupleConfig elements cannot be missing")
             if isinstance(item, Node):
                 item = copy.deepcopy(item)
-            optional, item_type = _resolve_optional(self._item_type(index))
+            type_hint = self._item_type(index)
+            optional, item_type = _resolve_optional(type_hint)
             if _schema_validation.get() is not None and isinstance(item, Node):
                 # Source nodes carry their own container annotations. Rebuild
                 # them with the tuple item's destination annotation so shared
@@ -545,14 +551,29 @@ class TupleConfig(BaseContainer, Sequence[Any]):
                         parent=self,
                     )
             else:
+                # Infer containers first, then apply their destination schema below.
                 node = _maybe_wrap(
-                    ref_type=item_type,
+                    ref_type=(
+                        Any
+                        if (
+                            is_container_annotation(item_type)
+                            or is_structured_config(item_type)
+                        )
+                        and not _is_special(item)
+                        else item_type
+                    ),
                     key=index,
                     value=item,
                     is_optional=optional,
                     parent=self,
                 )
             content.append(node)
+            if (
+                _schema_validation.get() is None
+                and item_type is not Any
+                and get_type_hint(node) != type_hint
+            ):
+                _deep_update_subnode(self, index, type_hint)
         self._metadata.object_type = tuple
         if _conversion_warning_mode.get() is True and source_is_list:
             _warn_implicit_conversion(list, tuple, self._get_full_key(None))

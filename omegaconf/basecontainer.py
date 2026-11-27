@@ -25,6 +25,7 @@ from ._utils import (
     is_container_annotation,
     is_dict_annotation,
     is_list_annotation,
+    is_literal_annotation,
     is_primitive_container,
     is_primitive_dict,
     is_primitive_type_annotation,
@@ -1087,8 +1088,11 @@ def _deep_update_type_hint(node: Node, type_hint: Any) -> None:
             new_ref_type,
             ref_type=new_ref_type,
             is_optional=new_is_optional,
+            parent=node._get_parent(),
+            flags=node._metadata.flags,
         )
-        node._set_value(OmegaConf.merge(prototype, node))
+        merged = OmegaConf.merge(prototype, node)
+        node._set_value(merged, flags=merged._metadata.flags)
 
     _shallow_validate_type_hint(node, type_hint)
 
@@ -1105,7 +1109,7 @@ def _deep_update_type_hint(node: Node, type_hint: Any) -> None:
     if is_tuple_annotation(new_ref_type) and isinstance(node, TupleConfig):
         item_types = get_tuple_item_types(new_ref_type)
         variadic = is_variadic_tuple_annotation(new_ref_type)
-        if not variadic and len(node) != len(item_types):
+        if not _is_special(node) and not variadic and len(node) != len(item_types):
             raise ValidationError(
                 f"TupleConfig length {len(node)} does not match type hint length {len(item_types)}"
             )
@@ -1130,14 +1134,92 @@ def _deep_update_type_hint(node: Node, type_hint: Any) -> None:
 
 def _deep_update_subnode(node: BaseContainer, key: Any, value_type_hint: Any) -> None:
     """Get node[key] and ensure it is compatible with value_type_hint, mutating if necessary."""
-    from .nodes import AnyNode
+    from omegaconf import DictConfig, ListConfig, TupleConfig
+
+    from ._utils import get_dict_key_value_types
+    from .nodes import AnyNode, ValueNode
+    from .omegaconf import flag_override
 
     subnode = node._get_node(key)
     assert isinstance(subnode, Node)
     _, ref_type = _resolve_optional(value_type_hint)
     if (
+        isinstance(subnode, DictConfig)
+        and is_dict_annotation(ref_type)
+        and subnode._metadata.object_type is dict
+        and subnode._metadata.ref_type is Any
+        and subnode._metadata.key_type is Any
+        and subnode._metadata.element_type is Any
+    ):
+        new_key_type, new_element_type = get_dict_key_value_types(ref_type)
+        if new_key_type is not Any:
+            source_content = subnode.__dict__["_content"]
+            assert isinstance(source_content, dict)
+            needs_normalization = False
+            for source_key in source_content:
+                try:
+                    normalized_key = subnode._s_validate_and_normalize_key(
+                        new_key_type, source_key
+                    )
+                except KeyValidationError:
+                    continue
+                if (
+                    type(normalized_key) is not type(source_key)
+                    or normalized_key != source_key
+                ):
+                    needs_normalization = True
+                    break
+            if needs_normalization:
+                replacement = DictConfig(
+                    content={},
+                    key=key,
+                    parent=node,
+                    ref_type=Dict[new_key_type, new_element_type],
+                    key_type=new_key_type,
+                    element_type=new_element_type,
+                    is_optional=subnode._metadata.optional,
+                    flags=copy.deepcopy(subnode._metadata.flags),
+                )
+                with flag_override(replacement, ["struct", "readonly"], False):
+                    for source_key in source_content:
+                        normalized_key = replacement._validate_and_normalize_key(
+                            source_key
+                        )
+                        _deep_update_subnode(subnode, source_key, new_element_type)
+                        entry_value = subnode._get_node(source_key)
+                        assert isinstance(entry_value, Node)
+                        replacement[normalized_key] = entry_value
+                node._wrap_value_and_set(key, replacement, Any)
+                subnode = node._get_node(key)
+                assert isinstance(subnode, Node)
+
+    if (
+        not _is_special(subnode)
+        and is_list_annotation(ref_type)
+        and isinstance(subnode, TupleConfig)
+    ):
+        replacement = ListConfig(
+            subnode._value(),
+            key=key,
+            parent=node,
+            flags=subnode._metadata.flags,
+        )
+        node._wrap_value_and_set(key, replacement, Any)
+        subnode = node._get_node(key)
+        assert isinstance(subnode, Node)
+    value_node_type_changed = (
+        isinstance(subnode, ValueNode)
+        and not isinstance(subnode, AnyNode)
+        and (is_primitive_type_annotation(ref_type) or is_literal_annotation(ref_type))
+        and get_type_hint(subnode) != value_type_hint
+    )
+    if value_node_type_changed:
+        _shallow_validate_type_hint(subnode, value_type_hint)
+
+    if (
         _is_special(subnode)
         or (isinstance(subnode, AnyNode) and ref_type is not Any)
+        or (is_tuple_annotation(ref_type) and isinstance(subnode, ListConfig))
         or (
             is_union_annotation(value_type_hint)
             and (
@@ -1145,12 +1227,15 @@ def _deep_update_subnode(node: BaseContainer, key: Any, value_type_hint: Any) ->
                 or get_type_hint(subnode) != value_type_hint
             )
         )
+        or value_node_type_changed
     ):
-        # Ensure dynamically typed or special values are wrapped in a Node
-        # subclass that is compatible with the type hint.
-        node._wrap_value_and_set(key, subnode._value(), value_type_hint)
+        # Rebuild values that need a different node subclass for the type hint.
+        flags = subnode._metadata.flags or {}
+        with flag_override(node, list(flags), list(flags.values())):
+            node._wrap_value_and_set(key, subnode._value(), value_type_hint)
         subnode = node._get_node(key)
         assert isinstance(subnode, Node)
+        subnode._set_flag(list(flags), list(flags.values()))
     _deep_update_type_hint(subnode, value_type_hint)
 
 
@@ -1164,6 +1249,16 @@ def _shallow_validate_type_hint(node: Node, type_hint: Any) -> None:
     is_optional, ref_type = _resolve_optional(type_hint)
 
     vk = get_value_kind(node)
+
+    if is_literal_annotation(ref_type) and isinstance(node, ValueNode):
+        _node_wrap(
+            value=node._value(),
+            parent=None,
+            key=node._key(),
+            ref_type=ref_type,
+            is_optional=is_optional,
+        )
+        return
 
     if node._is_none():
         if not is_optional:
@@ -1203,6 +1298,10 @@ def _shallow_validate_type_hint(node: Node, type_hint: Any) -> None:
             )
             return
         elif is_structured_config(ref_type) and isinstance(node, DictConfig):
+            if not issubclass(node._metadata.object_type, ref_type):
+                raise ValidationError(
+                    f"{node._metadata.object_type} is not a subclass of {ref_type}"
+                )
             return
         elif is_dict_annotation(ref_type) and isinstance(node, DictConfig):
             return
