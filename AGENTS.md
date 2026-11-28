@@ -80,6 +80,18 @@ When asked to create a reproduction for an issue, place files under `temp/`:
 
 ## Verification
 
+### Keep tests conservative and proportional
+
+- Add the smallest test set that protects the changed behavior and its realistic risks. Check existing coverage first.
+- Each new test or parameter case must cover a distinct contract, boundary, or known regression. Prefer representative cases over exhaustive combinations.
+- Avoid Cartesian-product matrices unless the interaction between their dimensions is itself a concrete risk. Count generated cases when assessing test growth.
+- Consolidate review regressions with existing tests when clear. Do not retain a separate test for every review comment by default.
+- Keep setup, fixtures, helpers, and assertions proportionate too. Do not hide a large matrix inside loops or replace simple tests with a test framework.
+- Do not duplicate coverage of unchanged library behavior or mirror implementation details. Explain and reduce unusually broad additions before expanding them further.
+- Preserve required coverage and meaningful failure and security checks; meet those requirements with focused cases rather than speculative breadth.
+
+### Required checks
+
 - For any new or changed functionality, test it in two layers:
   - run relevant unit tests with `pytest path/to/test_file.py`
   - run the broader suite with `nox` or `pytest` to ensure no regressions

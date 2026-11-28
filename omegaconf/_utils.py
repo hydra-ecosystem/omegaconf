@@ -27,7 +27,11 @@ from ._missing import (
     _EscapedMissing,
     _has_missing_spelling,
 )
-from ._validation_context import _schema_validation
+from ._validation_context import (
+    _literal_input,
+    _literal_input_context,
+    _schema_validation,
+)
 from .errors import (
     ConfigIndexError,
     ConfigTypeError,
@@ -749,12 +753,15 @@ def get_structured_config_data(
     allow_objects: bool | None = None,
     parent: "BaseContainer | None" = None,
 ) -> dict[str, Any]:
-    if is_dataclass(obj):
-        return get_dataclass_data(obj, allow_objects=allow_objects, parent=parent)
-    elif is_attr_class(obj):
-        return get_attr_data(obj, allow_objects=allow_objects, parent=parent)
-    else:
-        raise ValueError(f"Unsupported type: {type(obj).__name__}")
+    # Raw structured caller values are rejected by from_input. Values built
+    # here belong to the schema, including defaults created during merge.
+    with _literal_input_context(False if _literal_input.get() is not None else None):
+        if is_dataclass(obj):
+            return get_dataclass_data(obj, allow_objects=allow_objects, parent=parent)
+        elif is_attr_class(obj):
+            return get_attr_data(obj, allow_objects=allow_objects, parent=parent)
+        else:
+            raise ValueError(f"Unsupported type: {type(obj).__name__}")
 
 
 class ValueKind(Enum):
@@ -864,6 +871,7 @@ def _is_missing_literal(value: Any) -> bool:
     # Uses literal '???' instead of the MISSING const for performance reasons.
     return (
         isinstance(value, str)
+        and not isinstance(value, Enum)
         and not isinstance(value, _EscapedMissing)
         and value == "???"
     )
@@ -921,8 +929,10 @@ def _is_interpolation(v: Any, strict_interpolation_validation: bool = False) -> 
     if isinstance(v, Node):
         v = v._value()
 
-    if isinstance(v, str) and _is_interpolation_string(
-        v, strict_interpolation_validation
+    if (
+        isinstance(v, str)
+        and not isinstance(v, Enum)
+        and _is_interpolation_string(v, strict_interpolation_validation)
     ):
         return True
     return False
