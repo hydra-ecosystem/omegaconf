@@ -1,27 +1,27 @@
 {
   "generated_on": "2026-11-28",
-  "generated_at": "2026-11-28T10:39:51Z",
+  "generated_at": "2026-11-28T14:08:43Z",
   "repo": "hydra-ecosystem/omegaconf",
   "summary": {
-    "open_total": 33,
+    "open_total": 34,
     "by_category": [
       {
         "category": "Bug",
         "emoji": "🐛",
         "count": 1,
-        "percentage": 3.0
+        "percentage": 2.9
       },
       {
         "category": "Enhancement",
         "emoji": "✨",
-        "count": 28,
-        "percentage": 84.8
+        "count": 29,
+        "percentage": 85.3
       },
       {
         "category": "Documentation",
         "emoji": "📄",
         "count": 1,
-        "percentage": 3.0
+        "percentage": 2.9
       },
       {
         "category": "Question",
@@ -33,13 +33,13 @@
         "category": "Refactor",
         "emoji": "🔧",
         "count": 2,
-        "percentage": 6.1
+        "percentage": 5.9
       },
       {
         "category": "Build",
         "emoji": "🏗️",
         "count": 1,
-        "percentage": 3.0
+        "percentage": 2.9
       }
     ],
     "by_status": [
@@ -61,7 +61,7 @@
       {
         "status": "not started",
         "emoji": "⬜",
-        "count": 31
+        "count": 32
       },
       {
         "status": "done",
@@ -537,6 +537,19 @@
       "url": "https://github.com/hydra-ecosystem/omegaconf/issues/1447"
     },
     {
+      "number": 1459,
+      "title": "Support literal strings in structured validation and to_object()",
+      "category": "Enhancement",
+      "category_emoji": "✨",
+      "status": "not started",
+      "status_emoji": "⬜",
+      "prs": [],
+      "created": "2026-11-26",
+      "updated": "2026-11-26",
+      "labels": [],
+      "url": "https://github.com/hydra-ecosystem/omegaconf/issues/1459"
+    },
+    {
       "number": 1462,
       "title": "Structured merges discard explicit descendant node flags",
       "category": "Enhancement",
@@ -563,17 +576,21 @@
       "url": "https://github.com/hydra-ecosystem/omegaconf/issues/1464"
     },
     {
-      "number": 1459,
-      "title": "Support literal strings in structured validation and to_object()",
+      "number": 1466,
+      "title": "Migrate ANTLR parsing to Lark (future major release)",
       "category": "Enhancement",
       "category_emoji": "✨",
       "status": "not started",
       "status_emoji": "⬜",
       "prs": [],
-      "created": "2026-11-26",
-      "updated": "2026-11-26",
-      "labels": [],
-      "url": "https://github.com/hydra-ecosystem/omegaconf/issues/1459"
+      "created": "2026-11-28",
+      "updated": "2026-11-28",
+      "labels": [
+        "enhancement",
+        "antlr",
+        "dependencies"
+      ],
+      "url": "https://github.com/hydra-ecosystem/omegaconf/issues/1466"
     },
     {
       "number": 459,
@@ -944,6 +961,13 @@
     }
   ],
   "updates": [
+    {
+      "ts": "2026-11-28T14:08:43Z",
+      "kind": "new",
+      "issue": 1466,
+      "issue_url": "https://github.com/hydra-ecosystem/omegaconf/issues/1466",
+      "title": "Migrate ANTLR parsing to Lark (future major release)"
+    },
     {
       "ts": "2026-11-28T10:39:51Z",
       "kind": "pr",
@@ -2652,14 +2676,6 @@
       "issue": 750,
       "issue_url": "https://github.com/omry/omegaconf/issues/750",
       "title": "ListConfig.insert() mishandles negative and out-of-range indices"
-    },
-    {
-      "ts": "2026-07-22T09:18:21Z",
-      "kind": "pr",
-      "issue": 1340,
-      "issue_url": "https://github.com/omry/omegaconf/issues/1340",
-      "title": "Inherited flag cache is not invalidated through container-valued unions",
-      "detail": "linked #1348"
     }
   ]
 }

@@ -21,7 +21,7 @@
     "1460": "2026-11-27",
     "459": "2026-09-25"
   },
-  "generated_at": "2026-11-28T10:39:51Z",
+  "generated_at": "2026-11-28T14:08:43Z",
   "issues": {
     "1024": {
       "category": "Enhancement",
@@ -369,6 +369,20 @@
       "status": "not started",
       "title": "Move container-specific construction out of UnionNode",
       "updated_at": "2026-11-27T12:58:52Z"
+    },
+    "1466": {
+      "category": "Enhancement",
+      "created_at": "2026-11-28T14:07:23Z",
+      "labels": [
+        "antlr",
+        "dependencies",
+        "enhancement"
+      ],
+      "pr_numbers": [],
+      "state": "OPEN",
+      "status": "not started",
+      "title": "Migrate ANTLR parsing to Lark (future major release)",
+      "updated_at": "2026-11-28T14:07:23Z"
     },
     "537": {
       "category": "Refactor",
