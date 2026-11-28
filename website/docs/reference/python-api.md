@@ -19,6 +19,9 @@ and return value.
 
 ### Types and helpers
 
+For recursive value escaping, key-path escaping and input-to-object validation,
+see the [experimental helpers](./experimental).
+
 Use [`MISSING`](./python-api/omegaconf#missing) to mark a mandatory missing value,
 [`II`](./python-api/omegaconf#ii) and [`SI`](./python-api/omegaconf#si) for
 interpolations, and [`open_dict`](./python-api/omegaconf#open_dict),

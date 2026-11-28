@@ -5,3 +5,7 @@ from contextvars import ContextVar
 _schema_validation: ContextVar[bool | None] = ContextVar(
     "schema_validation", default=None
 )
+
+# None disables the from_input scope. False blocks interpolation while building
+# schema defaults; True also escapes strings produced by caller conversion.
+_literal_input: ContextVar[bool | None] = ContextVar("literal_input", default=None)

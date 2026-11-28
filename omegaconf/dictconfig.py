@@ -15,6 +15,7 @@ if TYPE_CHECKING:
     from typing_extensions import Self
 
 from ._conversion_warnings import _conversion_warnings, _warn_on_conversion
+from ._missing import _EscapedMissing
 from ._utils import (
     _DEFAULT_MARKER_,
     ValueKind,
@@ -820,6 +821,8 @@ class DictConfig(BaseContainer, MutableMapping[Any, Any]):
                 v = OmegaConf.to_object(node)
             else:
                 v = node._value()
+                if isinstance(v, _EscapedMissing):
+                    v = str(v)
 
             if k in init_field_aliases:
                 init_field_items[init_field_aliases[k]] = v
