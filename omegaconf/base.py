@@ -31,7 +31,7 @@ from ._utils import (
     type_hint_contains_none_literal,
     type_str,
 )
-from ._validation_context import _schema_validation
+from ._validation_context import _literal_input, _schema_validation
 from .errors import (
     ConfigKeyError,
     ConfigTypeError,
@@ -881,6 +881,10 @@ class Container(Box):
         resolved_node_cache: dict[int, "Node"] | None = None,
     ) -> "Node":
         """A node interpolation is of the form `${foo.bar}`"""
+        if _literal_input.get() is not None:
+            raise InterpolationResolutionError(
+                "Active interpolations are disabled in from_input"
+            )
         original_inter_key = (
             inter_key.raw if isinstance(inter_key, NodeInterpolationKey) else inter_key
         )
@@ -932,6 +936,8 @@ class Container(Box):
         inter_args: tuple[Any, ...],
         inter_args_str: tuple[str, ...],
     ) -> Any:
+        if _literal_input.get() is not None:
+            raise InterpolationResolutionError("Resolvers are disabled in from_input")
         from omegaconf import OmegaConf
         from omegaconf._utils import (
             _is_missing_literal,
@@ -1601,8 +1607,8 @@ class UnionNode(Box):
         return res
 
 
-def _copy_with_parent(node: Node) -> Node:
-    """Copy a writable private graph, retaining only copied ancestor context."""
+def _copy_with_parent(node: Node, *, preserve_readonly: bool = False) -> Node:
+    """Copy a private graph, retaining only copied ancestor context."""
     chain = [node]
     while (parent := chain[-1]._get_parent()) is not None:
         chain.append(parent)
@@ -1635,7 +1641,8 @@ def _copy_with_parent(node: Node) -> Node:
         assert isinstance(result, Box)
         child._set_parent(result)
         result = child
-    for cloned in memo.values():
-        if isinstance(cloned, Node):
-            cloned._set_flag("readonly", False)
+    if not preserve_readonly:
+        for cloned in memo.values():
+            if isinstance(cloned, Node):
+                cloned._set_flag("readonly", False)
     return result

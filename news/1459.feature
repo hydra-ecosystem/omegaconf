@@ -1,0 +1,1 @@
+Add experimental, non-mutating key and recursive value escape/unescape helpers and ``from_input()`` to validate caller data and construct structured objects. ``from_input()`` passes caller text through as literal data: interpolation and resolver expressions are not evaluated, and ``???`` is not treated as a missing value.
