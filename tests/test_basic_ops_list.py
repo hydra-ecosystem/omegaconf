@@ -812,6 +812,38 @@ def test_index_with_range() -> None:
 
 
 @mark.parametrize(
+    "start, end",
+    [
+        (None, None),
+        (0, None),
+        (-1, None),
+        (-2, None),
+        (0, 100),
+        (-100, 2),
+        (1, 3),
+    ],
+)
+def test_index_normalizes_bounds_like_list(start: int | None, end: int | None) -> None:
+    src = [1, 2, 3, 2]
+    lst = OmegaConf.create(src)
+    assert lst.index(2, start, end) == src.index(
+        2, 0 if start is None else start, len(src) if end is None else end
+    )
+
+
+@mark.parametrize(
+    "start, end",
+    [(2, 3), (3, 3), (None, 1), (-1, -1), (100, None), (None, -100)],
+)
+def test_index_missing_item_raises_value_error(
+    start: int | None, end: int | None
+) -> None:
+    lst = OmegaConf.create([1, 2, 3, 2])
+    with raises(ValueError):
+        lst.index(2, start, end)
+
+
+@mark.parametrize(
     "src, item, count",
     [([], 10, 0), ([10], 10, 1), ([10, 2, 10], 10, 2), ([10, 2, 10], None, 0)],
 )
