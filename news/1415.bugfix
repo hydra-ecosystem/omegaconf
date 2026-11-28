@@ -1,0 +1,1 @@
+Bound retained interpolation syntax-cache memory per thread. Configure or disable syntax caching with ``OmegaConf.control.set_syntax_cache_max_bytes()`` and inspect the setting with ``OmegaConf.control.get_syntax_cache_max_bytes()``.
