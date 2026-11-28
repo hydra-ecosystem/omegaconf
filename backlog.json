@@ -1,6 +1,6 @@
 {
-  "generated_on": "2026-11-27",
-  "generated_at": "2026-11-27T20:46:23Z",
+  "generated_on": "2026-11-28",
+  "generated_at": "2026-11-28T06:54:14Z",
   "repo": "hydra-ecosystem/omegaconf",
   "summary": {
     "open_total": 33,
@@ -117,10 +117,6 @@
       "status": "community PR",
       "status_emoji": "🤝",
       "prs": [
-        {
-          "number": 1457,
-          "url": "https://github.com/hydra-ecosystem/omegaconf/pull/1457"
-        },
         {
           "number": 1458,
           "url": "https://github.com/hydra-ecosystem/omegaconf/pull/1458"
@@ -953,6 +949,14 @@
     }
   ],
   "updates": [
+    {
+      "ts": "2026-11-28T06:54:14Z",
+      "kind": "pr",
+      "issue": 1456,
+      "issue_url": "https://github.com/hydra-ecosystem/omegaconf/issues/1456",
+      "title": "ListConfig.index() raises AssertionError for negative or out-of-range start/end",
+      "detail": "unlinked #1457"
+    },
     {
       "ts": "2026-11-27T17:18:49Z",
       "kind": "pr",
@@ -2665,18 +2669,6 @@
       "issue_url": "https://github.com/omry/omegaconf/issues/750",
       "title": "ListConfig.insert() mishandles negative and out-of-range indices",
       "detail": "linked #1346"
-    },
-    {
-      "ts": "2026-07-22T08:59:41Z",
-      "kind": "status",
-      "issue": 750,
-      "issue_url": "https://github.com/omry/omegaconf/issues/750",
-      "title": "ListConfig.insert() mishandles negative and out-of-range indices",
-      "detail": "not started → in progress",
-      "pr": {
-        "number": 1346,
-        "url": "https://github.com/omry/omegaconf/pull/1346"
-      }
     }
   ]
 }
