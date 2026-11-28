@@ -21,7 +21,7 @@
     "1460": "2026-11-27",
     "459": "2026-09-25"
   },
-  "generated_at": "2026-11-28T14:08:43Z",
+  "generated_at": "2026-11-28T16:04:47Z",
   "issues": {
     "1024": {
       "category": "Enhancement",
@@ -310,13 +310,11 @@
       "labels": [
         "enhancement"
       ],
-      "pr_numbers": [
-        "1453"
-      ],
+      "pr_numbers": [],
       "state": "OPEN",
-      "status": "community PR",
+      "status": "not started",
       "title": "Support tuple literals in OmegaConf.from_dotlist()",
-      "updated_at": "2026-11-10T04:29:06Z"
+      "updated_at": "2026-11-28T15:18:48Z"
     },
     "1447": {
       "category": "Enhancement",
@@ -382,7 +380,7 @@
       "state": "OPEN",
       "status": "not started",
       "title": "Migrate ANTLR parsing to Lark (future major release)",
-      "updated_at": "2026-11-28T14:07:23Z"
+      "updated_at": "2026-11-28T14:50:38Z"
     },
     "537": {
       "category": "Refactor",
